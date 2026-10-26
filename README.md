@@ -1,6 +1,8 @@
 # Fazendinha WJ
 
-Versão 0.2 — Bosque Vivo. Protótipo original de um jogo de fazenda para navegador, pensado para celular e PC. O nome do cenário, **Vale do Sossego**, é provisório.
+Versão 0.3 — Vida no Campo. Protótipo original de um jogo de fazenda para navegador, pensado para celular e PC. O nome do cenário, **Vale do Sossego**, é provisório.
+
+A versão 0.3 adiciona galinhas detalhadas e animadas, ferramentas na mão, poses de cavar e regar, água com gotas e respingos e compras consecutivas sem fechar a venda. Veja `docs/ANIMACOES.md`.
 
 ## Jogar e desenvolver
 
@@ -56,6 +58,10 @@ A versão 0.2 integra sprites originais gerados para o projeto, personagem com 1
 - `art-source/`: atlas e prompts da geração.
 - `docs/ARTE.md`: direção de arte e limites da versão 0.2.
 - `src/main.ts`: cena Phaser, movimento, colisões e interface.
+- `src/action-timing.ts`: sincronização e confirmação única das ações.
+- `src/work-effects.ts`: água, respingos, umidade e torrões.
+- `src/chickens.ts`: animação e movimento das galinhas.
+- `public/assets/v3/`: animações de trabalho e animais.
 - `src/style.css`: interface e controles responsivos.
 - `tests/farm.test.ts`: testes das regras econômicas e persistência.
 - `docs/ESTUDO_REFERENCIA.md`: levantamento do jogo analisado e proposta inicial.

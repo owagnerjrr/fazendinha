@@ -2,6 +2,11 @@ import Phaser from 'phaser';
 import './style.css';
 import './theme.css';
 import { createArt } from './art';
+import { ACTIONS, ActionClock, actionFrame, DIRECTION_ROW, isPouring, type Direction } from './action-timing';
+import { ChickenFlock } from './chickens';
+import { WorkEffects } from './work-effects';
+import nozzleAnchors from '../public/assets/v3/anchors.json';
+import { choosePlot } from './interaction';
 import { act, buySeeds, CROPS, makeFarm, remaining, restoreFarm, SAVE_KEY, sellAll, type Crop, type Farm, type Tool } from './farm';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -12,6 +17,7 @@ let selected: Crop = 'carrot', tool: Tool = 'hand', modal = false, toastTimer: R
 let joystick = { x: 0, y: 0 };
 let scene: FarmScene;
 const dialog = $<HTMLDialogElement>('panel');
+let activePanel: 'shop' | 'other' = 'other';
 function toast(message: string) { $('toast').textContent = message; $('toast').classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => $('toast').classList.remove('show'), 4200); }
 function save() {
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(farm)); $('save-status').textContent = 'Salvo neste aparelho'; $('save-dot').style.background = '#c4da8c'; }
@@ -25,14 +31,16 @@ function syncUI() {
   if (farm.questClaimed) { $('quest-text').textContent = 'A primeira colheita a gente nunca esquece.'; $('quest-progress').textContent = 'Capítulo concluído'; $('quest-fill').style.width = '100%'; }
   document.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach(b => { const active = b.dataset.tool === tool; b.classList.toggle('active', active); b.setAttribute('aria-pressed', String(active)); });
 }
-function setTool(next: Tool) { tool = next; syncUI(); const hints: Record<Tool, string> = { hand: 'Toque em uma planta pronta para colher.', hoe: 'Toque em um canteiro para preparar a terra.', seed: `Toque na terra preparada para plantar ${CROPS[selected].name.toLowerCase()}.`, water: 'Toque na plantação para regar e iniciar o crescimento.' }; $('hint').textContent = hints[tool]; }
-function openPanel(title: string, content: string) {
-  modal = true; scene?.cancelMovement(); $('panel-eyebrow').textContent = 'UM POUQUINHO DE VIDA NO CAMPO'; $('panel-content').innerHTML = `<h2>${title}</h2>${content}`; document.body.classList.add('modal-open'); dialog.showModal();
+function setTool(next: Tool) { tool = next; syncUI(); scene?.onToolSelected(); const hints: Record<Tool, string> = { hand: 'Toque em uma planta pronta para colher.', hoe: 'Toque em um canteiro para preparar a terra.', seed: `Toque na terra preparada para plantar ${CROPS[selected].name.toLowerCase()}.`, water: 'Toque na plantação para regar e iniciar o crescimento.' }; $('hint').textContent = hints[tool]; }
+function openPanel(title: string, content: string, kind: 'shop' | 'other' = 'other') {
+  activePanel = kind; scene?.finishCurrentWork();
+  modal = true; scene?.cancelMovement(); $('panel-eyebrow').textContent = 'UM POUQUINHO DE VIDA NO CAMPO'; $('panel-content').innerHTML = `<h2>${title}</h2>${content}`; document.body.classList.add('modal-open'); if (!dialog.open) dialog.showModal();
 }
 function closePanel() { dialog.close(); }
-dialog.addEventListener('close', () => { modal = false; document.body.classList.remove('modal-open'); joystick = { x: 0, y: 0 }; $('joystick-knob').style.transform = ''; });
+dialog.addEventListener('close', () => { modal = false; activePanel = 'other'; document.body.classList.remove('modal-open'); joystick = { x: 0, y: 0 }; $('joystick-knob').style.transform = ''; });
 $('close-panel').onclick = closePanel;
-dialog.addEventListener('click', e => { if (e.target === dialog) { const r = dialog.getBoundingClientRect(); if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) closePanel(); } });
+dialog.addEventListener('cancel', e => { if (activePanel === 'shop') e.preventDefault(); });
+dialog.addEventListener('click', e => { if (activePanel !== 'shop' && e.target === dialog) { const r = dialog.getBoundingClientRect(); if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) closePanel(); } });
 function inventory() {
   const total = cropKeys.reduce((n, c) => n + farm.inventory[c] * CROPS[c].sellPrice, 0);
   openPanel('Seu celeiro', `<p>O que você cultiva com carinho fica guardado aqui. Venda a colheita e prepare o próximo plantio.</p>${cropKeys.map(c => `<div class="item-row"><span class="emoji"><img src="/assets/v2/${c}-3.png" alt="" /></span><div class="item-info"><strong>${CROPS[c].name}</strong><small>${farm.inventory[c]} unidades · ${CROPS[c].sellPrice} moedas cada</small></div><strong>${farm.inventory[c] * CROPS[c].sellPrice} ◉</strong></div>`).join('')}<button class="primary" id="sell-all" ${total === 0 ? 'disabled' : ''}>Vender colheita · ${total} moedas</button><p class="quiet-note">As sementes ficam guardadas separadamente e não são vendidas.</p>`);
@@ -43,22 +51,44 @@ function seedPanel() {
   document.querySelectorAll<HTMLButtonElement>('[data-crop]').forEach(b => b.onclick = () => { selected = b.dataset.crop as Crop; setTool('seed'); closePanel(); });
 }
 function shop() {
-  openPanel('A venda do vale', `<p>Um novo plantio começa por aqui. Cada pacote tem 5 sementes.</p>${cropKeys.map(c => `<div class="item-row"><span class="emoji"><img src="/assets/v2/${c}-3.png" alt="" /></span><div class="item-info"><strong>${CROPS[c].name}</strong><small>5 sementes · ${farm.seeds[c]} guardadas</small></div><button class="buy-seeds" data-buy="${c}" ${farm.coins < CROPS[c].seedPrice * 5 ? 'disabled' : ''}>${CROPS[c].seedPrice * 5} ◉</button></div>`).join('')}<p class="quiet-note">Saldo: ${farm.coins} moedas. Na colheita, cada canteiro rende 3 unidades.</p>`);
-  document.querySelectorAll<HTMLButtonElement>('[data-buy]').forEach(b => b.onclick = () => { const c = b.dataset.buy as Crop; if (buySeeds(farm, c)) { save(); syncUI(); closePanel(); toast(`+5 sementes de ${CROPS[c].name.toLowerCase()}.`); } });
+  openPanel('A venda do vale', `<p>Escolha seus pacotes. Cada um vem com 5 sementes; você pode fazer várias compras antes de sair.</p>${cropKeys.map(c => `<div class="item-row"><span class="emoji"><img src="/assets/v2/${c}-3.png" alt="" /></span><div class="item-info"><strong>${CROPS[c].name}</strong><small id="shop-owned-${c}">5 sementes · ${farm.seeds[c]} guardadas</small></div><button class="buy-seeds" data-buy="${c}" aria-label="Comprar 5 sementes de ${CROPS[c].name.toLowerCase()} por ${CROPS[c].seedPrice * 5} moedas">${CROPS[c].seedPrice * 5} ◉</button></div>`).join('')}<div class="shop-wallet">Seu saldo <strong id="shop-balance"></strong></div><p id="shop-feedback" class="shop-feedback" role="status" aria-live="polite">A venda permanece aberta até você clicar em sair.</p><button class="primary" id="leave-shop">Sair da venda</button>`, 'shop');
+  const updateShop = (message?: string) => {
+    $('shop-balance').textContent = `${farm.coins.toLocaleString('pt-BR')} moedas`;
+    for (const c of cropKeys) {
+      $(`shop-owned-${c}`).textContent = `5 sementes · ${farm.seeds[c]} guardadas`;
+      document.querySelector<HTMLButtonElement>(`[data-buy="${c}"]`)!.disabled = farm.coins < CROPS[c].seedPrice * 5;
+    }
+    if (message) $('shop-feedback').textContent = message;
+  };
+  document.querySelectorAll<HTMLButtonElement>('[data-buy]').forEach(b => b.onclick = () => {
+    const c = b.dataset.buy as Crop;
+    if (buySeeds(farm, c)) { save(); syncUI(); updateShop(`Compra feita! +5 sementes de ${CROPS[c].name.toLowerCase()}. Pode continuar escolhendo.`); }
+    else updateShop('Você não tem moedas suficientes para este pacote.');
+  });
+  $('leave-shop').onclick = closePanel;
+  updateShop();
 }
-function help() { openPanel('Um novo começo', `<p>Bem-vindo ao Vale do Sossego. Aqui, um pedacinho de terra já é uma boa história.</p><ol class="controls-list"><li>Escolha a <b>enxada</b> e toque em um canteiro.</li><li>Selecione <b>Plantar</b> e use uma semente.</li><li>Use o <b>regador</b>. O crescimento começa agora.</li><li>Quando estiver pronta, use a <b>mão</b> para colher.</li><li>Abra o <b>celeiro</b> e venda sua colheita.</li></ol><p>No PC, ande com <b>WASD ou setas</b>. Use <b>E</b> para agir perto de um canteiro ou da venda. As teclas <b>1–4</b> trocam a ferramenta. Você também pode clicar no terreno para caminhar. No celular, use o joystick ou toque no mapa.</p><p class="quiet-note"><b>Protótipo 0.2:</b> o progresso é salvo somente neste navegador. Não há conta online, feira ou sincronização entre aparelhos ainda. As plantas regadas continuam crescendo ao fechar. A arte é provisória e original do projeto.</p><button class="primary" id="start-playing">Vamos plantar</button>`); $('start-playing').onclick = closePanel; }
+function help() { openPanel('Um novo começo', `<p>Bem-vindo ao Vale do Sossego. Aqui, um pedacinho de terra já é uma boa história.</p><ol class="controls-list"><li>Escolha a <b>enxada</b> e toque em um canteiro.</li><li>Selecione <b>Plantar</b> e use uma semente.</li><li>Use o <b>regador</b>. O crescimento começa agora.</li><li>Quando estiver pronta, use a <b>mão</b> para colher.</li><li>Abra o <b>celeiro</b> e venda sua colheita.</li></ol><p>No PC, ande com <b>WASD ou setas</b>. Use <b>E</b> para agir perto de um canteiro ou da venda. As teclas <b>1–4</b> trocam a ferramenta. Você também pode clicar no terreno para caminhar. No celular, use o joystick ou toque no mapa.</p><p class="quiet-note"><b>Protótipo 0.3:</b> o progresso é salvo somente neste navegador. Não há conta online, feira ou sincronização entre aparelhos ainda. As plantas regadas continuam crescendo ao fechar. A arte é provisória e original do projeto.</p><button class="primary" id="start-playing">Vamos plantar</button>`); $('start-playing').onclick = closePanel; }
 $('inventory').onclick = inventory; $('seed-choice').onclick = seedPanel; $('help').onclick = help;
 document.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach(b => b.onclick = () => setTool(b.dataset.tool as Tool));
 
+type Destination = { x: number; y: number; field?: number; shop?: boolean; barn?: boolean };
+type Work = { clock: ActionClock; field: number; crop: Crop };
 type Field = { x: number; y: number; soil: Phaser.GameObjects.Image; plant: Phaser.GameObjects.Image; label: Phaser.GameObjects.Text; id: number };
 class FarmScene extends Phaser.Scene {
   player!: Phaser.Physics.Arcade.Sprite;
   fields: Field[] = [];
   keys!: Record<string, Phaser.Input.Keyboard.Key>;
   obstacles!: Phaser.Physics.Arcade.StaticGroup;
-  destination: { x: number; y: number; field?: number; shop?: boolean; barn?: boolean } | null = null;
+  destination: Destination | null = null;
+  queuedDestination: Destination | null = null;
+  activeWork: Work | null = null;
+  actor!: Phaser.GameObjects.Sprite;
+  heldTool!: Phaser.GameObjects.Image;
+  flock!: ChickenFlock;
+  workEffects!: WorkEffects;
   focusedField: number | null = null;
-  direction = 'down'; walking = false; lastPaint = 0; lastSave = 0; stuck = 0; previous = { x: 0, y: 0 };
+  direction: Direction = 'down'; walking = false; lastPaint = 0; lastSave = 0; stuck = 0; previous = { x: 0, y: 0 };
   ripples: Phaser.GameObjects.Rectangle[] = [];
   occluders: Phaser.GameObjects.Image[] = [];
   vignette!: Phaser.GameObjects.Image;
@@ -72,6 +102,8 @@ class FarmScene extends Phaser.Scene {
       this.load.image(key, `/assets/v2/${key}.png`);
     }
     this.load.image('farmer-v2', '/assets/v2/farmer.png');
+    this.load.spritesheet('chickens-v3', '/assets/v3/chickens.png', { frameWidth: 40, frameHeight: 40 });
+    for (const kind of ['hoe', 'water']) this.load.spritesheet(`${kind}-actions`, `/assets/v3/farmer-${kind}.png`, { frameWidth: 96, frameHeight: 112 });
     for (const key of ['hoe', 'seed', 'water']) this.load.image(`tool-${key}`, `/assets/v2/icon-${key}.png`);
     for (const crop of cropKeys) for (let stage = 0; stage < 4; stage++) this.load.image(`${crop}-${stage}`, `/assets/v2/${crop}-${stage}.png`);
   }
@@ -113,10 +145,7 @@ class FarmScene extends Phaser.Scene {
     for (const [i, [x, y]] of [[300, 600], [330, 790], [535, 860], [940, 940], [1150, 540], [530, 280], [877, 260]].entries()) { shadow(x + 9, y - 2, 95, 24); this.occluders.push(this.add.image(x, y, `tree${i % 3}`).setOrigin(.5, 1).setScale(1.2).setDepth(y)); block(x, y - 9, 18, 20); }
     for (let i = 0; i < 6; i++) { const x = 350 + i * 48; this.add.image(x, 762, 'fence').setOrigin(.5, 1).setDepth(762); block(x, 755, 46, 9); }
     for (let i = 0; i < 4; i++) { this.add.image(350 + i * 48, 889, 'fence').setOrigin(.5, 1).setDepth(889); block(350 + i * 48, 882, 46, 9); }
-    for (let i = 0; i < 4; i++) {
-      const chicken = this.add.image(380 + i * 48, 810 + i % 2 * 38, 'chicken').setOrigin(.5, 1).setDepth(820 + i % 2 * 38).setScale(1.2);
-      this.tweens.add({ targets: chicken, x: chicken.x + 12, y: chicken.y - 6, duration: 1600 + i * 300, yoyo: true, repeat: -1, ease: 'Sine.easeInOut', delay: i * 400 });
-    }
+    this.flock = new ChickenFlock(this);
     for (let i = 0; i < 27; i++) { const x = rand!.between(250, 1190), y = rand!.between(280, 980); if (x > 580 && x < 900 && y < 620 || Math.abs(y - 640) < 50 || Math.abs(x - 750) < 50) continue; this.add.image(x, y, i % 3 ? 'bush' : 'rock').setOrigin(.5, 1).setDepth(y); }
     // River bank is solid, with one crossing at the bridge.
     block(1280, 420, 28, 760); block(1280, 1020, 28, 280);
@@ -127,6 +156,10 @@ class FarmScene extends Phaser.Scene {
     this.playerShadow = this.add.ellipse(farm.player.x, farm.player.y - 3, 30, 12, 0x1e3029, .38).setDepth(3);
     this.player = this.physics.add.sprite(farm.player.x, farm.player.y, 'farmer-down-0').setScale(1.08).setOrigin(.5, 1).setCollideWorldBounds(true);
     this.player.body!.setSize(14, 10).setOffset(17, 52);
+    this.player.setVisible(false);
+    this.actor = this.add.sprite(this.player.x, this.player.y - 2, 'farmer-down-0').setOrigin(.5, 62 / 64).setScale(1.08);
+    this.heldTool = this.add.image(this.player.x, this.player.y, 'tool-hoe').setVisible(false);
+    this.workEffects = new WorkEffects(this);
     this.physics.add.collider(this.player, this.obstacles);
     // A saved spawn may become blocked if a future map changes.
     const inObstacle = this.obstacles.getChildren().some(o => { const b = (o as Phaser.GameObjects.Zone).body as Phaser.Physics.Arcade.StaticBody; return Phaser.Geom.Rectangle.Contains(new Phaser.Geom.Rectangle(b.x - 10, b.y - 10, b.width + 20, b.height + 20), this.player.x, this.player.y - 5); });
@@ -152,19 +185,19 @@ class FarmScene extends Phaser.Scene {
       if (modal) return;
       const p = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
       const field = this.fields.find(f => Math.abs(f.x - p.x) < 20 && Math.abs(f.y - p.y) < 20);
-      if (field) { this.destination = { x: field.x + 26, y: field.y + 30, field: field.id }; return; }
-      if (p.x > 930 && p.x < 1130 && p.y > 245 && p.y < 410) { this.destination = { x: 1030, y: 425, shop: true }; return; }
-      if (p.x > 960 && p.x < 1140 && p.y > 620 && p.y < 820) { this.destination = { x: 1050, y: 840, barn: true }; return; }
-      this.destination = { x: Phaser.Math.Clamp(p.x, 105, 1480), y: Phaser.Math.Clamp(p.y, 190, 1070) }; this.stuck = 0;
+      if (field) { this.navigate({ x: field.x + 42, y: field.y + 10, field: field.id }); return; }
+      if (p.x > 930 && p.x < 1130 && p.y > 245 && p.y < 410) { this.navigate({ x: 1030, y: 425, shop: true }); return; }
+      if (p.x > 960 && p.x < 1140 && p.y > 620 && p.y < 820) { this.navigate({ x: 1050, y: 840, barn: true }); return; }
+      this.navigate({ x: Phaser.Math.Clamp(p.x, 105, 1480), y: Phaser.Math.Clamp(p.y, 190, 1070) });
     });
-    window.addEventListener('blur', () => this.cancelMovement());
-    window.addEventListener('pagehide', () => { farm.player = { x: this.player.x, y: this.player.y }; save(); });
-    document.addEventListener('visibilitychange', () => { if (document.hidden) { this.cancelMovement(); farm.player = { x: this.player.x, y: this.player.y }; save(); } else this.paintFields(); });
+    window.addEventListener('blur', () => { this.finishCurrentWork(); this.cancelMovement(); });
+    window.addEventListener('pagehide', () => { this.finishCurrentWork(); farm.player = { x: this.player.x, y: this.player.y }; save(); });
+    document.addEventListener('visibilitychange', () => { if (document.hidden) { this.finishCurrentWork(); this.cancelMovement(); farm.player = { x: this.player.x, y: this.player.y }; save(); } else this.paintFields(); });
     this.paintFields(); syncUI();
     this.time.delayedCall(1400, () => toast('Bem-vindo ao vale! Escolha a enxada para começar.'));
   }
   resize() { this.cameras.main.setZoom(this.scale.width < 600 ? 1.1 : this.scale.height < 560 ? .9 : 1.08); this.vignette?.setDisplaySize(this.scale.width, this.scale.height); }
-  cancelMovement() { this.destination = null; this.player?.setVelocity(0); this.input.keyboard?.resetKeys(); joystick.x = 0; joystick.y = 0; }
+  cancelMovement() { this.destination = null; this.queuedDestination = null; this.player?.setVelocity(0); this.input.keyboard?.resetKeys(); joystick.x = 0; joystick.y = 0; }
   paintFields() {
     const now = Date.now();
     for (const field of this.fields) {
@@ -179,34 +212,91 @@ class FarmScene extends Phaser.Scene {
       if (left === null) field.label.setText('REGAR');
     }
   }
+  navigate(target: Destination) {
+    this.stuck = 0;
+    if (this.activeWork) this.queuedDestination = target;
+    else this.destination = target;
+  }
+  onToolSelected() {
+    if (!this.heldTool) return;
+    this.tweens.killTweensOf(this.heldTool);
+    this.heldTool.setAlpha(.4);
+    this.tweens.add({ targets: this.heldTool, alpha: 1, duration: 120 });
+  }
   useField(id: number) {
+    if (this.activeWork) return;
     this.focusedField = id;
-    const result = act(farm, id, tool, selected); toast(result.message);
-    if (result.ok) {
-      save(); syncUI(); this.paintFields();
-      const f = this.fields[id]; const color = result.harvest ? 0xf2d27e : tool === 'water' ? 0xbedbdd : 0xe3d4a5;
-      for (let i = 0; i < 8; i++) { const particle = this.add.rectangle(f.x + Phaser.Math.Between(-10, 10), f.y, 3, 3, color).setDepth(1600); this.tweens.add({ targets: particle, y: f.y - 25 - Math.random() * 20, x: particle.x + Phaser.Math.Between(-12, 12), alpha: 0, duration: 650, onComplete: () => particle.destroy() }); }
-      this.tweens.add({ targets: this.player, angle: 8, duration: 80, yoyo: true });
-      if (tool !== 'hand') {
-        const icon = this.add.image(this.player.x + 18, this.player.y - 24, `tool-${tool}`).setScale(.75).setDepth(this.player.depth + 1).setAngle(-30);
-        this.tweens.add({ targets: icon, angle: 55, alpha: .15, duration: 260, onComplete: () => icon.destroy() });
-      }
+    const check = act(structuredClone(farm), id, tool, selected);
+    if (!check.ok) { toast(check.message); return; }
+    const field = this.fields[id];
+    const dx = field.x - this.player.x, dy = field.y - this.player.y;
+    this.direction = Math.abs(dx) > 12 ? dx < 0 ? 'left' : 'right' : dy > 0 ? 'down' : 'up';
+    this.activeWork = { clock: new ActionClock(tool, this.time.now), field: id, crop: selected };
+    this.player.setVelocity(0);
+  }
+  commitWork(work: Work) {
+    const result = act(farm, work.field, work.clock.tool, work.crop);
+    toast(result.message);
+    if (!result.ok) return;
+    save(); syncUI(); this.paintFields();
+    const target = this.fields[work.field];
+    if (work.clock.tool === 'hoe') this.workEffects.dirt(target);
+    else if (work.clock.tool === 'water') this.workEffects.wetSoil(target);
+    else if (result.harvest) this.workEffects.harvest(target);
+  }
+  finishCurrentWork() {
+    const work = this.activeWork;
+    if (!work) return;
+    work.clock.commitIfDue(this.time.now, () => this.commitWork(work), true);
+    this.activeWork = null;
+  }
+  updateWork(time: number) {
+    const work = this.activeWork;
+    if (!work) return;
+    const elapsed = work.clock.elapsed(time);
+    if (work.clock.tool === 'water' && isPouring(elapsed)) {
+      const frame = actionFrame('water', elapsed);
+      const nozzle = nozzleAnchors.water[this.direction][frame];
+      this.workEffects.pour({ x: this.player.x + (nozzle.x - 48) * 1.08, y: this.player.y - 2 + (nozzle.y - 100) * 1.08 }, this.fields[work.field], time);
     }
+    work.clock.commitIfDue(time, () => this.commitWork(work));
+    if (work.clock.finished(time)) { this.activeWork = null; this.destination = this.queuedDestination; this.queuedDestination = null; }
+  }
+  renderAvatar(time: number, moving: boolean) {
+    const work = this.activeWork, equipped = work?.clock.tool ?? tool;
+    const usingActionSheet = (equipped === 'hoe' || equipped === 'water') && (!moving || !!work);
+    let bob = moving ? Math.sin(time / 65) * .65 : 0;
+    if (usingActionSheet) {
+      const frame = work ? actionFrame(equipped, work.clock.elapsed(time)) : 0;
+      this.actor.setTexture(`${equipped}-actions`, DIRECTION_ROW[this.direction] * 4 + frame).setOrigin(.5, 100 / 112).setScale(1.08);
+    } else {
+      const frame = moving ? Math.floor(time / 130) % 4 : 0;
+      const bend = work ? Math.sin(Math.min(1, work.clock.elapsed(time) / ACTIONS[equipped].duration) * Math.PI) : 0;
+      this.actor.setTexture(`farmer-${this.direction}-${frame}`).setOrigin(.5, 62 / 64).setScale(1.08, 1.08 * (1 - bend * .07));
+      bob += bend * 1.5;
+    }
+    this.actor.setPosition(this.player.x, this.player.y - 2 + bob).setDepth(this.player.y);
+    this.heldTool.setVisible(equipped !== 'hand' && !usingActionSheet);
+    if (equipped !== 'hand' && !usingActionSheet) {
+      const side = this.direction === 'left' ? -1 : 1;
+      this.heldTool.setTexture(`tool-${equipped}`).setOrigin(side < 0 ? .7 : .3, .4).setFlipX(side < 0).setScale(equipped === 'hoe' ? .8 : .68).setAngle(side * (moving ? 10 + Math.sin(time / 130) * 7 : 10));
+      this.heldTool.setPosition(this.player.x + side * 13, this.player.y - 22 + bob).setDepth(this.player.y + (this.direction === 'up' ? -.5 : .5));
+    }
+    this.playerShadow.setPosition(this.player.x + 1, this.player.y - 3);
   }
   interactNearest() {
-    if (modal) return;
+    if (modal || this.activeWork) return;
     if (Phaser.Math.Distance.Between(this.player.x, this.player.y, 1030, 425) < 85) { shop(); return; }
     if (Phaser.Math.Distance.Between(this.player.x, this.player.y, 1050, 840) < 85) { inventory(); return; }
-    // Keep successive tool actions on the plot just clicked while standing
-    // beside it, instead of accidentally selecting the neighboring plot.
-    const focused = this.focusedField === null ? null : this.fields[this.focusedField];
-    const nearest = focused && Phaser.Math.Distance.Between(this.player.x, this.player.y, focused.x, focused.y) < 60 ? focused : [...this.fields].sort((a, b) => Phaser.Math.Distance.Between(this.player.x, this.player.y, a.x, a.y) - Phaser.Math.Distance.Between(this.player.x, this.player.y, b.x, b.y))[0];
-    if (Phaser.Math.Distance.Between(this.player.x, this.player.y, nearest.x, nearest.y) < 65) this.useField(nearest.id);
+    const target = choosePlot(farm, this.fields, this.player, tool, selected, this.focusedField);
+    if (target !== null) this.useField(target);
     else toast('Aproxime-se de um canteiro, da venda ou do celeiro.');
   }
   update(time: number, delta: number) {
     if (!this.player) return;
-    if (modal) { this.player.setVelocity(0); return; }
+    this.flock.update(time, delta); this.workEffects.update(time);
+    if (this.activeWork) { this.updateWork(time); this.player.setVelocity(0); this.renderAvatar(time, false); return; }
+    if (modal) { this.player.setVelocity(0); this.renderAvatar(time, false); return; }
     let vx = Number(this.keys.D.isDown || this.keys.RIGHT.isDown) - Number(this.keys.A.isDown || this.keys.LEFT.isDown) + joystick.x;
     let vy = Number(this.keys.S.isDown || this.keys.DOWN.isDown) - Number(this.keys.W.isDown || this.keys.UP.isDown) + joystick.y;
     if (vx || vy) this.destination = null;
@@ -223,8 +313,8 @@ class FarmScene extends Phaser.Scene {
     const length = Math.hypot(vx, vy), speed = 160;
     this.player.setVelocity(length ? vx / Math.max(1, length) * speed : 0, length ? vy / Math.max(1, length) * speed : 0);
     if (length > .1) { this.direction = Math.abs(vx) > Math.abs(vy) ? vx < 0 ? 'left' : 'right' : vy < 0 ? 'up' : 'down'; }
-    this.player.setTexture(`farmer-${this.direction}-${length > .1 ? Math.floor(time / 130) % 4 : 0}`).setDepth(this.player.y);
-    this.playerShadow.setPosition(this.player.x + 1, this.player.y - 3);
+    this.renderAvatar(time, length > .1);
+    if (this.activeWork) this.player.setVelocity(0);
     this.aim.setVisible(!!this.destination); if (this.destination) this.aim.setPosition(this.destination.x, this.destination.y);
     for (const tree of this.occluders) { const hidden = Math.abs(this.player.x - tree.x) < 60 && this.player.y < tree.y && this.player.y > tree.y - tree.displayHeight + 20; tree.setAlpha(hidden ? .42 : 1); }
     const pointer = this.input.activePointer, world = this.cameras.main.getWorldPoint(pointer.x, pointer.y);

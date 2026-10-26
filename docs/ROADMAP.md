@@ -1,5 +1,15 @@
 # Caminho do projeto
 
+## 0.3 — Vida no Campo
+
+- [x] Galinhas com sprites detalhados, caminhada, pausa e bicadas.
+- [x] Enxada e regador equipados na mão e poses de trabalho em quatro direções.
+- [x] Animação de cavar com impacto e torrões.
+- [x] Rega com bico, gotas, respingos e umidade no solo.
+- [x] Aplicação da ação no momento visual correto e proteção contra repetição.
+- [x] Compras consecutivas na venda sem fechar a janela.
+- [x] Fontes de animação, preparo e testes de sincronização versionados.
+
 ## 0.1 — Ciclo jogável
 
 - [x] Personagem animado em quatro direções, câmera e colisões.
