@@ -1,3 +1,5 @@
+> Atualização 0.4: a conta online, as regras e o escopo social estão descritos em [ONLINE.md](ONLINE.md). As descrições abaixo da versão local 0.3 são históricas.
+
 # Validação da versão 0.1
 
 ## Correção 0.3.1 — encaixe dos equipamentos

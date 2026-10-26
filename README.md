@@ -1,3 +1,5 @@
+> Atualização 0.4: a conta online, as regras e o escopo social estão descritos em [ONLINE.md](docs/ONLINE.md). As descrições abaixo da versão local 0.3 são históricas.
+
 # Fazendinha WJ
 
 Versão 0.3.1 — Vida no Campo. Protótipo original de um jogo de fazenda para navegador, pensado para celular e PC. O nome do cenário, **Vale do Sossego**, é provisório.

@@ -1,4 +1,9 @@
 import Phaser from 'phaser';
+import { CloudFarm } from './cloud';
+import { setupOnlineUI } from './online-ui';
+import { ECONOMY, levelOf, applyCommand, type OnlineFarm } from './online-rules';
+import { findPath, type Point } from './pathfinding';
+import { setupInstall } from './pwa';
 import './style.css';
 import './theme.css';
 import { createArt } from './art';
@@ -10,6 +15,8 @@ import { choosePlot } from './interaction';
 import { act, buySeeds, CROPS, makeFarm, remaining, restoreFarm, SAVE_KEY, sellAll, type Crop, type Farm, type Tool } from './farm';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
+const cloud = new CloudFarm();
+let onlineLoading = false;
 const cropKeys = Object.keys(CROPS) as Crop[];
 let farm: Farm;
 try { farm = restoreFarm(localStorage.getItem(SAVE_KEY)); } catch { farm = makeFarm(); }
@@ -20,14 +27,19 @@ const dialog = $<HTMLDialogElement>('panel');
 let activePanel: 'shop' | 'other' = 'other';
 function toast(message: string) { $('toast').textContent = message; $('toast').classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => $('toast').classList.remove('show'), 4200); }
 function save() {
+  if (cloud.active || onlineLoading) return;
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(farm)); $('save-status').textContent = 'Salvo neste aparelho'; $('save-dot').style.background = '#c4da8c'; }
   catch { $('save-status').textContent = 'Não foi possível salvar'; $('save-dot').style.background = '#e69f69'; }
 }
 function syncUI() {
+  $('account').textContent = cloud.active ? 'Minha conta' : 'Conta';
+  $('online-bar').hidden = !cloud.active;
+  if (cloud.active) { const f=farm as OnlineFarm; $('progression').textContent = `Nível ${levelOf(f.xp)} · Energia ${f.energy}/${ECONOMY.energyMax}`; }
   $('coins').textContent = farm.coins.toLocaleString('pt-BR');
   $('seed-name').textContent = CROPS[selected].name; $('seed-icon').innerHTML = `<img src="/assets/v2/${selected}-3.png" alt="" />`;
   $('seed-count').textContent = `${farm.seeds[selected]} sementes`;
   $('bag-count').textContent = String(cropKeys.reduce((sum, c) => sum + farm.inventory[c], 0));
+  if (!farm.questClaimed) { $('quest-text').textContent='Colha sua primeira plantação.'; $('quest-progress').textContent='0 / 1 colheita'; $('quest-fill').style.width='0%'; }
   if (farm.questClaimed) { $('quest-text').textContent = 'A primeira colheita a gente nunca esquece.'; $('quest-progress').textContent = 'Capítulo concluído'; $('quest-fill').style.width = '100%'; }
   document.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach(b => { const active = b.dataset.tool === tool; b.classList.toggle('active', active); b.setAttribute('aria-pressed', String(active)); });
 }
@@ -42,15 +54,17 @@ $('close-panel').onclick = closePanel;
 dialog.addEventListener('cancel', e => { if (activePanel === 'shop') e.preventDefault(); });
 dialog.addEventListener('click', e => { if (activePanel !== 'shop' && e.target === dialog) { const r = dialog.getBoundingClientRect(); if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) closePanel(); } });
 function inventory() {
+  if(onlineLoading){toast('Aguarde a conexão com sua conta.');return;}
   const total = cropKeys.reduce((n, c) => n + farm.inventory[c] * CROPS[c].sellPrice, 0);
   openPanel('Seu celeiro', `<p>O que você cultiva com carinho fica guardado aqui. Venda a colheita e prepare o próximo plantio.</p>${cropKeys.map(c => `<div class="item-row"><span class="emoji"><img src="/assets/v2/${c}-3.png" alt="" /></span><div class="item-info"><strong>${CROPS[c].name}</strong><small>${farm.inventory[c]} unidades · ${CROPS[c].sellPrice} moedas cada</small></div><strong>${farm.inventory[c] * CROPS[c].sellPrice} ◉</strong></div>`).join('')}<button class="primary" id="sell-all" ${total === 0 ? 'disabled' : ''}>Vender colheita · ${total} moedas</button><p class="quiet-note">As sementes ficam guardadas separadamente e não são vendidas.</p>`);
-  $('sell-all').onclick = () => { const sold = sellAll(farm); save(); syncUI(); closePanel(); toast(`Colheita vendida: +${sold} moedas. Bom trabalho!`); };
+  $('sell-all').onclick = async () => { if (cloud.active) { const b=$<HTMLButtonElement>('sell-all');b.disabled=true;try { const r=await cloud.command({type:'sell'});closePanel();toast(r.message!); }catch(e){toast((e as Error).message);b.disabled=false;} return; } const sold = sellAll(farm); save(); syncUI(); closePanel(); toast(`Colheita vendida: +${sold} moedas. Bom trabalho!`); };
 }
 function seedPanel() {
   openPanel('O que vamos plantar?', `<p>Você já começa com sementes das três culturas. Os tempos são curtos para experimentar este protótipo.</p>${cropKeys.map(c => `<div class="item-row"><span class="emoji"><img src="/assets/v2/${c}-3.png" alt="" /></span><div class="item-info"><strong>${CROPS[c].name}</strong><small>${farm.seeds[c]} sementes · cresce em ${CROPS[c].seconds}s após regar</small></div><button class="choose-seed" data-crop="${c}">${selected === c ? 'Selecionada' : 'Escolher'}</button></div>`).join('')}`);
   document.querySelectorAll<HTMLButtonElement>('[data-crop]').forEach(b => b.onclick = () => { selected = b.dataset.crop as Crop; setTool('seed'); closePanel(); });
 }
 function shop() {
+  if(onlineLoading){toast('Aguarde a conexão com sua conta.');return;}
   openPanel('A venda do vale', `<p>Escolha seus pacotes. Cada um vem com 5 sementes; você pode fazer várias compras antes de sair.</p>${cropKeys.map(c => `<div class="item-row"><span class="emoji"><img src="/assets/v2/${c}-3.png" alt="" /></span><div class="item-info"><strong>${CROPS[c].name}</strong><small id="shop-owned-${c}">5 sementes · ${farm.seeds[c]} guardadas</small></div><button class="buy-seeds" data-buy="${c}" aria-label="Comprar 5 sementes de ${CROPS[c].name.toLowerCase()} por ${CROPS[c].seedPrice * 5} moedas">${CROPS[c].seedPrice * 5} ◉</button></div>`).join('')}<div class="shop-wallet">Seu saldo <strong id="shop-balance"></strong></div><p id="shop-feedback" class="shop-feedback" role="status" aria-live="polite">A venda permanece aberta até você clicar em sair.</p><button class="primary" id="leave-shop">Sair da venda</button>`, 'shop');
   const updateShop = (message?: string) => {
     $('shop-balance').textContent = `${farm.coins.toLocaleString('pt-BR')} moedas`;
@@ -60,15 +74,16 @@ function shop() {
     }
     if (message) $('shop-feedback').textContent = message;
   };
-  document.querySelectorAll<HTMLButtonElement>('[data-buy]').forEach(b => b.onclick = () => {
+  document.querySelectorAll<HTMLButtonElement>('[data-buy]').forEach(b => b.onclick = async () => {
     const c = b.dataset.buy as Crop;
+    if (cloud.active) { document.querySelectorAll<HTMLButtonElement>('[data-buy]').forEach(x=>x.disabled=true);try { const r=await cloud.command({type:'buy',crop:c});updateShop(r.message); }catch(e){updateShop((e as Error).message);}return; }
     if (buySeeds(farm, c)) { save(); syncUI(); updateShop(`Compra feita! +5 sementes de ${CROPS[c].name.toLowerCase()}. Pode continuar escolhendo.`); }
     else updateShop('Você não tem moedas suficientes para este pacote.');
   });
   $('leave-shop').onclick = closePanel;
   updateShop();
 }
-function help() { openPanel('Um novo começo', `<p>Bem-vindo ao Vale do Sossego. Aqui, um pedacinho de terra já é uma boa história.</p><ol class="controls-list"><li>Escolha a <b>enxada</b> e toque em um canteiro.</li><li>Selecione <b>Plantar</b> e use uma semente.</li><li>Use o <b>regador</b>. O crescimento começa agora.</li><li>Quando estiver pronta, use a <b>mão</b> para colher.</li><li>Abra o <b>celeiro</b> e venda sua colheita.</li></ol><p>No PC, ande com <b>WASD ou setas</b>. Use <b>E</b> para agir perto de um canteiro ou da venda. As teclas <b>1–4</b> trocam a ferramenta. Você também pode clicar no terreno para caminhar. No celular, use o joystick ou toque no mapa.</p><p class="quiet-note"><b>Protótipo 0.3:</b> o progresso é salvo somente neste navegador. Não há conta online, feira ou sincronização entre aparelhos ainda. As plantas regadas continuam crescendo ao fechar. A arte é provisória e original do projeto.</p><button class="primary" id="start-playing">Vamos plantar</button>`); $('start-playing').onclick = closePanel; }
+function help() { openPanel('Um novo começo', `<p>Bem-vindo ao Vale do Sossego. Aqui, um pedacinho de terra já é uma boa história.</p><ol class="controls-list"><li>Escolha a <b>enxada</b> e toque em um canteiro.</li><li>Selecione <b>Plantar</b> e use uma semente.</li><li>Use o <b>regador</b>. O crescimento começa agora.</li><li>Quando estiver pronta, use a <b>mão</b> para colher.</li><li>Abra o <b>celeiro</b> e venda sua colheita.</li></ol><p>No PC, ande com <b>WASD ou setas</b>. Use <b>E</b> para agir perto de um canteiro ou da venda. As teclas <b>1–4</b> trocam a ferramenta. Você também pode clicar no terreno para caminhar. No celular, use o joystick ou toque no mapa.</p><p class="quiet-note"><b>Versão de testes 0.4:</b> use Conta para criar sua fazenda online e continuar em outro aparelho. Sem entrar, você joga no teste local deste navegador. A conta libera níveis, energia, expansão, amigos e feira. Compras e colheitas online precisam de conexão. As plantas regadas continuam crescendo ao fechar. A arte é provisória e original do projeto.</p><button class="primary" id="start-playing">Vamos plantar</button>`); $('start-playing').onclick = closePanel; }
 $('inventory').onclick = inventory; $('seed-choice').onclick = seedPanel; $('help').onclick = help;
 document.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach(b => b.onclick = () => setTool(b.dataset.tool as Tool));
 
@@ -80,6 +95,7 @@ class FarmScene extends Phaser.Scene {
   fields: Field[] = [];
   keys!: Record<string, Phaser.Input.Keyboard.Key>;
   obstacles!: Phaser.Physics.Arcade.StaticGroup;
+  route: Point[] = [];
   destination: Destination | null = null;
   queuedDestination: Destination | null = null;
   activeWork: Work | null = null;
@@ -195,11 +211,13 @@ class FarmScene extends Phaser.Scene {
     this.time.delayedCall(1400, () => toast('Bem-vindo ao vale! Escolha a enxada para começar.'));
   }
   resize() { this.cameras.main.setZoom(this.scale.width < 600 ? 1.1 : this.scale.height < 560 ? .9 : 1.08); this.vignette?.setDisplaySize(this.scale.width, this.scale.height); }
-  cancelMovement() { this.destination = null; this.queuedDestination = null; this.player?.setVelocity(0); this.input.keyboard?.resetKeys(); joystick.x = 0; joystick.y = 0; }
+  cancelMovement() { this.destination = null; this.route = []; this.queuedDestination = null; this.player?.setVelocity(0); this.input.keyboard?.resetKeys(); joystick.x = 0; joystick.y = 0; }
   paintFields() {
-    const now = Date.now();
+    const now = Date.now() + (cloud.active ? cloud.offset : 0);
     for (const field of this.fields) {
       const plot = farm.plots[field.id];
+      if (cloud.active && field.id >= (farm as OnlineFarm).unlockedPlots) { field.soil.setTexture('plot-raw').setAlpha(.35);field.plant.setVisible(false);field.label.setText('BLOQUEADO').setVisible(true);continue; }
+      field.soil.setAlpha(1);
       field.soil.setTexture(plot.wateredAt !== null ? 'plot-wet' : plot.tilled ? 'plot-tilled' : 'plot-raw');
       field.plant.setVisible(!!plot.crop);
       if (!plot.crop) { field.label.setVisible(false); continue; }
@@ -212,13 +230,17 @@ class FarmScene extends Phaser.Scene {
   }
   navigate(target: Destination) {
     this.stuck = 0;
-    if (this.activeWork) this.queuedDestination = target;
-    else this.destination = target;
+    if (this.activeWork) { this.queuedDestination = target; return; }
+    const obstacles = this.obstacles.getChildren().map(o => { const b=(o as Phaser.GameObjects.Zone).body as Phaser.Physics.Arcade.StaticBody;return {x:b.x,y:b.y,width:b.width,height:b.height}; });
+    this.route = findPath(this.player,target,obstacles);
+    if (!this.route.length) { this.destination=null;toast('Não encontrei passagem até esse ponto. Toque em um espaço livre.');return; }
+    this.destination = target;
   }
   useField(id: number) {
-    if (this.activeWork) return;
+    if (this.activeWork || onlineLoading || cloud.busy) return;
+    if (Math.hypot(this.player.x-this.fields[id].x,this.player.y-this.fields[id].y)>70) {toast('Aproxime-se do canteiro.');return;}
     this.focusedField = id;
-    const check = act(structuredClone(farm), id, tool, selected);
+    const check = cloud.active ? applyCommand(structuredClone(farm) as OnlineFarm,{type:'work',plot:id,tool,crop:selected},Date.now()+cloud.offset) : act(structuredClone(farm), id, tool, selected);
     if (!check.ok) { toast(check.message); return; }
     const field = this.fields[id];
     const dx = field.x - this.player.x, dy = field.y - this.player.y;
@@ -227,6 +249,10 @@ class FarmScene extends Phaser.Scene {
     this.player.setVelocity(0);
   }
   commitWork(work: Work) {
+    if (cloud.active) {
+      void cloud.command({type:'work',plot:work.field,tool:work.clock.tool,crop:work.crop},{x:this.player.x,y:this.player.y}).then(result=>{toast(result.message!);const target=this.fields[work.field];if(work.clock.tool==='hoe')this.workEffects.dirt(target);else if(work.clock.tool==='water')this.workEffects.wetSoil(target);else if(result.harvest)this.workEffects.harvest(target);}).catch(error=>toast(error.message));
+      return;
+    }
     const result = act(farm, work.field, work.clock.tool, work.crop);
     toast(result.message);
     if (!result.ok) return;
@@ -252,7 +278,7 @@ class FarmScene extends Phaser.Scene {
       this.workEffects.pour({ x: this.player.x + (nozzle.x - 48) * 1.08, y: this.player.y - 2 + (nozzle.y - 100) * 1.08 }, this.fields[work.field], time);
     }
     work.clock.commitIfDue(time, () => this.commitWork(work));
-    if (work.clock.finished(time)) { this.activeWork = null; this.destination = this.queuedDestination; this.queuedDestination = null; }
+    if (work.clock.finished(time)) { this.activeWork = null; const next=this.queuedDestination;this.queuedDestination=null;if(next)this.navigate(next); }
   }
   renderAvatar(time: number, moving: boolean) {
     const work = this.activeWork, equipped = work?.clock.tool ?? tool;
@@ -288,15 +314,16 @@ class FarmScene extends Phaser.Scene {
     if (modal) { this.player.setVelocity(0); this.renderAvatar(time, false); return; }
     let vx = Number(this.keys.D.isDown || this.keys.RIGHT.isDown) - Number(this.keys.A.isDown || this.keys.LEFT.isDown) + joystick.x;
     let vy = Number(this.keys.S.isDown || this.keys.DOWN.isDown) - Number(this.keys.W.isDown || this.keys.UP.isDown) + joystick.y;
-    if (vx || vy) this.destination = null;
+    if (vx || vy) { this.destination = null;this.route=[]; }
     else if (this.destination) {
-      const target = this.destination, dx = target.x - this.player.x, dy = target.y - this.player.y, distance = Math.hypot(dx, dy);
+      const target = this.destination,waypoint=this.route[0]??target,dx=waypoint.x-this.player.x,dy=waypoint.y-this.player.y,distance=Math.hypot(dx,dy);
+      if(distance<8&&this.route.length>1){this.route.shift();return;}
       if (distance < 8) {
         this.destination = null;
         if (target.field !== undefined) this.useField(target.field); else if (target.shop) shop(); else if (target.barn) inventory();
       } else { vx = dx / distance; vy = dy / distance; }
       if (Math.hypot(this.player.x - this.previous.x, this.player.y - this.previous.y) < .15) this.stuck += delta; else this.stuck = 0;
-      if (this.stuck > 700) { this.destination = null; this.stuck = 0; toast('Tem algo no caminho. Contorne usando as setas ou o joystick.'); }
+      if (this.stuck > 700) { this.destination = null; this.stuck = 0; this.route=[];toast('O caminho ficou bloqueado. Toque em outro ponto.'); }
     }
     this.previous = { x: this.player.x, y: this.player.y };
     const length = Math.hypot(vx, vy), speed = 160;
@@ -310,7 +337,7 @@ class FarmScene extends Phaser.Scene {
     const hover = this.fields.find(f => Math.abs(f.x - world.x) < 20 && Math.abs(f.y - world.y) < 20);
     this.select.setVisible(!!hover); if (hover) this.select.setPosition(hover.x, hover.y);
     if (time - this.lastPaint > 500) { this.paintFields(); this.lastPaint = time; }
-    if (time - this.lastSave > 5000) { farm.player = { x: this.player.x, y: this.player.y }; save(); this.lastSave = time; }
+    if (time - this.lastSave > 5000) { if (cloud.active) { const p={x:this.player.x,y:this.player.y};if(!cloud.busy&&Math.hypot(p.x-farm.player.x,p.y-farm.player.y)>20)void cloud.command({type:'position'},p).catch(()=>{}); } else {farm.player={x:this.player.x,y:this.player.y};save();} this.lastSave=time; }
   }
 }
 
@@ -322,6 +349,14 @@ stick.addEventListener('pointermove', moveStick);
 const releaseStick = (e: PointerEvent) => { if (e.pointerId !== stickPointer) return; stickPointer = null; joystick = { x: 0, y: 0 }; knob.style.transform = ''; };
 stick.addEventListener('pointerup', releaseStick); stick.addEventListener('pointercancel', releaseStick); stick.addEventListener('lostpointercapture', releaseStick);
 $('touch-action').onclick = () => scene?.interactNearest();
+cloud.onStatus=message=>{ $('save-status').textContent=message;$('save-dot').style.background=message.includes('sincronizado')?'#c4da8c':'#e69f69'; };
+cloud.onSnapshot=(snapshot,initial)=>{ farm=snapshot.farm;if(initial&&scene?.player){scene.finishCurrentWork();scene.cancelMovement();scene.player.setPosition(farm.player.x,farm.player.y);}syncUI();scene?.paintFields(); };
+setupOnlineUI(cloud,openPanel,closePanel,toast,()=>farm as OnlineFarm,()=>{farm=restoreFarm(localStorage.getItem(SAVE_KEY));scene?.cancelMovement();scene?.player.setPosition(farm.player.x,farm.player.y);scene?.paintFields();syncUI();save();});
+setupInstall(toast);
+if(localStorage.getItem('wj-cloud-session')) { onlineLoading=true;$('save-status').textContent='Conectando à sua conta…';void cloud.connect().then(ok=>{if(!ok){localStorage.removeItem('wj-cloud-session');toast('Entre novamente para abrir sua fazenda online.');}}).catch(()=>toast('Não foi possível abrir sua conta. Reconecte pelo botão Conta.')).finally(()=>{onlineLoading=false;}); }
+setInterval(()=>{if(!document.hidden)void cloud.refresh();},15000);
+window.addEventListener('online',()=>{if(cloud.active)void cloud.retryPending().then(()=>cloud.refresh()).catch(()=>{});});
+window.addEventListener('focus',()=>void cloud.refresh());
 syncUI();
 const game = new Phaser.Game({ type: Phaser.AUTO, parent: 'game', backgroundColor: '#92ae69', pixelArt: true, roundPixels: true, antialias: false, scale: { mode: Phaser.Scale.RESIZE, width: window.innerWidth, height: window.innerHeight }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [FarmScene], input: { activePointers: 3 }, render: { powerPreference: 'low-power' } });
 window.addEventListener('error', () => { $('save-status').textContent = 'Ocorreu um erro. Recarregue para continuar.'; });

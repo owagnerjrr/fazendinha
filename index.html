@@ -6,6 +6,8 @@
   <meta name="theme-color" content="#203c30" />
   <meta name="description" content="Uma pequena fazenda, um novo começo. Explore, plante e colha no protótipo original da Fazendinha WJ." />
   <title>Fazendinha WJ · Um novo começo</title>
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 </head>
 <body>
@@ -13,10 +15,11 @@
   <div id="game" aria-label="Mapa da fazenda"></div>
   <header class="hud">
     <div class="farm-card"><span class="farm-mark">WJ</span><div><span class="eyebrow">SEU CANTINHO NO CAMPO</span><h1>Fazendinha <span>WJ</span></h1><div class="season"><span class="sun">☀</span> Primavera <span>·</span> <span id="day-label">Um novo começo</span></div></div></div>
-    <div class="hud-right"><div class="balance"><span class="coin">●</span><div><span class="eyebrow">MOEDAS</span><strong id="coins">250</strong></div></div><button class="icon-button" id="help" aria-label="Como jogar">?</button></div>
+    <div class="hud-right"><div class="balance"><span class="coin">●</span><div><span class="eyebrow">MOEDAS</span><strong id="coins">250</strong></div></div><button class="account-button" id="account">Conta</button><button class="icon-button" id="help" aria-label="Como jogar">?</button></div>
   </header>
   <aside class="quest-card" id="quest-card"><span class="eyebrow">SEU PRIMEIRO CAPÍTULO</span><h2>Da terra à mesa</h2><p id="quest-text">Colha sua primeira plantação.</p><div class="quest-bottom"><span id="quest-progress">0 / 1 colheita</span><span>+75 moedas</span></div><div class="quest-track"><div id="quest-fill"></div></div></aside>
-  <div class="world-label"><span class="live-dot"></span> VALE DO SOSSEGO <small>equipamentos · v0.3.1</small></div>
+  <div class="world-label"><span class="live-dot"></span> VALE DO SOSSEGO <small>online · v0.4.0</small></div>
+  <div class="online-bar" id="online-bar" hidden><button id="progression">Nível 1 · Energia 80</button><button id="community">Amigos e feira</button><button id="install-app" hidden>Instalar</button></div>
   <div id="toast" role="status" aria-live="polite"></div>
   <div class="bottom-ui">
     <div class="interaction-hint" id="hint">Clique em um canteiro para caminhar até ele.</div>
