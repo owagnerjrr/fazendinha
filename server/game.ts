@@ -1,8 +1,10 @@
+import { LIFE_COMMANDS } from '../src/life-rules.js';
+import { dogProtects } from '../src/content.js';
 import { createHash } from 'node:crypto';
 import type { PoolClient } from 'pg';
 import { pool } from './db.js';
 import { applyCommand, newOnlineFarm, replenish, type OnlineFarm } from '../src/online-rules.js';
-import { CROPS, type Crop } from '../src/farm.js';
+import { upgradeFarm, hasPests, remaining, CROPS, type Crop } from '../src/farm.js';
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const codePattern = /^[A-Z0-9]{10}$/;
 export class GameError extends Error { constructor(message: string, public status = 400) { super(message); } }
@@ -11,10 +13,10 @@ export async function ensureFarm(id: string, name: string) {
   if(!account.rowCount) throw new GameError('Conta não encontrada.',401);
   await pool.query('INSERT INTO farms(user_id,name,state) VALUES($1,$2,$3) ON CONFLICT DO NOTHING',[id,String(account.rows[0].name || name).slice(0,40),newOnlineFarm(Date.now())]);
 }
-async function getFarm(db: PoolClient, id: string) { const { rows } = await db.query('SELECT * FROM farms WHERE user_id=$1 FOR UPDATE',[id]); if (!rows[0]) throw new GameError('Fazenda não encontrada.',404); return rows[0]; }
+async function getFarm(db: PoolClient, id: string) { const { rows } = await db.query('SELECT * FROM farms WHERE user_id=$1 FOR UPDATE',[id]); if (!rows[0]) throw new GameError('Fazenda não encontrada.',404); upgradeFarm(rows[0].state);return rows[0]; }
 export async function snapshot(id: string) {
   const { rows } = await pool.query('SELECT state,revision,public_code,name FROM farms WHERE user_id=$1',[id]);
-  const row = rows[0]; replenish(row.state,Date.now());
+  const row = rows[0]; upgradeFarm(row.state);replenish(row.state,Date.now());
   return { farm: row.state, revision: row.revision, code: row.public_code, name: row.name, now: Date.now() };
 }
 export async function community(id: string) {
@@ -26,7 +28,8 @@ export async function visit(id: string, code: string) {
   if (!codePattern.test(code)) throw new GameError('Código inválido.');
   const { rows } = await pool.query(`SELECT f.state,f.name,f.public_code AS code FROM farms f WHERE f.public_code=$2 AND EXISTS(SELECT 1 FROM friendships WHERE accepted AND ((sender=$1 AND recipient=f.user_id) OR (recipient=$1 AND sender=f.user_id)))`,[id,code]);
   if (!rows[0]) throw new GameError('A visita precisa de uma amizade aceita.',403);
-  return { plots: rows[0].state.plots, name: rows[0].name, code: rows[0].code, now: Date.now() };
+  upgradeFarm(rows[0].state);
+  return { avatar:rows[0].state.avatar, decorations:rows[0].state.decorations, socialRaids:rows[0].state.socialRaids,protected:dogProtects(rows[0].state.animals,Date.now())||rows[0].state.raidProtectionUntil>Date.now(), plots: rows[0].state.plots, name: rows[0].name, code: rows[0].code, now: Date.now() };
 }
 function move(row: any, position: any, now: number) {
   if (!position || !Number.isFinite(position.x) || !Number.isFinite(position.y) || position.x<100 || position.x>1480 || position.y<180 || position.y>1090) throw new GameError('Posição inválida.');
@@ -52,7 +55,7 @@ export async function mutate(user: string, body: any) {
     if(now-new Date(row.last_action_at).getTime()<150) throw new GameError('Aguarde um instante entre as ações.',429);
     const c=body.command;
     if(c.type==='position') move(row,body.position,now);
-    else if(['work','buy','sell','expand'].includes(c.type)) {
+    else if(['work','buy','sell','expand',...LIFE_COMMANDS].includes(c.type)) {
       if(c.type==='work') {
         move(row,body.position,now);
         if(!Number.isInteger(c.plot)||c.plot<0||c.plot>=24) throw new GameError('Canteiro inválido.');
@@ -70,9 +73,10 @@ export async function mutate(user: string, body: any) {
   } catch(error) { await db.query('ROLLBACK'); throw error; } finally { db.release(); }
 }
 async function social(db:PoolClient,user:string,row:any,c:any,now:number) {
-  if(c.type==='friend'||c.type==='accept'||c.type==='help') {
+  if(c.type==='friend'||c.type==='accept'||c.type==='help'||c.type==='steal') {
     if(typeof c.code!=='string'||!codePattern.test(c.code)) throw new GameError('Código inválido.');
     const target=(await db.query('SELECT * FROM farms WHERE public_code=$1',[c.code])).rows[0];
+    if(target)upgradeFarm(target.state);
     if(!target||target.user_id===user) throw new GameError('Escolha o código de outro jogador.');
     if(c.type==='friend') {
       const exists=await db.query('SELECT 1 FROM friendships WHERE (sender=$1 AND recipient=$2) OR (sender=$2 AND recipient=$1)',[user,target.user_id]);
@@ -89,13 +93,34 @@ async function social(db:PoolClient,user:string,row:any,c:any,now:number) {
     if(!allowed.rowCount) throw new GameError('Aceitem a amizade antes de ajudar.',403);
     if(!Number.isInteger(c.plot)||c.plot<0||c.plot>=target.state.unlockedPlots) throw new GameError('Canteiro inválido.');
     const plot=target.state.plots[c.plot];
-    if(!plot.crop||plot.wateredAt!==null) throw new GameError('Escolha uma plantação ainda sem água.');
-    const used=await db.query('SELECT 1 FROM farm_help WHERE helper=$1 AND owner=$2 AND day=current_date',[user,target.user_id]);
+    const day=new Date(now).toISOString().slice(0,10);
+    if(c.type==='steal'){
+      if(!row.state.socialRaids||!target.state.socialRaids)throw new GameError('Os dois amigos precisam ativar a brincadeira de roubo.');
+      if(dogProtects(target.state.animals,now)||target.state.raidProtectionUntil>now)throw new GameError('Esta fazenda está protegida. O cachorro está de olho!');
+      if(!plot.crop||remaining(plot,now)!==0||hasPests(plot,now)||(plot.stolen??0)>=1)throw new GameError('Escolha uma colheita madura e ainda não beliscada.');
+      const used=await db.query('SELECT 1 FROM farm_raids WHERE visitor=$1 AND owner=$2 AND day=$3',[user,target.user_id,day]);if(used.rowCount)throw new GameError('Você já pegou um produto deste amigo hoje.');
+      row.state.inventory[plot.crop as Crop]++;plot.stolen=(plot.stolen??0)+1;target.state.raidProtectionUntil=now+3600000;
+      await db.query('INSERT INTO farm_raids(visitor,owner,day,plot) VALUES($1,$2,$3,$4)',[user,target.user_id,day,c.plot]);
+      target.state.visitLog.unshift({name:row.name,action:'pegou 1 produto maduro',at:now});target.state.visitLog=target.state.visitLog.slice(0,20);
+      await db.query('UPDATE farms SET state=$2,revision=revision+1 WHERE user_id=$1',[target.user_id,target.state]);
+      return {ok:true,message:'Você pegou 1 produto! O amigo mantém pelo menos 2 e ganha 1 hora de proteção.'};
+    }
+    const used=await db.query('SELECT 1 FROM farm_help WHERE helper=$1 AND owner=$2 AND day=$3',[user,target.user_id,day]);
     if(used.rowCount) throw new GameError('Você já ajudou esta fazenda hoje. Volte amanhã!');
-    plot.wateredAt=now; row.state.xp+=5;
-    await db.query('INSERT INTO farm_help(helper,owner,plot) VALUES($1,$2,$3)',[user,target.user_id,c.plot]);
+    let action='regou uma plantação';
+    if(c.mode==='plant'){
+      if(plot.crop||!Object.hasOwn(CROPS,c.crop)||row.state.seeds[c.crop as Crop]<1)throw new GameError('Canteiro ocupado ou semente indisponível.');
+      row.state.seeds[c.crop as Crop]--;plot.tilled=true;plot.crop=c.crop;plot.wateredAt=null;plot.pestAt=null;plot.stolen=0;action='plantou uma semente';
+    }else if(c.mode==='clean'){
+      if(!hasPests(plot,now))throw new GameError('Esta plantação não tem pragas.');plot.pestAt=null;action='removeu pragas';
+    }else{
+      if(!plot.crop||plot.wateredAt!==null)throw new GameError('Escolha uma plantação ainda sem água.');plot.wateredAt=now;
+    }
+    row.state.xp+=5;
+    await db.query('INSERT INTO farm_help(helper,owner,day,plot) VALUES($1,$2,$3,$4)',[user,target.user_id,day,c.plot]);
+    target.state.visitLog.unshift({name:row.name,action,at:now});target.state.visitLog=target.state.visitLog.slice(0,20);
     await db.query('UPDATE farms SET state=$2,revision=revision+1 WHERE user_id=$1',[target.user_id,target.state]);
-    return {ok:true,message:'Plantação regada! +5 XP pela ajuda.'};
+    return {ok:true,message:'Ajuda concluída! +5 XP pela amizade.'};
   }
   if(c.type==='list') {
     if(!Object.hasOwn(CROPS,c.crop)||!Number.isInteger(c.quantity)||c.quantity<1||c.quantity>99||!Number.isInteger(c.price)||c.price<1||c.price>9999) throw new GameError('Oferta inválida.');

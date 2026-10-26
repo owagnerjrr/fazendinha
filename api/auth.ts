@@ -1,5 +1,5 @@
 // Same-origin auth transport keeps the session usable on mobile browsers that block third-party cookies.
-const allowed=new Set(['get-session','sign-up/email','sign-in/email','sign-out','token','email-otp/send-verification-otp','sign-in/email-otp']);
+const allowed=new Set(['get-session','sign-up/email','sign-in/email','sign-out','token','email-otp/send-verification-otp','sign-in/email-otp','sign-in/social','link-social','list-accounts']);
 async function proxy(request:Request) {
   const url=new URL(request.url),path=url.searchParams.get('path')??url.pathname.replace(/^\/api\/auth\/?/,'');
   url.searchParams.delete('path');
@@ -15,6 +15,7 @@ async function proxy(request:Request) {
     headers.set('Origin',url.origin);
     const upstream=await fetch(`${base}/${path}${url.search}`,{method:request.method,headers,body,redirect:'manual',signal:AbortSignal.timeout(12000)});
     const output=new Headers({'Cache-Control':'no-store','Content-Type':upstream.headers.get('content-type')??'application/json','X-Content-Type-Options':'nosniff'});
+    const redirect=upstream.headers.get('location');if(redirect)output.set('Location',redirect);
     const jwt=upstream.headers.get('set-auth-jwt');if(jwt)output.set('set-auth-jwt',jwt);
     for(const cookie of upstream.headers.getSetCookie())output.append('Set-Cookie',cookie.replace(/;\s*Domain=[^;]+/ig,''));
     return new Response(upstream.body,{status:upstream.status,headers:output});

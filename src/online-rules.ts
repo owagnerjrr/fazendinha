@@ -1,3 +1,5 @@
+import { applyLife, LIFE_COMMANDS } from './life-rules.js';
+import { upgradeFarm } from './farm.js';
 import { act, buySeeds, CROPS, makeFarm, sellAll, type Crop, type Farm, type Tool } from './farm.js';
 export const ECONOMY = { energyMax: 80, energyStepMs: 60000, harvestXp: 10, initialPlots: 12,
   expansions: [{ plots: 18, price: 200, level: 2 }, { plots: 24, price: 500, level: 3 }],
@@ -12,9 +14,10 @@ export function replenish(farm: OnlineFarm, now: number) {
   farm.energyAt = farm.energy === ECONOMY.energyMax ? now : farm.energyAt + units * ECONOMY.energyStepMs;
 }
 export function applyCommand(farm: OnlineFarm, input: unknown, now: number): { ok: boolean; message: string; harvest?: boolean } {
-  const c = input as Command;
+  const c = input as Command & Record<string,any>;
   if (!c || typeof c !== 'object') return { ok: false, message: 'Ação inválida.' };
-  replenish(farm, now);
+  upgradeFarm(farm);replenish(farm, now);
+  if((LIFE_COMMANDS as readonly string[]).includes(c.type))return applyLife(farm,c,now);
   if (c.type === 'work') {
     if (!Number.isInteger(c.plot) || c.plot < 0 || c.plot >= farm.unlockedPlots || !['hand', 'hoe', 'seed', 'water'].includes(c.tool) || !Object.hasOwn(CROPS, c.crop)) return { ok: false, message: 'Canteiro bloqueado ou ferramenta inválida.' };
     const cost = ECONOMY.toolEnergy[c.tool];

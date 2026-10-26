@@ -1,5 +1,17 @@
 # Caminho do projeto
 
+## Entregue na beta 0.5
+
+- [x] Botões Google/Gmail e vinculação pela identidade Neon (Google próprio para lançamento permanece pendente).
+- [x] Avatar inclusivo com cinco estilos, seis tons de pele, cores de cabelo e roupa.
+- [x] Flores, morango, milho e remoção de pragas.
+- [x] Compra, alimentação e produção de animais; cachorro protetor.
+- [x] Ajuda para plantar/limpar e roubo entre amigos participantes, com limites e histórico.
+- [x] Decoração cosmética original em oito espaços.
+- [x] Casa e celeiro caminháveis e nova venda com abas.
+
+Escopo detalhado e limites em [VIDA_NO_VALE.md](VIDA_NO_VALE.md).
+
 ## Entregue na beta 0.4
 
 - [x] Conta por e-mail e fazenda online independente por jogador.
@@ -29,7 +41,7 @@
 ## Próximas funcionalidades
 
 - [ ] Entrar e caminhar no mapa da fazenda de um amigo.
-- [ ] Animais produtivos, receitas, construções e decoração.
+- [ ] Receitas, construções livres e comércio de produtos animais na feira.
 - [ ] Áudio original/licenciado e animações adicionais.
 - [ ] Clima e estações com efeitos, pesca e exploração.
 - [ ] Presença e personagens andando juntos, com servidor de movimento e reconexão.

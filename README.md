@@ -1,10 +1,12 @@
 # Fazendinha WJ
 
-Versão 0.4.0 — beta online. Protótipo original de um jogo de fazenda para navegador, pensado para celular e PC. O nome do cenário, **Vale do Sossego**, é provisório.
+Versão 0.5.0 — Vida no Vale. Protótipo original de um jogo de fazenda para navegador, pensado para celular e PC. O nome do cenário, **Vale do Sossego**, é provisório.
 
 A correção 0.3.1 usa sprites completos para carregar enxada, sementes e regador, com o item desenhado junto às mãos durante a caminhada.
 
 A versão 0.3 adiciona galinhas detalhadas e animadas, ferramentas na mão, poses de cavar e regar, água com gotas e respingos e compras consecutivas sem fechar a venda. Veja `docs/ANIMACOES.md`.
+
+Veja [Vida no Vale](docs/VIDA_NO_VALE.md) para Google/Gmail, editor de avatar, pragas, novas culturas, animais produtivos, roubo consensual, decoração e interiores caminháveis.
 
 ## Jogar e desenvolver
 
@@ -53,7 +55,7 @@ O clique calcula uma rota A* ao redor dos obstáculos sólidos. Canteiros não b
 
 A conta online precisa de rede para confirmar ações. Sem login, o teste continua salvo somente neste aparelho. A fazenda online começa nova, com 12 canteiros e expansão até 24; o save local anterior permanece guardado.
 
-Esta beta ainda não inclui jogadores andando juntos, visitas dentro do mapa do amigo, clima dinâmico, construção livre, receitas, produção animal ou publicação nas lojas. As visitas atuais mostram os canteiros no painel. A estação é ambientação fixa. A proteção cobre a economia e as transações, sem simular toda a física no servidor. Testes em celulares físicos e endurecimento do cadastro para lançamento público permanecem no [roadmap](docs/ROADMAP.md).
+Esta beta ainda não inclui jogadores andando juntos, visitas dentro do mapa do amigo, clima dinâmico, construção livre, receitas ou publicação nas lojas. As visitas atuais mostram os canteiros no painel. A estação é ambientação fixa. A proteção cobre a economia e as transações, sem simular toda a física no servidor. Testes em celulares físicos e endurecimento do cadastro para lançamento público permanecem no [roadmap](docs/ROADMAP.md).
 
 A versão 0.2 integra sprites originais gerados para o projeto, personagem com 16 quadros, 12 fases de culturas, novos cenários, sombras e interface de RPG. Os atlas, prompts e o preparo dos sprites estão versionados em `art-source/`, `scripts/prepare-art.py` e `docs/ARTE.md`. O solo e os efeitos complementares são desenhados em canvas. Não utilizamos recursos extraídos dos jogos de referência. O acabamento continua em evolução.
 

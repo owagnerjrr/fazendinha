@@ -1,19 +1,26 @@
 import { auth, CloudFarm, type Friend, type Listing } from './cloud';
-import { CROPS, type Crop } from './farm';
+import { hasPests, remaining, CROPS, type Crop } from './farm';
 import { ECONOMY, levelOf, type OnlineFarm } from './online-rules';
 const $=<T extends HTMLElement=HTMLElement>(id:string)=>document.getElementById(id) as T;
 const esc=(s:string)=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
 export function setupOnlineUI(cloud:CloudFarm,open:(title:string,html:string)=>void,close:()=>void,toast:(s:string)=>void,getFarm:()=>OnlineFarm,onOffline:()=>void) {
   const status=(message:string)=>{const el=$('online-feedback');if(el)el.textContent=message;else toast(message);};
   const run=async(button:HTMLButtonElement,work:()=>Promise<unknown>)=>{button.disabled=true;try{await work();}catch(e){status(e instanceof Error?e.message:'Não foi possível concluir.');}finally{button.disabled=false;}};
+  async function google(link=false){
+   localStorage.setItem('wj-cloud-session','1');
+   const a=await auth();const result=link?await a.linkSocial({provider:'google',callbackURL:location.origin}):await a.signIn.social({provider:'google',callbackURL:location.origin});
+   if(result.error)throw new Error(result.error.message||'Não foi possível abrir o Google.');
+  }
   function account() {
     if(cloud.active) {
-      open('Sua fazenda online',`<p>Bem-vindo, <b>${esc(cloud.name)}</b>. Use a mesma conta no celular e no PC para continuar sua fazenda.</p><p>Seu código de amigo: <strong class="friend-code">${esc(cloud.code)}</strong></p><p class="quiet-note">A fazenda de teste deste aparelho continua guardada separadamente. A fazenda online começa com uma economia nova e protegida.</p><p id="online-feedback" role="status"></p><button class="primary" id="sync-now">Sincronizar agora</button><button class="secondary" id="logout">Sair da conta e voltar ao teste local</button>`);
+      open('Sua fazenda online',`<p>Bem-vindo, <b>${esc(cloud.name)}</b>. Use a mesma conta no celular e no PC para continuar sua fazenda.</p><p>Seu código de amigo: <strong class="friend-code">${esc(cloud.code)}</strong></p><p class="quiet-note">A fazenda de teste deste aparelho continua guardada separadamente. A fazenda online começa com uma economia nova e protegida.</p><p id="online-feedback" role="status"></p><button class="secondary google-login" id="link-google">Vincular minha conta Google</button><p class="quiet-note">Você autoriza apenas o acesso ao jogo. Não lemos mensagens do Gmail. Na beta, a autorização mostra o nome Neon.</p><button class="primary" id="sync-now">Sincronizar agora</button><button class="secondary" id="logout">Sair da conta e voltar ao teste local</button>`);
+      $('link-google').onclick=()=>run($<HTMLButtonElement>('link-google'),()=>google(true));
       $('sync-now').onclick=()=>run($<HTMLButtonElement>('sync-now'),async()=>{await cloud.retryPending();await cloud.refresh();status('Fazenda sincronizada.');});
       $('logout').onclick=()=>run($<HTMLButtonElement>('logout'),async()=>{await cloud.disconnect();onOffline();close();});
       return;
     }
-    open('Seu cantinho em qualquer tela',`<p>Entre ou crie sua conta para salvar a fazenda online. Seu teste local permanece guardado neste aparelho.</p><form id="auth-form" class="farm-form"><label>Seu nome<input name="name" autocomplete="nickname" maxlength="40" placeholder="Como quer ser chamado?" /></label><label>E-mail<input name="email" type="email" autocomplete="email" required /></label><label>Senha<input name="password" type="password" autocomplete="current-password" minlength="8" maxlength="128" required /></label><p id="online-feedback" role="status" aria-live="polite"></p><button class="primary" type="submit" id="login">Entrar</button><button class="secondary" type="button" id="signup">Criar conta</button><button class="secondary" type="button" id="recover">Entrar com código por e-mail</button></form><p class="quiet-note">Na versão online de testes, tempos e preços ainda podem ser ajustados. Para jogar sem conta, feche esta janela.</p>`);
+    open('Seu cantinho em qualquer tela',`<p>Entre ou crie sua conta para salvar a fazenda online. Seu teste local permanece guardado neste aparelho.</p><button class="secondary google-login" id="google-login">Continuar com Google / Gmail</button><p class="quiet-note">Na beta, o Google mostra Neon como provedor de acesso. Não pedimos acesso às suas mensagens.</p><form id="auth-form" class="farm-form"><label>Seu nome<input name="name" autocomplete="nickname" maxlength="40" placeholder="Como quer ser chamado?" /></label><label>E-mail<input name="email" type="email" autocomplete="email" required /></label><label>Senha<input name="password" type="password" autocomplete="current-password" minlength="8" maxlength="128" required /></label><p id="online-feedback" role="status" aria-live="polite"></p><button class="primary" type="submit" id="login">Entrar</button><button class="secondary" type="button" id="signup">Criar conta</button><button class="secondary" type="button" id="recover">Entrar com código por e-mail</button></form><p class="quiet-note">Na versão online de testes, tempos e preços ainda podem ser ajustados. Para jogar sem conta, feche esta janela.</p>`);
+    $('google-login').onclick=()=>run($<HTMLButtonElement>('google-login'),()=>google());
     const form=$<HTMLFormElement>('auth-form');
     const login=async(signup:boolean)=>{
       if(!form.reportValidity())return;
@@ -52,9 +59,18 @@ export function setupOnlineUI(cloud:CloudFarm,open:(title:string,html:string)=>v
   }
   async function visit(code:string){
     try{
-      const v=await cloud.request(`?visit=${code}`);
-      open(`Fazenda de ${esc(v.name)}`,`<p>Visita aos canteiros do seu amigo. Você pode regar uma plantação por dia nesta fazenda e ganhar 5 XP.</p><div class="visit-grid">${v.plots.map((p:any)=>`<button class="visit-plot" data-help="${p.id}" ${!p.crop||p.wateredAt!==null?'disabled':''}>${p.crop?`<img src="/assets/v2/${p.crop}-3.png" alt="${CROPS[p.crop as Crop].name}" />`:'🌱'}<small>${!p.crop?'Vazio':p.wateredAt===null?'Ajudar a regar':'Regado'}</small></button>`).join('')}</div><p id="online-feedback" role="status"></p><button class="secondary" id="back-community">Voltar aos amigos</button>`);
-      document.querySelectorAll<HTMLButtonElement>('[data-help]').forEach(b=>b.onclick=()=>run(b,async()=>{const r=await cloud.command({type:'help',code,plot:Number(b.dataset.help)});await visit(code);status(r.message!);}));
+      const v=await cloud.request(`?visit=${code}`),now=v.now;
+      const own=getFarm();
+      open(`Fazenda de ${esc(v.name)}`,`<p>Ajude a regar, plantar com uma semente sua ou remover pragas: uma ajuda por amigo por dia, +5 XP.</p><label class="farm-form">Semente para ajudar<select id="visit-seed">${(Object.keys(CROPS) as Crop[]).map(c=>`<option value="${c}">${CROPS[c].name} (${own.seeds[c]})</option>`).join('')}</select></label><p class="quiet-note">${v.protected?'🐕 Fazenda protegida contra roubo.':v.socialRaids&&own.socialRaids?'A brincadeira está ativada para vocês. Só é possível pegar 1 produto maduro por dia.':'Roubo disponível apenas quando os dois amigos ativam a opção em Minha fazenda.'}</p><div class="visit-grid">${v.plots.map((p:any)=>{
+       const left=remaining(p,now),pest=hasPests(p,now);let action='',mode='',label='Vazio';
+       if(!p.crop){action='help';mode='plant';label='Plantar';}
+       else if(pest){action='help';mode='clean';label='Tirar pragas';}
+       else if(p.wateredAt===null){action='help';mode='water';label='Regar';}
+       else if(left===0){label='Maduro';if(v.socialRaids&&own.socialRaids&&!v.protected&&!(p.stolen??0)){action='steal';label='Pegar 1';}}
+       else label=`${Math.ceil(left!/1000)}s`;
+       return `<button class="visit-plot" data-visit-action="${action}" data-mode="${mode}" data-plot="${p.id}" ${!action?'disabled':''}>${p.crop?`<img src="${['carrot','lettuce','tomato'].includes(p.crop)?`/assets/v2/${p.crop}-3.png`:`/assets/v5/${p.crop}.png`}" alt="${CROPS[p.crop as Crop].name}" />`:'🌱'}<small>${label}</small></button>`;
+      }).join('')}</div><p id="online-feedback" role="status"></p><button class="secondary" id="back-community">Voltar aos amigos</button>`);
+      document.querySelectorAll<HTMLButtonElement>('[data-visit-action]').forEach(b=>b.onclick=()=>run(b,async()=>{if(!b.dataset.visitAction)return;const crop=$<HTMLSelectElement>('visit-seed').value;const r=await cloud.command({type:b.dataset.visitAction,code,plot:Number(b.dataset.plot),mode:b.dataset.mode,crop});await visit(code);status(r.message!);}));
       $('back-community').onclick=()=>void community();
     }catch(e){status(e instanceof Error?e.message:'Não foi possível visitar.');}
   }
