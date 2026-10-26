@@ -1,6 +1,8 @@
 # Fazendinha WJ
 
-Versão 0.3 — Vida no Campo. Protótipo original de um jogo de fazenda para navegador, pensado para celular e PC. O nome do cenário, **Vale do Sossego**, é provisório.
+Versão 0.3.1 — Vida no Campo. Protótipo original de um jogo de fazenda para navegador, pensado para celular e PC. O nome do cenário, **Vale do Sossego**, é provisório.
+
+A correção 0.3.1 usa sprites completos para carregar enxada, sementes e regador, com o item desenhado junto às mãos durante a caminhada.
 
 A versão 0.3 adiciona galinhas detalhadas e animadas, ferramentas na mão, poses de cavar e regar, água com gotas e respingos e compras consecutivas sem fechar a venda. Veja `docs/ANIMACOES.md`.
 

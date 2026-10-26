@@ -31,7 +31,7 @@ function syncUI() {
   if (farm.questClaimed) { $('quest-text').textContent = 'A primeira colheita a gente nunca esquece.'; $('quest-progress').textContent = 'Capítulo concluído'; $('quest-fill').style.width = '100%'; }
   document.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach(b => { const active = b.dataset.tool === tool; b.classList.toggle('active', active); b.setAttribute('aria-pressed', String(active)); });
 }
-function setTool(next: Tool) { tool = next; syncUI(); scene?.onToolSelected(); const hints: Record<Tool, string> = { hand: 'Toque em uma planta pronta para colher.', hoe: 'Toque em um canteiro para preparar a terra.', seed: `Toque na terra preparada para plantar ${CROPS[selected].name.toLowerCase()}.`, water: 'Toque na plantação para regar e iniciar o crescimento.' }; $('hint').textContent = hints[tool]; }
+function setTool(next: Tool) { tool = next; syncUI(); const hints: Record<Tool, string> = { hand: 'Toque em uma planta pronta para colher.', hoe: 'Toque em um canteiro para preparar a terra.', seed: `Toque na terra preparada para plantar ${CROPS[selected].name.toLowerCase()}.`, water: 'Toque na plantação para regar e iniciar o crescimento.' }; $('hint').textContent = hints[tool]; }
 function openPanel(title: string, content: string, kind: 'shop' | 'other' = 'other') {
   activePanel = kind; scene?.finishCurrentWork();
   modal = true; scene?.cancelMovement(); $('panel-eyebrow').textContent = 'UM POUQUINHO DE VIDA NO CAMPO'; $('panel-content').innerHTML = `<h2>${title}</h2>${content}`; document.body.classList.add('modal-open'); if (!dialog.open) dialog.showModal();
@@ -84,7 +84,6 @@ class FarmScene extends Phaser.Scene {
   queuedDestination: Destination | null = null;
   activeWork: Work | null = null;
   actor!: Phaser.GameObjects.Sprite;
-  heldTool!: Phaser.GameObjects.Image;
   flock!: ChickenFlock;
   workEffects!: WorkEffects;
   focusedField: number | null = null;
@@ -104,7 +103,7 @@ class FarmScene extends Phaser.Scene {
     this.load.image('farmer-v2', '/assets/v2/farmer.png');
     this.load.spritesheet('chickens-v3', '/assets/v3/chickens.png', { frameWidth: 40, frameHeight: 40 });
     for (const kind of ['hoe', 'water']) this.load.spritesheet(`${kind}-actions`, `/assets/v3/farmer-${kind}.png`, { frameWidth: 96, frameHeight: 112 });
-    for (const key of ['hoe', 'seed', 'water']) this.load.image(`tool-${key}`, `/assets/v2/icon-${key}.png`);
+    for (const key of ['hoe', 'seed', 'water']) this.load.spritesheet(`carry-${key}`, `/assets/v3/carry-${key}.png`, { frameWidth: 128, frameHeight: 112 });
     for (const crop of cropKeys) for (let stage = 0; stage < 4; stage++) this.load.image(`${crop}-${stage}`, `/assets/v2/${crop}-${stage}.png`);
   }
   create() {
@@ -158,7 +157,6 @@ class FarmScene extends Phaser.Scene {
     this.player.body!.setSize(14, 10).setOffset(17, 52);
     this.player.setVisible(false);
     this.actor = this.add.sprite(this.player.x, this.player.y - 2, 'farmer-down-0').setOrigin(.5, 62 / 64).setScale(1.08);
-    this.heldTool = this.add.image(this.player.x, this.player.y, 'tool-hoe').setVisible(false);
     this.workEffects = new WorkEffects(this);
     this.physics.add.collider(this.player, this.obstacles);
     // A saved spawn may become blocked if a future map changes.
@@ -217,12 +215,6 @@ class FarmScene extends Phaser.Scene {
     if (this.activeWork) this.queuedDestination = target;
     else this.destination = target;
   }
-  onToolSelected() {
-    if (!this.heldTool) return;
-    this.tweens.killTweensOf(this.heldTool);
-    this.heldTool.setAlpha(.4);
-    this.tweens.add({ targets: this.heldTool, alpha: 1, duration: 120 });
-  }
   useField(id: number) {
     if (this.activeWork) return;
     this.focusedField = id;
@@ -264,24 +256,21 @@ class FarmScene extends Phaser.Scene {
   }
   renderAvatar(time: number, moving: boolean) {
     const work = this.activeWork, equipped = work?.clock.tool ?? tool;
-    const usingActionSheet = (equipped === 'hoe' || equipped === 'water') && (!moving || !!work);
-    let bob = moving ? Math.sin(time / 65) * .65 : 0;
+    const usingActionSheet = !!work && (equipped === 'hoe' || equipped === 'water');
+    const elapsed = work?.clock.elapsed(time) ?? 0;
+    const frame = moving ? Math.floor(time / 130) % 4 : 0;
+    const bend = work && !usingActionSheet ? Math.sin(Math.min(1, elapsed / ACTIONS[equipped].duration) * Math.PI) : 0;
+    const bob = (moving ? Math.sin(time / 65) * .65 : 0) + bend * 1.5;
     if (usingActionSheet) {
-      const frame = work ? actionFrame(equipped, work.clock.elapsed(time)) : 0;
-      this.actor.setTexture(`${equipped}-actions`, DIRECTION_ROW[this.direction] * 4 + frame).setOrigin(.5, 100 / 112).setScale(1.08);
+      this.actor.setTexture(`${equipped}-actions`, DIRECTION_ROW[this.direction] * 4 + actionFrame(equipped, elapsed)).setOrigin(.5, 100 / 112).setScale(1.08);
+    } else if (equipped !== 'hand') {
+      // Hands, grip and equipment are a single authored sprite in every frame.
+      // No mirroring/pivot guesses or detached inventory icons during movement.
+      this.actor.setTexture(`carry-${equipped}`, DIRECTION_ROW[this.direction] * 4 + frame).setOrigin(.5, 100 / 112).setScale(1.08, 1.08 * (1 - bend * .07));
     } else {
-      const frame = moving ? Math.floor(time / 130) % 4 : 0;
-      const bend = work ? Math.sin(Math.min(1, work.clock.elapsed(time) / ACTIONS[equipped].duration) * Math.PI) : 0;
       this.actor.setTexture(`farmer-${this.direction}-${frame}`).setOrigin(.5, 62 / 64).setScale(1.08, 1.08 * (1 - bend * .07));
-      bob += bend * 1.5;
     }
     this.actor.setPosition(this.player.x, this.player.y - 2 + bob).setDepth(this.player.y);
-    this.heldTool.setVisible(equipped !== 'hand' && !usingActionSheet);
-    if (equipped !== 'hand' && !usingActionSheet) {
-      const side = this.direction === 'left' ? -1 : 1;
-      this.heldTool.setTexture(`tool-${equipped}`).setOrigin(side < 0 ? .7 : .3, .4).setFlipX(side < 0).setScale(equipped === 'hoe' ? .8 : .68).setAngle(side * (moving ? 10 + Math.sin(time / 130) * 7 : 10));
-      this.heldTool.setPosition(this.player.x + side * 13, this.player.y - 22 + bob).setDepth(this.player.y + (this.direction === 'up' ? -.5 : .5));
-    }
     this.playerShadow.setPosition(this.player.x + 1, this.player.y - 3);
   }
   interactNearest() {

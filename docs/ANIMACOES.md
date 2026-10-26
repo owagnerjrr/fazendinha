@@ -1,5 +1,15 @@
 # Vida no Campo — versão 0.3
 
+## Correção 0.3.1 — equipamento integrado à caminhada
+
+As imagens relatadas pelo usuário mostraram a falha da composição por ícones separados: enxada invertida e sementes/regador sem contato com as mãos. A camada separada de equipamentos foi removida do personagem. Agora cada cultura de equipamento tem uma folha com 16 quadros completos, em quatro direções, com corpo, braços, mãos e item desenhados juntos.
+
+A lâmina da enxada acompanha o sentido lateral da caminhada. O saco de sementes é apoiado na cintura e segurado pelas mãos; o regador é carregado pela alça com apoio do outro braço. De costas, o corpo pode esconder parte do item, conforme a perspectiva. Nenhum desses objetos usa espelhamento ou pivô de ícone de inventário durante a caminhada.
+
+Os sprites carregados também são usados quando a personagem para. Ao cavar ou regar, continuam sendo usadas as poses de ação e os efeitos da versão 0.3. A escala é calibrada pelo chapéu; o alinhamento horizontal da caminhada usa o centro da cabeça, evitando oscilação causada pelo pé que fica à frente.
+
+Fontes: `art-source/carry/`. Recursos de execução: `public/assets/v3/carry-hoe.png`, `carry-seed.png` e `carry-water.png`. Preparação: `python3 scripts/prepare-carry-art.py` (Pillow). Prompts completos em `art-source/carry/GENERATION.md`.
+
 ## Galinhas
 
 O novo atlas tem 16 quadros originais, com penas, crista e sombreamento na linguagem do fazendeiro. Há caminhada para os dois lados e sequências de bicada. As quatro galinhas alternam caminhada, pausa e bicadas dentro do cercado; a profundidade e as sombras acompanham a posição. Uma separação suave evita empilhar as quatro imagens. Elas continuam sendo animais decorativos: esta etapa não adiciona produção de ovos ou compras de animais.
