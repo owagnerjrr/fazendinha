@@ -6,6 +6,6 @@ writeFileSync('dist/sw.js',`const CACHE='wj-${version}';const ASSETS=${JSON.stri
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS))));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('wj-')&&key!==CACHE).map(key=>caches.delete(key))))));
 self.addEventListener('fetch',event=>{const u=new URL(event.request.url);if(event.request.method!=='GET'||u.origin!==self.location.origin||u.pathname.startsWith('/api/'))return;
-if(event.request.mode==='navigate'){event.respondWith(fetch(event.request).catch(()=>caches.match('/index.html')));return;}
+if(event.request.mode==='navigate'){event.respondWith(caches.open(CACHE).then(cache=>cache.match('/index.html')).then(shell=>shell||fetch(event.request,{cache:'no-cache'})));return;}
 if(ASSETS.includes(u.pathname))event.respondWith(caches.match(event.request).then(cached=>cached||fetch(event.request)));});`);
 console.log(`PWA: ${urls.length} arquivos · ${version}`);

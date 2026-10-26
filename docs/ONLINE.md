@@ -30,7 +30,7 @@ Código público de amigo, pedido e aceite. Visitas são uma grade dos canteiros
 
 Autenticação usa e-mail/senha e oferece código por e-mail. A configuração inicial permite cadastro sem verificar e-mail, adequada apenas à beta. Antes de lançamento público: SMTP próprio, verificação de e-mail, política de privacidade/LGPD, exclusão de conta e dados, observabilidade/alertas, ensaio de restauração e revisão de abuso. Nenhum pagamento ou upgrade foi configurado por esta implementação.
 
-A PWA armazena somente interface e arte próprias, com cache versionado. Nunca intercepta `/api/` ou autenticação externa. A conta online exige rede; o teste local continua disponível offline após o primeiro carregamento. Atualização do service worker entra após fechar as abas antigas. O botão Instalar depende do suporte do navegador; no iOS, Compartilhar → Adicionar à Tela de Início.
+A PWA armazena somente interface e arte próprias, com cache versionado. A navegação usa o HTML do mesmo cache que os seus arquivos JS/CSS, para evitar misturar versões durante uma publicação. Nunca intercepta `/api/` ou autenticação externa. A conta online exige rede; o teste local continua disponível offline após o primeiro carregamento. Atualização do service worker entra após fechar as abas antigas. O botão Instalar depende do suporte do navegador; no iOS, Compartilhar → Adicionar à Tela de Início.
 
 ## Verificação
 

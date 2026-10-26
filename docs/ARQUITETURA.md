@@ -38,6 +38,6 @@ A rega usa bico calibrado, gotas e respingos. Galinhas atuais são decorativas. 
 
 ## Instalação e publicação
 
-O build produz uma PWA com cache versionado de arte, JS, CSS e shell HTML. API e identidade não entram no cache. A conta exige rede, enquanto o teste local pode abrir offline após o primeiro carregamento. O aplicativo é instalado pelo navegador; não é ainda um pacote de loja.
+O build produz uma PWA com cache versionado de arte, JS, CSS e shell HTML. O HTML e os arquivos da interface são servidos da mesma versão; atualizações passam a valer depois de fechar todas as abas antigas e reabrir o jogo. API e identidade não entram no cache. A conta exige rede, enquanto o teste local pode abrir offline após o primeiro carregamento. O aplicativo é instalado pelo navegador; não é ainda um pacote de loja.
 
 Segredos ficam nas variáveis de ambiente do servidor. `VITE_NEON_AUTH_URL` é um endereço público e serve de configuração de disponibilidade; o navegador usa o proxy no mesmo domínio para evitar depender de cookies de terceiros. Banco de produção não deve ser colocado automaticamente em previews. Migrações são explícitas, e credenciais, códigos de recuperação e sessões de teste não são versionados.
