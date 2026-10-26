@@ -1,8 +1,6 @@
-> Atualização 0.4: a conta online, as regras e o escopo social estão descritos em [ONLINE.md](docs/ONLINE.md). As descrições abaixo da versão local 0.3 são históricas.
-
 # Fazendinha WJ
 
-Versão 0.3.1 — Vida no Campo. Protótipo original de um jogo de fazenda para navegador, pensado para celular e PC. O nome do cenário, **Vale do Sossego**, é provisório.
+Versão 0.4.0 — beta online. Protótipo original de um jogo de fazenda para navegador, pensado para celular e PC. O nome do cenário, **Vale do Sossego**, é provisório.
 
 A correção 0.3.1 usa sprites completos para carregar enxada, sementes e regador, com o item desenhado junto às mãos durante a caminhada.
 
@@ -17,7 +15,7 @@ npm ci
 npm run dev
 ```
 
-Abra a URL informada pelo Vite. Para produção: `npm run build`; os arquivos gerados ficam em `dist/`. No Vercel, importe este repositório, use o preset Vite, comando `npm run build` e diretório `dist`. Nenhuma variável de ambiente é necessária nesta fase. Publicar o repositório não cria automaticamente um site hospedado.
+Abra a URL informada pelo Vite. Para produção: `npm run build`; os arquivos gerados ficam em `dist/`. No Vercel, importe este repositório, use o preset Vite, comando `npm run build` e diretório `dist`. A versão local funciona sem credenciais. A conta online usa os endpoints Node em `api/` e as variáveis descritas em `.env.example`; nunca exponha `DATABASE_URL` ao cliente. O Vite local serve somente o frontend. Para desenvolver os endpoints, use o ambiente Vercel com um banco de desenvolvimento separado. Consulte [ONLINE.md](docs/ONLINE.md).
 
 ```bash
 npm test
@@ -32,7 +30,11 @@ npm run build
 - Preparar terra, plantar, regar, esperar, colher e vender.
 - Cenoura (45s), alface (90s) e tomate (150s), com tempos de demonstração.
 - Compra de sementes na venda, escolha de cultura, inventário e missão inicial.
-- Progresso local com validação de formato; plantas regadas crescem por horário mesmo com a página fechada.
+- Teste local preservado, separado da fazenda da conta.
+- Conta por e-mail, salvamento online e mesma fazenda entre celular e PC.
+- Servidor determina preços, tempo, energia, XP, expansão e resultados das ações.
+- Amizades com aceite, visita em painel aos canteiros, ajuda diária para regar e feira com produtos reservados.
+- Instalação PWA pelo navegador e cache da interface e da arte.
 
 ## Controles
 
@@ -45,17 +47,25 @@ npm run build
 | Comprar sementes | Clique na venda e caminhe até ela | Toque na venda e caminhe até ela |
 | Vender produtos | Botão Celeiro | Botão Celeiro |
 
-O clique movimenta em linha reta; ainda não calcula um caminho ao redor de obstáculos. Use os controles para contornar. Canteiros não bloqueiam o movimento.
+O clique calcula uma rota A* ao redor dos obstáculos sólidos. Canteiros não bloqueiam o movimento. As ferramentas exigem proximidade do personagem.
 
 ## Limites desta versão
 
-**Ainda não há conta, servidor, sincronização entre aparelhos, multiplayer, feira, clima dinâmico, construção livre ou instalação PWA.** A estação mostrada é ambientação fixa. O progresso pertence ao navegador e pode ser perdido ao limpar seus dados. Não é uma economia segura para competição: regras e relógio ainda rodam no cliente. A arquitetura online está planejada em `docs/ARQUITETURA.md`.
+A conta online precisa de rede para confirmar ações. Sem login, o teste continua salvo somente neste aparelho. A fazenda online começa nova, com 12 canteiros e expansão até 24; o save local anterior permanece guardado.
+
+Esta beta ainda não inclui jogadores andando juntos, visitas dentro do mapa do amigo, clima dinâmico, construção livre, receitas, produção animal ou publicação nas lojas. As visitas atuais mostram os canteiros no painel. A estação é ambientação fixa. A proteção cobre a economia e as transações, sem simular toda a física no servidor. Testes em celulares físicos e endurecimento do cadastro para lançamento público permanecem no [roadmap](docs/ROADMAP.md).
 
 A versão 0.2 integra sprites originais gerados para o projeto, personagem com 16 quadros, 12 fases de culturas, novos cenários, sombras e interface de RPG. Os atlas, prompts e o preparo dos sprites estão versionados em `art-source/`, `scripts/prepare-art.py` e `docs/ARTE.md`. O solo e os efeitos complementares são desenhados em canvas. Não utilizamos recursos extraídos dos jogos de referência. O acabamento continua em evolução.
 
 ## Organização
 
-- `src/farm.ts`: regras, inventário, progressão, compra/venda e validação do save.
+- `src/farm.ts`: ciclo agrícola e save de demonstração local.
+- `src/online-rules.ts`: economia, energia, XP e expansão da conta.
+- `src/cloud.ts` e `src/online-ui.ts`: sincronização, conta e comunidade.
+- `api/` e `server/`: autenticação, transações e autorização.
+- `migrations/001-online.sql`: esquema do banco.
+- `src/pathfinding.ts`: navegação ao redor dos obstáculos.
+- `scripts/build-sw.mjs`: cache versionado da PWA.
 - `src/art.ts`: texturas auxiliares e quadros do personagem.
 - `src/terrain.ts`: chão e efeitos de atmosfera.
 - `public/assets/v2/`: sprites e ícones preparados.
@@ -70,7 +80,7 @@ A versão 0.2 integra sprites originais gerados para o projeto, personagem com 1
 - `tests/farm.test.ts`: testes das regras econômicas e persistência.
 - `docs/ESTUDO_REFERENCIA.md`: levantamento do jogo analisado e proposta inicial.
 - `docs/ROADMAP.md`: etapas e pendências.
-- `docs/ARQUITETURA.md`: decisões de implementação e plano do servidor.
+- `docs/ARQUITETURA.md`: decisões da implementação atual.
 - `docs/VALIDACAO.md`: verificações desta entrega e limitações de teste.
 
 ## Tecnologia e autoria

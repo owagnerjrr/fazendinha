@@ -1,35 +1,43 @@
-> Atualização 0.4: a conta online, as regras e o escopo social estão descritos em [ONLINE.md](ONLINE.md). As descrições abaixo da versão local 0.3 são históricas.
+# Arquitetura atual — beta 0.4
 
-# Arquitetura e decisões
+Phaser 3.90 renderiza o mundo original em Canvas/WebGL. Menus, foco e formulários usam HTML/CSS. A API Node e a distribuição Vite compartilham o projeto Vercel; o Postgres e a identidade Managed Better Auth ficam no Neon. Referência detalhada: [ONLINE.md](ONLINE.md).
 
-## Implementação atual
+```mermaid
+flowchart TD
+  A[Phaser e menus HTML] --> B[API de jogo na Vercel]
+  A --> C[Proxy de sessão no mesmo domínio]
+  C --> D[Neon Auth]
+  B --> D
+  B --> E[Postgres: fazendas e transações]
+```
 
-Cliente TypeScript com Phaser 3.90. Canvas/WebGL para o mundo e HTML/CSS para menus, foco, textos e interface responsiva. O Vite gera a distribuição estática. A renderização combina sprites originais pré-carregados de `public/assets/v2/` com terreno e efeitos gerados em canvas. A geração de imagens aconteceu na preparação; abrir o mapa não depende de um serviço de geração. As fontes e prompts de arte estão versionados.
+## Dados e autoridade
 
-As regras agrícolas são independentes da engine em `src/farm.ts`, permitindo testes sem navegador e futura adaptação à API. O cliente salva um documento versionado no localStorage. O tempo de crescimento começa na rega, com um timestamp absoluto. Ao abrir, o estágio é recalculado. Não existe processo em segundo plano.
+- `src/farm.ts` mantém o ciclo agrícola puro e o formato local v1.
+- `src/online-rules.ts` acrescenta energia, XP, níveis e expansão, sem dependência de Phaser.
+- O cliente manda intenções. O servidor define preços, tempo e recompensas e grava a transação. Não aceita uma fazenda inteira enviada pelo navegador.
+- `farms.state` guarda o documento da fazenda; `revision` permite detectar conflito entre aparelhos. `action_receipts` garante idempotência por conta e UUID.
+- `friendships` guarda pedidos/aceite, `farm_help` limita ajuda diária e `market_listings` mantém produtos reservados até vender/cancelar.
+- A API valida JWT assinado pelo provedor e a existência da conta antes de ler ou alterar a fazenda. Visitar ou ajudar exige amizade aceita. E-mail e credenciais não aparecem nos dados sociais.
 
-Compras, colheitas e vendas acontecem sincronicamente no estado local. Isso impede repetições acidentais no protótipo, mas não protege contra alteração pelo usuário. O save não é uma credencial, é dado local de demonstração. Nenhum código de recuperação ou identificador da conta de referência foi incluído.
+Transações de economia usam um lock consultivo global nesta beta; antes de maior volume, substituir por locks de linha em ordem estável. Comprador e vendedor mudam na mesma transação. Não há saldo calculado e confiado ao cliente.
 
-O movimento possui corpo de colisão nos pés e profundidade dependente da posição vertical. Clique em canteiro faz o personagem caminhar até ele antes de agir. O deslocamento por clique é direto; não há A* ainda. O jogador pode controlar o caminho por teclado/joystick.
+## Sincronização e desconexão
 
-## Próxima arquitetura online
+Uma fila no cliente preserva a ordem dos comandos; resultados com revisão antiga não substituem os mais recentes. Uma resposta incerta mantém o mesmo UUID para consulta/reenvio. Ao reconectar, confirma-se a intenção anterior antes de aceitar outra. Ganhos offline não são importados. O crescimento usa timestamps absolutos; não precisa manter um timer ou função permanente por planta.
 
-- Autenticação própria com sessão segura; o método ainda precisa ser escolhido.
-- API responsável por plantar, regar, colher, comprar, vender e salvar construções.
-- Banco relacional com contas, fazendas, canteiros, inventário e eventos de economia.
-- Timestamp e preços determinados pelo servidor, sem aceitar saldo ou recompensa enviados pelo cliente.
-- Operações atômicas, controle de versão e chaves de idempotência contra repetição/reconexão.
-- Salvamento do movimento separado de operações econômicas, com frequência limitada.
-- Cálculo de progresso por intervalos, sem um timer permanente para cada planta.
+A posição é enviada no máximo a cada 5 segundos de deslocamento e ao ocultar/sair por uma requisição curta com `keepalive`. Se a conexão cair antes da confirmação, o próximo carregamento recupera a última posição salva. O servidor limita deslocamento plausível e exige proximidade nos canteiros; colisões detalhadas continuam no cliente.
 
-Tabelas candidatas: `players`, `farms`, `plots`, `inventory`, `buildings`, `quests`, `market_listings`, `transactions`. Conteúdo das culturas e receitas deve ser versionado. A modelagem definitiva só deve ser aplicada quando o backend for escolhido.
+O teste local usa `wj-fazendinha-v1` no localStorage, separado da conta. Não se importa saldo local arbitrário para a economia online. O sessionStorage contém somente pedidos de ação pendentes, nunca a senha.
 
-Começar com visitas assíncronas. Presença e personagens simultâneos demandam sessões, validação de movimento e sincronização em tempo real; não são pré-requisito para ter amigos e feira.
+## Mundo e controles
 
-## Direção visual
+O corpo de colisão fica nos pés; a profundidade acompanha a posição vertical. A navegação A* usa os obstáculos reais da cena com margem para o corpo e proíbe cortar cantos bloqueados. WASD, setas e joystick substituem a rota automática. A ação ocorre perto do alvo, sincronizada ao impacto da animação; itens equipados e mãos pertencem ao mesmo sprite.
 
-Arte de teste tem resolução e escala consistentes, mas ainda não representa o acabamento final. Evoluir para um kit autoral de tiles, sprites e animações. A qualidade será julgada em uma área vertical completa: personagem, solo, construções, vegetação, iluminação e feedback das ferramentas. Não prometer qualidade superior a um jogo comercial antes dessa prova.
+A rega usa bico calibrado, gotas e respingos. Galinhas atuais são decorativas. Os sprites são originais, pré-carregados de `public/assets/`; abrir o mapa não depende de geração de imagens. Terreno e efeitos complementares são produzidos em canvas.
 
-## Publicação
+## Instalação e publicação
 
-Sem backend, pode ser hospedado como site estático. O repositório está preparado para Vercel/Vite. Não se deve adicionar segredos em arquivos públicos ou versionar `.env`. Não há servidor pago provisionado nesta entrega.
+O build produz uma PWA com cache versionado de arte, JS, CSS e shell HTML. API e identidade não entram no cache. A conta exige rede, enquanto o teste local pode abrir offline após o primeiro carregamento. O aplicativo é instalado pelo navegador; não é ainda um pacote de loja.
+
+Segredos ficam nas variáveis de ambiente do servidor. `VITE_NEON_AUTH_URL` é um endereço público e serve de configuração de disponibilidade; o navegador usa o proxy no mesmo domínio para evitar depender de cookies de terceiros. Banco de produção não deve ser colocado automaticamente em previews. Migrações são explícitas, e credenciais, códigos de recuperação e sessões de teste não são versionados.

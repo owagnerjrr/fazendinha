@@ -216,7 +216,7 @@ class FarmScene extends Phaser.Scene {
     const now = Date.now() + (cloud.active ? cloud.offset : 0);
     for (const field of this.fields) {
       const plot = farm.plots[field.id];
-      if (cloud.active && field.id >= (farm as OnlineFarm).unlockedPlots) { field.soil.setTexture('plot-raw').setAlpha(.35);field.plant.setVisible(false);field.label.setText('BLOQUEADO').setVisible(true);continue; }
+      if (cloud.active && field.id >= (farm as OnlineFarm).unlockedPlots) { field.soil.setTexture('plot-raw').setAlpha(.35);field.plant.setVisible(false);field.label.setText('×').setVisible(true);continue; }
       field.soil.setAlpha(1);
       field.soil.setTexture(plot.wateredAt !== null ? 'plot-wet' : plot.tilled ? 'plot-tilled' : 'plot-raw');
       field.plant.setVisible(!!plot.crop);

@@ -1,61 +1,42 @@
-> Atualização 0.4: a conta online, as regras e o escopo social estão descritos em [ONLINE.md](ONLINE.md). As descrições abaixo da versão local 0.3 são históricas.
-
 # Caminho do projeto
 
-## 0.3 — Vida no Campo
+## Entregue na beta 0.4
 
-- [x] Galinhas com sprites detalhados, caminhada, pausa e bicadas.
-- [x] Enxada e regador equipados na mão e poses de trabalho em quatro direções.
-- [x] Animação de cavar com impacto e torrões.
-- [x] Rega com bico, gotas, respingos e umidade no solo.
-- [x] Aplicação da ação no momento visual correto e proteção contra repetição.
-- [x] Compras consecutivas na venda sem fechar a janela.
-- [x] Fontes de animação, preparo e testes de sincronização versionados.
+- [x] Conta por e-mail e fazenda online independente por jogador.
+- [x] Salvar e carregar a mesma conta no PC e no celular.
+- [x] Horário, moedas, compras, colheitas e vendas validados pelo servidor.
+- [x] Idempotência, controle de revisão e transações de compra concorrente.
+- [x] Energia, recuperação, XP, níveis e duas expansões.
+- [x] A* ao redor de obstáculos, proximidade e controles de toque.
+- [x] Amizade com aceite, visitas aos canteiros em painel e ajuda diária.
+- [x] Feira com reserva de itens, compra e cancelamento atômicos.
+- [x] PWA com manifesto, ícones e cache versionado; API fora do cache.
+- [x] Preservação do teste local e do visual da versão 0.3.1.
 
-## 0.1 — Ciclo jogável
+## Antes do lançamento público
 
-- [x] Personagem animado em quatro direções, câmera e colisões.
-- [x] Controles de teclado, clique e joystick de toque.
-- [x] Fazenda com 24 canteiros e três culturas.
-- [x] Arar, plantar, regar, crescer, colher e vender.
-- [x] Compra de sementes, inventário e missão inicial.
-- [x] Salvamento local e crescimento com a página fechada.
-- [x] Testes da economia e do formato do save.
-- [x] Estudo de referência e documentação técnica no repositório.
+- [ ] Android intermediário e iPhone reais: retrato, paisagem, teclado virtual, instalação e reabertura.
+- [ ] Medir FPS, memória, bateria, carregamento inicial e redes lentas nesses aparelhos.
+- [ ] SMTP próprio e verificação de e-mail; validar entrega real de códigos de acesso/recuperação.
+- [ ] Política de privacidade/LGPD, exclusão de conta/dados e regras de convivência.
+- [ ] Limites por IP, moderação de nomes e ofertas e proteção contra criação de contas em massa.
+- [ ] Alertas e métricas de API/banco; ensaio de restauração de backup.
+- [ ] Trocar lock global por locks de linha e validar carga conforme o número de jogadores.
+- [ ] Definir política de retenção de recibos sem permitir repetir ações antigas.
+- [ ] Refinar e balancear a economia com os testes dos jogadores.
+- [ ] Hospedar as fontes localmente e avaliar atlas para reduzir requisições.
 
-## 0.2 — Bosque Vivo (reformulação visual entregue)
+## Próximas funcionalidades
 
-- [x] Atlas originais para construções, árvores, personagem, culturas e ícones.
-- [x] Personagem em quatro direções com 16 quadros preparados.
-- [x] Solo renovado, sombras, pólen e copas com transparência contextual.
-- [x] Interface de RPG e tela de carregamento.
-- [x] Preservação do formato de save e das regras econômicas.
-
-### Próximos ajustes de conforto e arte
-
-- [ ] Testar em Android intermediário e iPhone, retrato e paisagem.
-- [ ] Caminho automático ao redor de obstáculos.
-- [ ] Animações específicas de ferramentas, efeitos e áudio original/licenciado.
-- [ ] Kit de arte autoral refinado e iluminação.
-- [ ] Exportar/importar save antes de migrar dados para servidor.
-- [ ] Reduzir peso inicial e hospedar fontes localmente.
-- [ ] Medir FPS, uso de memória e consumo de bateria.
-
-## 0.3 — Persistência online
-
-- [ ] Escolher autenticação, provedor e orçamento.
-- [ ] Implementar regras econômicas no servidor.
-- [ ] Salvar e carregar a mesma conta no celular e no PC.
-- [ ] Validar idempotência, concorrência e relógio.
-- [ ] Definir backups e migração dos saves locais sem permitir importação fraudulenta para a economia pública.
-
-## Depois
-
-- [ ] Animais e receitas, construção livre e decoração.
+- [ ] Entrar e caminhar no mapa da fazenda de um amigo.
+- [ ] Animais produtivos, receitas, construções e decoração.
+- [ ] Áudio original/licenciado e animações adicionais.
 - [ ] Clima e estações com efeitos, pesca e exploração.
-- [ ] Amigos, visitas, presentes e feira.
-- [ ] Moderação e limites para recursos sociais.
-- [ ] Instalação PWA e estratégia de cache com atualização segura.
-- [ ] Avaliar apps nativos e cooperação em tempo real.
+- [ ] Presença e personagens andando juntos, com servidor de movimento e reconexão.
+- [ ] Avaliar empacotamento nativo e publicação em lojas após validar a PWA.
 
-Nome, logo, economia final e monetização continuam em aberto. Não existe compromisso de prazo nesta fase.
+## Histórico
+
+0.1 entregou o ciclo jogável e o salvamento local. 0.2 trouxe o cenário e os sprites originais. 0.3 adicionou galinhas animadas, poses de cavar/regar, partículas de água e compras consecutivas. 0.3.1 integrou equipamento e mãos em todos os quadros de caminhada. Fontes, prompts e preparo da arte permanecem versionados.
+
+Nome, identidade definitiva e monetização continuam em aberto. Não há compromisso de prazo para as etapas futuras.
