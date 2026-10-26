@@ -62,6 +62,7 @@ export function setupOnlineUI(cloud:CloudFarm,open:(title:string,html:string)=>v
       const v=await cloud.request(`?visit=${code}`),now=v.now;
       const own=getFarm();
       open(`Fazenda de ${esc(v.name)}`,`<p>Ajude a regar, plantar com uma semente sua ou remover pragas: uma ajuda por amigo por dia, +5 XP.</p><label class="farm-form">Semente para ajudar<select id="visit-seed">${(Object.keys(CROPS) as Crop[]).map(c=>`<option value="${c}">${CROPS[c].name} (${own.seeds[c]})</option>`).join('')}</select></label><p class="quiet-note">${v.protected?'🐕 Fazenda protegida contra roubo.':v.socialRaids&&own.socialRaids?'A brincadeira está ativada para vocês. Só é possível pegar 1 produto maduro por dia.':'Roubo disponível apenas quando os dois amigos ativam a opção em Minha fazenda.'}</p><div class="visit-grid">${v.plots.map((p:any)=>{
+       if(p.id>=(v.unlockedPlots??24))return '<button class="visit-plot" disabled><small>Bloqueado</small></button>';
        const left=remaining(p,now),pest=hasPests(p,now);let action='',mode='',label='Vazio';
        if(!p.crop){action='help';mode='plant';label='Plantar';}
        else if(pest){action='help';mode='clean';label='Tirar pragas';}
