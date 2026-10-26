@@ -11,7 +11,15 @@
 - [x] Testes da economia e do formato do save.
 - [x] Estudo de referência e documentação técnica no repositório.
 
-## 0.2 — Conforto e arte
+## 0.2 — Bosque Vivo (reformulação visual entregue)
+
+- [x] Atlas originais para construções, árvores, personagem, culturas e ícones.
+- [x] Personagem em quatro direções com 16 quadros preparados.
+- [x] Solo renovado, sombras, pólen e copas com transparência contextual.
+- [x] Interface de RPG e tela de carregamento.
+- [x] Preservação do formato de save e das regras econômicas.
+
+### Próximos ajustes de conforto e arte
 
 - [ ] Testar em Android intermediário e iPhone, retrato e paisagem.
 - [ ] Caminho automático ao redor de obstáculos.

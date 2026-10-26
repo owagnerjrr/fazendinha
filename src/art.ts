@@ -1,54 +1,25 @@
 import Phaser from 'phaser';
+import { createTerrain, createAtmosphereTextures } from './terrain';
 type Ctx = CanvasRenderingContext2D;
 const rect = (c: Ctx, color: string, x: number, y: number, w: number, h: number) => { c.fillStyle = color; c.fillRect(x, y, w, h); };
 const ellipse = (c: Ctx, color: string, x: number, y: number, rx: number, ry: number) => { c.fillStyle = color; c.beginPath(); c.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); c.fill(); };
 function rng(seed: number) { return () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }; }
 export function createArt(scene: Phaser.Scene) {
   function texture(key: string, w: number, h: number, draw: (c: Ctx) => void) {
+    if (scene.textures.exists(key)) return;
     const tex = scene.textures.createCanvas(key, w, h)!;
     const c = tex.getContext(); c.imageSmoothingEnabled = false; draw(c); tex.refresh();
   }
-  texture('terrain', 1600, 1200, c => {
-    rect(c, '#92ae69', 0, 0, 1600, 1200);
-    const rand = rng(271);
-    for (let n = 0; n < 16000; n++) {
-      const x = Math.floor(rand() * 800) * 2, y = Math.floor(rand() * 600) * 2;
-      rect(c, ['#9eb976', '#a3bc79', '#839f5c', '#8ba563', '#b1bf7d'][n % 5], x, y, n % 3 === 0 ? 4 : 2, 2);
+  createTerrain(scene);
+  createAtmosphereTextures(scene);
+  if (scene.textures.exists('farmer-v2')) {
+    const sheet = scene.textures.get('farmer-v2').getSourceImage() as HTMLImageElement;
+    for (const [row, direction] of ['down', 'left', 'right', 'up'].entries()) {
+      for (let frame = 0; frame < 4; frame++) {
+        texture(`farmer-${direction}-${frame}`, 48, 64, c => c.drawImage(sheet, frame * 48, row * 64, 48, 64, 0, 0, 48, 64));
+      }
     }
-    // Hand-laid winding paths and a softer border.
-    const path = (color: string, width: number) => {
-      c.strokeStyle = color; c.lineWidth = width; c.lineJoin = 'round'; c.lineCap = 'round';
-      c.beginPath(); c.moveTo(405, 465); c.lineTo(480, 465); c.lineTo(480, 640); c.lineTo(1020, 640); c.lineTo(1020, 395); c.stroke();
-      c.beginPath(); c.moveTo(750, 640); c.lineTo(750, 1020); c.stroke();
-    };
-    path('#81995b', 67); path('#b8af7c', 57); path('#d5c393', 43);
-    for (let n = 0; n < 1000; n++) {
-      const x = 470 + rand() * 570, y = 623 + rand() * 34;
-      rect(c, n % 2 ? '#c6b584' : '#decc9f', x | 0, y | 0, 3, 2);
-    }
-    rect(c, '#829b5b', 600, 396, 270, 196);
-    rect(c, '#b6ab78', 604, 400, 262, 188);
-    // River at the east edge: stepped pixel banks and layered shallow water.
-    for (let y = 0; y < 1200; y += 16) {
-      const bank = 1280 + Math.floor(Math.sin(y / 190) * 4) * 8;
-      rect(c, '#668e70', bank - 14, y, 340, 16); rect(c, '#cfca99', bank - 6, y, 326, 16);
-      rect(c, '#7eb4ac', bank + 5, y, 315, 16); rect(c, '#609e9d', bank + 24, y, 300, 16);
-      rect(c, '#528f96', bank + 60, y, 280, 16);
-    }
-    // Flower clusters across the grass.
-    for (let n = 0; n < 260; n++) {
-      const x = rand() * 1230, y = rand() * 1150;
-      if ((x > 350 && x < 1100 && y > 260 && y < 820)) continue;
-      rect(c, '#66884e', x | 0, y | 0, 2, 7);
-      const col = ['#e8db9d', '#f2e9c5', '#c9999b'][n % 3];
-      rect(c, col, (x - 2) | 0, y | 0, 6, 2); rect(c, col, x | 0, (y - 2) | 0, 2, 6); rect(c, '#c6a35d', x | 0, y | 0, 2, 2);
-    }
-    // Little bridge.
-    rect(c, '#547c70', 1220, 828, 205, 64);
-    for (let x = 1214; x < 1430; x += 12) { rect(c, '#78684a', x, 820, 10, 62); rect(c, '#b4986b', x, 820, 8, 56); }
-    rect(c, '#655a40', 1210, 807, 224, 6); rect(c, '#c0a575', 1210, 803, 224, 5);
-    for (const x of [1210, 1282, 1354, 1426]) { rect(c, '#6f6043', x, 794, 8, 30); rect(c, '#c9af7c', x, 794, 5, 26); }
-  });
+  }
   for (let v = 0; v < 3; v++) texture(`tree${v}`, 88, 114, c => {
     ellipse(c, '#213f3933', 47, 103, 33, 9);
     rect(c, '#67583d', 39, 62, 13, 43); rect(c, '#937344', 42, 64, 6, 38); rect(c, '#ac8550', 41, 91, 3, 12);
@@ -134,8 +105,18 @@ export function createArt(scene: Phaser.Scene) {
     else { const eye = direction === 'left' ? 9 : direction === 'right' ? 18 : 11; rect(c, '#4f4b3c', eye, 12 + bob, 2, 2); if (direction === 'down') rect(c, '#4f4b3c', 17, 12 + bob, 2, 2); }
     rect(c, '#a0804d', 4, 7 + bob, 22, 4); rect(c, '#d2b775', 2, 5 + bob, 25, 4); rect(c, '#d2b775', 8, 0 + bob, 13, 7); rect(c, '#e2c98a', 9, bob, 10, 2); rect(c, '#826c49', 8, 4 + bob, 13, 2);
   });
-  texture('plot-raw', 40, 40, c => { rect(c, '#a69768', 1, 1, 38, 38); rect(c, '#b5a676', 3, 3, 34, 34); for (const [x, y] of [[7, 9], [25, 25], [29, 8], [10, 27]]) { rect(c, '#829355', x, y, 3, 6); rect(c, '#829355', x - 2, y + 1, 7, 2); } });
-  for (const wet of [false, true]) texture(`plot-${wet ? 'wet' : 'tilled'}`, 40, 40, c => { rect(c, '#786345', 1, 1, 38, 38); rect(c, wet ? '#806548' : '#a08055', 3, 3, 34, 34); for (let y = 8; y < 37; y += 8) { rect(c, wet ? '#6e573f' : '#886a47', 5, y, 30, 2); rect(c, wet ? '#96764f' : '#b49562', 6, y + 2, 28, 2); } });
+  texture('plot-raw', 40, 40, c => {
+    rect(c, '#7e6344', 1, 2, 38, 37); rect(c, '#a08a58', 2, 1, 36, 35);
+    rect(c, '#af985f', 3, 2, 33, 1); rect(c, '#8a734b', 2, 35, 35, 2);
+    const rand = rng(421);
+    for (let i = 0; i < 55; i++) rect(c, ['#8d754c', '#b09a65', '#967d50'][i % 3], 3 + rand() * 33, 4 + rand() * 29, i % 4 ? 1 : 2, 1);
+    for (const [x, y] of [[6, 7], [29, 30], [30, 8]]) { rect(c, '#668141', x, y, 1, 5); rect(c, '#779b45', x - 2, y + 1, 5, 1); }
+  });
+  for (const wet of [false, true]) texture(`plot-${wet ? 'wet' : 'tilled'}`, 40, 40, c => {
+    rect(c, '#4b382b', 1, 1, 38, 38); rect(c, wet ? '#554334' : '#89613f', 2, 2, 36, 35);
+    rect(c, wet ? '#776047' : '#b28b54', 3, 2, 34, 2);
+    for (let y = 8; y < 37; y += 7) { rect(c, wet ? '#3e332a' : '#65472e', 4, y, 32, 2); rect(c, wet ? '#6b5740' : '#a47b48', 5, y + 2, 30, 1); for (let x = 6; x < 35; x += 8) rect(c, wet ? '#766749' : '#bb995c', x, y + 3, 1, 1); }
+  });
   for (const crop of ['carrot', 'lettuce', 'tomato']) for (let stage = 0; stage < 4; stage++) texture(`${crop}-${stage}`, 32, 38, c => {
     const size = stage + 1;
     if (stage === 0) { rect(c, '#477145', 15, 24, 2, 8); rect(c, '#76934e', 11, 23, 6, 4); rect(c, '#9cb25a', 17, 20, 5, 4); return; }

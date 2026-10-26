@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import './style.css';
+import './theme.css';
 import { createArt } from './art';
 import { act, buySeeds, CROPS, makeFarm, remaining, restoreFarm, SAVE_KEY, sellAll, type Crop, type Farm, type Tool } from './farm';
 
@@ -18,7 +19,7 @@ function save() {
 }
 function syncUI() {
   $('coins').textContent = farm.coins.toLocaleString('pt-BR');
-  $('seed-name').textContent = CROPS[selected].name; $('seed-icon').textContent = CROPS[selected].icon;
+  $('seed-name').textContent = CROPS[selected].name; $('seed-icon').innerHTML = `<img src="/assets/v2/${selected}-3.png" alt="" />`;
   $('seed-count').textContent = `${farm.seeds[selected]} sementes`;
   $('bag-count').textContent = String(cropKeys.reduce((sum, c) => sum + farm.inventory[c], 0));
   if (farm.questClaimed) { $('quest-text').textContent = 'A primeira colheita a gente nunca esquece.'; $('quest-progress').textContent = 'Capítulo concluído'; $('quest-fill').style.width = '100%'; }
@@ -34,18 +35,18 @@ $('close-panel').onclick = closePanel;
 dialog.addEventListener('click', e => { if (e.target === dialog) { const r = dialog.getBoundingClientRect(); if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) closePanel(); } });
 function inventory() {
   const total = cropKeys.reduce((n, c) => n + farm.inventory[c] * CROPS[c].sellPrice, 0);
-  openPanel('Seu celeiro', `<p>O que você cultiva com carinho fica guardado aqui. Venda a colheita e prepare o próximo plantio.</p>${cropKeys.map(c => `<div class="item-row"><span class="emoji">${CROPS[c].icon}</span><div class="item-info"><strong>${CROPS[c].name}</strong><small>${farm.inventory[c]} unidades · ${CROPS[c].sellPrice} moedas cada</small></div><strong>${farm.inventory[c] * CROPS[c].sellPrice} ◉</strong></div>`).join('')}<button class="primary" id="sell-all" ${total === 0 ? 'disabled' : ''}>Vender colheita · ${total} moedas</button><p class="quiet-note">As sementes ficam guardadas separadamente e não são vendidas.</p>`);
+  openPanel('Seu celeiro', `<p>O que você cultiva com carinho fica guardado aqui. Venda a colheita e prepare o próximo plantio.</p>${cropKeys.map(c => `<div class="item-row"><span class="emoji"><img src="/assets/v2/${c}-3.png" alt="" /></span><div class="item-info"><strong>${CROPS[c].name}</strong><small>${farm.inventory[c]} unidades · ${CROPS[c].sellPrice} moedas cada</small></div><strong>${farm.inventory[c] * CROPS[c].sellPrice} ◉</strong></div>`).join('')}<button class="primary" id="sell-all" ${total === 0 ? 'disabled' : ''}>Vender colheita · ${total} moedas</button><p class="quiet-note">As sementes ficam guardadas separadamente e não são vendidas.</p>`);
   $('sell-all').onclick = () => { const sold = sellAll(farm); save(); syncUI(); closePanel(); toast(`Colheita vendida: +${sold} moedas. Bom trabalho!`); };
 }
 function seedPanel() {
-  openPanel('O que vamos plantar?', `<p>Você já começa com sementes das três culturas. Os tempos são curtos para experimentar este protótipo.</p>${cropKeys.map(c => `<div class="item-row"><span class="emoji">${CROPS[c].icon}</span><div class="item-info"><strong>${CROPS[c].name}</strong><small>${farm.seeds[c]} sementes · cresce em ${CROPS[c].seconds}s após regar</small></div><button class="choose-seed" data-crop="${c}">${selected === c ? 'Selecionada' : 'Escolher'}</button></div>`).join('')}`);
+  openPanel('O que vamos plantar?', `<p>Você já começa com sementes das três culturas. Os tempos são curtos para experimentar este protótipo.</p>${cropKeys.map(c => `<div class="item-row"><span class="emoji"><img src="/assets/v2/${c}-3.png" alt="" /></span><div class="item-info"><strong>${CROPS[c].name}</strong><small>${farm.seeds[c]} sementes · cresce em ${CROPS[c].seconds}s após regar</small></div><button class="choose-seed" data-crop="${c}">${selected === c ? 'Selecionada' : 'Escolher'}</button></div>`).join('')}`);
   document.querySelectorAll<HTMLButtonElement>('[data-crop]').forEach(b => b.onclick = () => { selected = b.dataset.crop as Crop; setTool('seed'); closePanel(); });
 }
 function shop() {
-  openPanel('A venda do vale', `<p>Um novo plantio começa por aqui. Cada pacote tem 5 sementes.</p>${cropKeys.map(c => `<div class="item-row"><span class="emoji">${CROPS[c].icon}</span><div class="item-info"><strong>${CROPS[c].name}</strong><small>5 sementes · ${farm.seeds[c]} guardadas</small></div><button class="buy-seeds" data-buy="${c}" ${farm.coins < CROPS[c].seedPrice * 5 ? 'disabled' : ''}>${CROPS[c].seedPrice * 5} ◉</button></div>`).join('')}<p class="quiet-note">Saldo: ${farm.coins} moedas. Na colheita, cada canteiro rende 3 unidades.</p>`);
+  openPanel('A venda do vale', `<p>Um novo plantio começa por aqui. Cada pacote tem 5 sementes.</p>${cropKeys.map(c => `<div class="item-row"><span class="emoji"><img src="/assets/v2/${c}-3.png" alt="" /></span><div class="item-info"><strong>${CROPS[c].name}</strong><small>5 sementes · ${farm.seeds[c]} guardadas</small></div><button class="buy-seeds" data-buy="${c}" ${farm.coins < CROPS[c].seedPrice * 5 ? 'disabled' : ''}>${CROPS[c].seedPrice * 5} ◉</button></div>`).join('')}<p class="quiet-note">Saldo: ${farm.coins} moedas. Na colheita, cada canteiro rende 3 unidades.</p>`);
   document.querySelectorAll<HTMLButtonElement>('[data-buy]').forEach(b => b.onclick = () => { const c = b.dataset.buy as Crop; if (buySeeds(farm, c)) { save(); syncUI(); closePanel(); toast(`+5 sementes de ${CROPS[c].name.toLowerCase()}.`); } });
 }
-function help() { openPanel('Um novo começo', `<p>Bem-vindo ao Vale do Sossego. Aqui, um pedacinho de terra já é uma boa história.</p><ol class="controls-list"><li>Escolha a <b>enxada</b> e toque em um canteiro.</li><li>Selecione <b>Plantar</b> e use uma semente.</li><li>Use o <b>regador</b>. O crescimento começa agora.</li><li>Quando estiver pronta, use a <b>mão</b> para colher.</li><li>Abra o <b>celeiro</b> e venda sua colheita.</li></ol><p>No PC, ande com <b>WASD ou setas</b>. Use <b>E</b> para agir perto de um canteiro ou da venda. As teclas <b>1–4</b> trocam a ferramenta. Você também pode clicar no terreno para caminhar. No celular, use o joystick ou toque no mapa.</p><p class="quiet-note"><b>Protótipo 0.1:</b> o progresso é salvo somente neste navegador. Não há conta online, feira ou sincronização entre aparelhos ainda. As plantas regadas continuam crescendo ao fechar. A arte é provisória e original do projeto.</p><button class="primary" id="start-playing">Vamos plantar</button>`); $('start-playing').onclick = closePanel; }
+function help() { openPanel('Um novo começo', `<p>Bem-vindo ao Vale do Sossego. Aqui, um pedacinho de terra já é uma boa história.</p><ol class="controls-list"><li>Escolha a <b>enxada</b> e toque em um canteiro.</li><li>Selecione <b>Plantar</b> e use uma semente.</li><li>Use o <b>regador</b>. O crescimento começa agora.</li><li>Quando estiver pronta, use a <b>mão</b> para colher.</li><li>Abra o <b>celeiro</b> e venda sua colheita.</li></ol><p>No PC, ande com <b>WASD ou setas</b>. Use <b>E</b> para agir perto de um canteiro ou da venda. As teclas <b>1–4</b> trocam a ferramenta. Você também pode clicar no terreno para caminhar. No celular, use o joystick ou toque no mapa.</p><p class="quiet-note"><b>Protótipo 0.2:</b> o progresso é salvo somente neste navegador. Não há conta online, feira ou sincronização entre aparelhos ainda. As plantas regadas continuam crescendo ao fechar. A arte é provisória e original do projeto.</p><button class="primary" id="start-playing">Vamos plantar</button>`); $('start-playing').onclick = closePanel; }
 $('inventory').onclick = inventory; $('seed-choice').onclick = seedPanel; $('help').onclick = help;
 document.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach(b => b.onclick = () => setTool(b.dataset.tool as Tool));
 
@@ -56,21 +57,40 @@ class FarmScene extends Phaser.Scene {
   keys!: Record<string, Phaser.Input.Keyboard.Key>;
   obstacles!: Phaser.Physics.Arcade.StaticGroup;
   destination: { x: number; y: number; field?: number; shop?: boolean; barn?: boolean } | null = null;
+  focusedField: number | null = null;
   direction = 'down'; walking = false; lastPaint = 0; lastSave = 0; stuck = 0; previous = { x: 0, y: 0 };
   ripples: Phaser.GameObjects.Rectangle[] = [];
+  occluders: Phaser.GameObjects.Image[] = [];
+  vignette!: Phaser.GameObjects.Image;
+  playerShadow!: Phaser.GameObjects.Ellipse;
+  aim!: Phaser.GameObjects.Ellipse;
   select!: Phaser.GameObjects.Rectangle;
   constructor() { super('Farm'); }
+  preload() {
+    this.load.on('progress', (value: number) => { $('loading-percent').textContent = `${Math.round(value * 100)}%`; });
+    for (const key of ['house', 'barn', 'shop', 'mill', 'tree0', 'tree1', 'tree2', 'pine', 'well', 'rock', 'bush', 'fence']) {
+      this.load.image(key, `/assets/v2/${key}.png`);
+    }
+    this.load.image('farmer-v2', '/assets/v2/farmer.png');
+    for (const key of ['hoe', 'seed', 'water']) this.load.image(`tool-${key}`, `/assets/v2/icon-${key}.png`);
+    for (const crop of cropKeys) for (let stage = 0; stage < 4; stage++) this.load.image(`${crop}-${stage}`, `/assets/v2/${crop}-${stage}.png`);
+  }
   create() {
     scene = this; createArt(this);
+    $('loading').hidden = true;
     this.add.image(0, 0, 'terrain').setOrigin(0);
     this.physics.world.setBounds(90, 160, 1410, 930);
     this.obstacles = this.physics.add.staticGroup();
     const block = (x: number, y: number, w: number, h: number) => { const zone = this.add.zone(x, y, w, h); this.obstacles.add(zone); (zone.body as Phaser.Physics.Arcade.StaticBody).setSize(w, h); };
+    const shadow = (x: number, y: number, w: number, h: number) => this.add.ellipse(x, y, w, h, 0x203726, .24).setDepth(2);
+    shadow(415, 445, 214, 46); shadow(1030, 386, 170, 33); shadow(1050, 787, 154, 40);
     this.add.image(408, 451, 'house').setOrigin(.5, 1).setScale(1.35).setDepth(448); block(408, 400, 180, 88);
     this.add.image(1030, 390, 'shop').setOrigin(.5, 1).setScale(1.25).setDepth(386); block(1030, 350, 130, 65);
     this.add.image(1050, 795, 'barn').setOrigin(.5, 1).setScale(1.15).setDepth(790); block(1050, 752, 128, 80);
     this.add.image(493, 545, 'well').setOrigin(.5, 1).setScale(1.1).setDepth(545); block(493, 530, 44, 25);
-    const label = (x: number, y: number, text: string) => this.add.text(x, y, text, { fontFamily: 'monospace', fontSize: '11px', color: '#f8f0c9', backgroundColor: '#435a3fcc', padding: { x: 10, y: 5 } }).setOrigin(.5).setDepth(1900);
+    shadow(1120, 995, 150, 32);
+    this.add.image(1120, 1000, 'mill').setOrigin(.5, 1).setScale(1.15).setDepth(995); block(1120, 973, 87, 48);
+    const label = (x: number, y: number, text: string) => this.add.text(x, y, text, { fontFamily: 'monospace', fontSize: '10px', color: '#f6da8c', backgroundColor: '#302f29cc', padding: { x: 9, y: 4 } }).setOrigin(.5).setDepth(1900);
     label(1030, 240, 'A VENDA'); label(1050, 820, 'CELEIRO');
     for (let row = 0; row < 4; row++) for (let col = 0; col < 6; col++) {
       const x = 634 + col * 40, y = 434 + row * 40, id = row * 6 + col;
@@ -86,10 +106,11 @@ class FarmScene extends Phaser.Scene {
       if (x > 680 && x < 820 && y > 930) continue;
       const px = x + (rand?.between(-16, 16) ?? 0), py = y + (rand?.between(-12, 12) ?? 0);
       const key = (x + y) % 3 === 0 ? 'pine' : `tree${(x + y) % 3}`;
-      this.add.image(px, py, key).setOrigin(.5, 1).setScale(1.25).setDepth(py);
+      shadow(px + 10, py - 4, 88, 23);
+      this.occluders.push(this.add.image(px, py, key).setOrigin(.5, 1).setScale(rand!.realInRange(1.12, 1.4)).setDepth(py));
       block(px, py - 9, 18, 20);
     }
-    for (const [x, y] of [[300, 600], [330, 790], [535, 860], [940, 940], [1150, 540], [530, 280], [877, 260]]) { this.add.image(x, y, 'tree0').setOrigin(.5, 1).setScale(1.2).setDepth(y); block(x, y - 9, 18, 20); }
+    for (const [i, [x, y]] of [[300, 600], [330, 790], [535, 860], [940, 940], [1150, 540], [530, 280], [877, 260]].entries()) { shadow(x + 9, y - 2, 95, 24); this.occluders.push(this.add.image(x, y, `tree${i % 3}`).setOrigin(.5, 1).setScale(1.2).setDepth(y)); block(x, y - 9, 18, 20); }
     for (let i = 0; i < 6; i++) { const x = 350 + i * 48; this.add.image(x, 762, 'fence').setOrigin(.5, 1).setDepth(762); block(x, 755, 46, 9); }
     for (let i = 0; i < 4; i++) { this.add.image(350 + i * 48, 889, 'fence').setOrigin(.5, 1).setDepth(889); block(350 + i * 48, 882, 46, 9); }
     for (let i = 0; i < 4; i++) {
@@ -103,14 +124,26 @@ class FarmScene extends Phaser.Scene {
       const r = this.add.rectangle(1335 + i % 4 * 45, 100 + i * 25, 12 + i % 3 * 6, 2, 0xc4dfc3, .45).setDepth(2); this.ripples.push(r);
       this.tweens.add({ targets: r, x: r.x + 18, alpha: .15, duration: 1500 + i % 5 * 400, yoyo: true, repeat: -1 });
     }
-    this.player = this.physics.add.sprite(farm.player.x, farm.player.y, 'farmer-down-0').setScale(1.55).setOrigin(.5, 1).setCollideWorldBounds(true);
-    this.player.body!.setSize(12, 9).setOffset(8, 27);
+    this.playerShadow = this.add.ellipse(farm.player.x, farm.player.y - 3, 30, 12, 0x1e3029, .38).setDepth(3);
+    this.player = this.physics.add.sprite(farm.player.x, farm.player.y, 'farmer-down-0').setScale(1.08).setOrigin(.5, 1).setCollideWorldBounds(true);
+    this.player.body!.setSize(14, 10).setOffset(17, 52);
     this.physics.add.collider(this.player, this.obstacles);
     // A saved spawn may become blocked if a future map changes.
     const inObstacle = this.obstacles.getChildren().some(o => { const b = (o as Phaser.GameObjects.Zone).body as Phaser.Physics.Arcade.StaticBody; return Phaser.Geom.Rectangle.Contains(new Phaser.Geom.Rectangle(b.x - 10, b.y - 10, b.width + 20, b.height + 20), this.player.x, this.player.y - 5); });
     if (inObstacle) this.player.setPosition(710, 650);
     this.select = this.add.rectangle(0, 0, 40, 40).setStrokeStyle(2, 0xf9edba, .85).setDepth(3).setVisible(false);
-    this.cameras.main.setBounds(0, 0, 1600, 1200); this.cameras.main.startFollow(this.player, true, .09, .09); this.resize();
+    this.aim = this.add.ellipse(0, 0, 20, 9).setStrokeStyle(2, 0xffe7a1, .8).setDepth(4).setVisible(false);
+    this.cameras.main.setBounds(0, 0, 1600, 1200); this.cameras.main.startFollow(this.player, true, .09, .09, 0, 45);
+    this.vignette = this.add.image(0, 0, 'vignette').setOrigin(0).setScrollFactor(0).setDepth(2400).setAlpha(.5);
+    for (let i = 0; i < 3; i++) {
+      const cloud = this.add.image(200 + i * 530, 300 + i * 210, 'cloud-shadow').setScale(2.7).setDepth(1500).setAlpha(.35);
+      this.tweens.add({ targets: cloud, x: cloud.x + 230, duration: 38000 + i * 7000, yoyo: true, repeat: -1 });
+    }
+    for (let i = 0; i < 26; i++) {
+      const pollen = this.add.rectangle(rand!.between(270, 1200), rand!.between(250, 980), i % 3 ? 2 : 3, 2, i % 3 ? 0xf3dc83 : 0xc1d483, .6).setDepth(1550);
+      this.tweens.add({ targets: pollen, x: pollen.x + 35, y: pollen.y - 32, alpha: .1, duration: 4200 + i * 130, yoyo: true, repeat: -1, delay: i * 140 });
+    }
+    this.resize();
     this.scale.on('resize', this.resize, this);
     this.keys = this.input.keyboard!.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,E,ONE,TWO,THREE,FOUR') as Record<string, Phaser.Input.Keyboard.Key>;
     this.input.keyboard!.addCapture([Phaser.Input.Keyboard.KeyCodes.SPACE, Phaser.Input.Keyboard.KeyCodes.UP, Phaser.Input.Keyboard.KeyCodes.DOWN]);
@@ -119,7 +152,7 @@ class FarmScene extends Phaser.Scene {
       if (modal) return;
       const p = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
       const field = this.fields.find(f => Math.abs(f.x - p.x) < 20 && Math.abs(f.y - p.y) < 20);
-      if (field) { this.destination = { x: field.x, y: field.y + 21, field: field.id }; return; }
+      if (field) { this.destination = { x: field.x + 26, y: field.y + 30, field: field.id }; return; }
       if (p.x > 930 && p.x < 1130 && p.y > 245 && p.y < 410) { this.destination = { x: 1030, y: 425, shop: true }; return; }
       if (p.x > 960 && p.x < 1140 && p.y > 620 && p.y < 820) { this.destination = { x: 1050, y: 840, barn: true }; return; }
       this.destination = { x: Phaser.Math.Clamp(p.x, 105, 1480), y: Phaser.Math.Clamp(p.y, 190, 1070) }; this.stuck = 0;
@@ -130,7 +163,7 @@ class FarmScene extends Phaser.Scene {
     this.paintFields(); syncUI();
     this.time.delayedCall(1400, () => toast('Bem-vindo ao vale! Escolha a enxada para começar.'));
   }
-  resize() { this.cameras.main.setZoom(this.scale.width < 600 ? 1.15 : this.scale.height < 560 ? 1 : 1.28); }
+  resize() { this.cameras.main.setZoom(this.scale.width < 600 ? 1.1 : this.scale.height < 560 ? .9 : 1.08); this.vignette?.setDisplaySize(this.scale.width, this.scale.height); }
   cancelMovement() { this.destination = null; this.player?.setVelocity(0); this.input.keyboard?.resetKeys(); joystick.x = 0; joystick.y = 0; }
   paintFields() {
     const now = Date.now();
@@ -140,25 +173,34 @@ class FarmScene extends Phaser.Scene {
       field.plant.setVisible(!!plot.crop);
       if (!plot.crop) { field.label.setVisible(false); continue; }
       const left = remaining(plot, now), progress = left === null ? 0 : 1 - left / (CROPS[plot.crop].seconds * 1000);
-      field.plant.setTexture(`${plot.crop}-${Math.min(3, Math.floor(progress * 4))}`);
+      const stage = left === 0 ? 3 : progress < .3 ? 0 : progress < .7 ? 1 : 2;
+      field.plant.setTexture(`${plot.crop}-${stage}`);
       field.label.setText(left === null ? 'Gota?' : left === 0 ? 'COLHER' : `${Math.ceil(left / 1000)}s`).setVisible(left === 0 || left === null);
       if (left === null) field.label.setText('REGAR');
     }
   }
   useField(id: number) {
+    this.focusedField = id;
     const result = act(farm, id, tool, selected); toast(result.message);
     if (result.ok) {
       save(); syncUI(); this.paintFields();
       const f = this.fields[id]; const color = result.harvest ? 0xf2d27e : tool === 'water' ? 0xbedbdd : 0xe3d4a5;
       for (let i = 0; i < 8; i++) { const particle = this.add.rectangle(f.x + Phaser.Math.Between(-10, 10), f.y, 3, 3, color).setDepth(1600); this.tweens.add({ targets: particle, y: f.y - 25 - Math.random() * 20, x: particle.x + Phaser.Math.Between(-12, 12), alpha: 0, duration: 650, onComplete: () => particle.destroy() }); }
       this.tweens.add({ targets: this.player, angle: 8, duration: 80, yoyo: true });
+      if (tool !== 'hand') {
+        const icon = this.add.image(this.player.x + 18, this.player.y - 24, `tool-${tool}`).setScale(.75).setDepth(this.player.depth + 1).setAngle(-30);
+        this.tweens.add({ targets: icon, angle: 55, alpha: .15, duration: 260, onComplete: () => icon.destroy() });
+      }
     }
   }
   interactNearest() {
     if (modal) return;
     if (Phaser.Math.Distance.Between(this.player.x, this.player.y, 1030, 425) < 85) { shop(); return; }
     if (Phaser.Math.Distance.Between(this.player.x, this.player.y, 1050, 840) < 85) { inventory(); return; }
-    const nearest = [...this.fields].sort((a, b) => Phaser.Math.Distance.Between(this.player.x, this.player.y, a.x, a.y) - Phaser.Math.Distance.Between(this.player.x, this.player.y, b.x, b.y))[0];
+    // Keep successive tool actions on the plot just clicked while standing
+    // beside it, instead of accidentally selecting the neighboring plot.
+    const focused = this.focusedField === null ? null : this.fields[this.focusedField];
+    const nearest = focused && Phaser.Math.Distance.Between(this.player.x, this.player.y, focused.x, focused.y) < 60 ? focused : [...this.fields].sort((a, b) => Phaser.Math.Distance.Between(this.player.x, this.player.y, a.x, a.y) - Phaser.Math.Distance.Between(this.player.x, this.player.y, b.x, b.y))[0];
     if (Phaser.Math.Distance.Between(this.player.x, this.player.y, nearest.x, nearest.y) < 65) this.useField(nearest.id);
     else toast('Aproxime-se de um canteiro, da venda ou do celeiro.');
   }
@@ -182,6 +224,9 @@ class FarmScene extends Phaser.Scene {
     this.player.setVelocity(length ? vx / Math.max(1, length) * speed : 0, length ? vy / Math.max(1, length) * speed : 0);
     if (length > .1) { this.direction = Math.abs(vx) > Math.abs(vy) ? vx < 0 ? 'left' : 'right' : vy < 0 ? 'up' : 'down'; }
     this.player.setTexture(`farmer-${this.direction}-${length > .1 ? Math.floor(time / 130) % 4 : 0}`).setDepth(this.player.y);
+    this.playerShadow.setPosition(this.player.x + 1, this.player.y - 3);
+    this.aim.setVisible(!!this.destination); if (this.destination) this.aim.setPosition(this.destination.x, this.destination.y);
+    for (const tree of this.occluders) { const hidden = Math.abs(this.player.x - tree.x) < 60 && this.player.y < tree.y && this.player.y > tree.y - tree.displayHeight + 20; tree.setAlpha(hidden ? .42 : 1); }
     const pointer = this.input.activePointer, world = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
     const hover = this.fields.find(f => Math.abs(f.x - world.x) < 20 && Math.abs(f.y - world.y) < 20);
     this.select.setVisible(!!hover); if (hover) this.select.setPosition(hover.x, hover.y);

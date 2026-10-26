@@ -1,6 +1,6 @@
 # Fazendinha WJ
 
-Protótipo original de um jogo de fazenda para navegador, pensado para celular e PC. O nome do cenário, **Vale do Sossego**, é provisório.
+Versão 0.2 — Bosque Vivo. Protótipo original de um jogo de fazenda para navegador, pensado para celular e PC. O nome do cenário, **Vale do Sossego**, é provisório.
 
 ## Jogar e desenvolver
 
@@ -45,12 +45,16 @@ O clique movimenta em linha reta; ainda não calcula um caminho ao redor de obst
 
 **Ainda não há conta, servidor, sincronização entre aparelhos, multiplayer, feira, clima dinâmico, construção livre ou instalação PWA.** A estação mostrada é ambientação fixa. O progresso pertence ao navegador e pode ser perdido ao limpar seus dados. Não é uma economia segura para competição: regras e relógio ainda rodam no cliente. A arquitetura online está planejada em `docs/ARQUITETURA.md`.
 
-Os gráficos são desenhos originais gerados por código em `src/art.ts`, provisórios para validar escala, perspectiva e interação. Não utilizamos recursos do jogo de referência ou de Stardew Valley. A qualidade final da direção de arte ainda será desenvolvida.
+A versão 0.2 integra sprites originais gerados para o projeto, personagem com 16 quadros, 12 fases de culturas, novos cenários, sombras e interface de RPG. Os atlas, prompts e o preparo dos sprites estão versionados em `art-source/`, `scripts/prepare-art.py` e `docs/ARTE.md`. O solo e os efeitos complementares são desenhados em canvas. Não utilizamos recursos extraídos dos jogos de referência. O acabamento continua em evolução.
 
 ## Organização
 
 - `src/farm.ts`: regras, inventário, progressão, compra/venda e validação do save.
-- `src/art.ts`: texturas procedurais originais.
+- `src/art.ts`: texturas auxiliares e quadros do personagem.
+- `src/terrain.ts`: chão e efeitos de atmosfera.
+- `public/assets/v2/`: sprites e ícones preparados.
+- `art-source/`: atlas e prompts da geração.
+- `docs/ARTE.md`: direção de arte e limites da versão 0.2.
 - `src/main.ts`: cena Phaser, movimento, colisões e interface.
 - `src/style.css`: interface e controles responsivos.
 - `tests/farm.test.ts`: testes das regras econômicas e persistência.

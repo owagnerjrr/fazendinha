@@ -2,7 +2,7 @@
 
 ## Implementação atual
 
-Cliente TypeScript com Phaser 3.90. Canvas/WebGL para o mundo e HTML/CSS para menus, foco, textos e interface responsiva. O Vite gera a distribuição estática. A renderização usa arte original criada por canvas e convertida em texturas; não há dependência de um serviço de imagens para abrir o mapa.
+Cliente TypeScript com Phaser 3.90. Canvas/WebGL para o mundo e HTML/CSS para menus, foco, textos e interface responsiva. O Vite gera a distribuição estática. A renderização combina sprites originais pré-carregados de `public/assets/v2/` com terreno e efeitos gerados em canvas. A geração de imagens aconteceu na preparação; abrir o mapa não depende de um serviço de geração. As fontes e prompts de arte estão versionados.
 
 As regras agrícolas são independentes da engine em `src/farm.ts`, permitindo testes sem navegador e futura adaptação à API. O cliente salva um documento versionado no localStorage. O tempo de crescimento começa na rega, com um timestamp absoluto. Ao abrir, o estágio é recalculado. Não existe processo em segundo plano.
 
