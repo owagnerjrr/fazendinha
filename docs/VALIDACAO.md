@@ -94,3 +94,8 @@ Google: o início da autenticação e a vinculação de uma sessão de QA retorn
 Editor da versão 0.5 em viewport de 390×844:
 
 ![Avatar inclusivo na tela móvel](screenshots/avatar-v5.png)
+
+
+## Feira 0.5.1 — preparada, ainda não publicada
+
+47 testes e build aprovados. Validação de interface executada com fazendas fictícias na prévia local, cobrindo anúncio/cancelamento de ovos, filtros e compra de leite. Layout e compra também conferidos em iframe de 390 × 844, sem aparelho físico. A migração de produção foi bloqueada pela revisão automática; não houve teste online dos novos produtos. Escopo, evidências e passo de publicação em [FEIRA_0_5_1.md](FEIRA_0_5_1.md).

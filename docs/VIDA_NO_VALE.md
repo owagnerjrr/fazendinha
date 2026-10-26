@@ -1,4 +1,4 @@
-# Vida no Vale — beta 0.5
+# Vida no Vale — beta 0.5.1
 
 ## Conta Google/Gmail
 
@@ -27,7 +27,7 @@ Uma galinha inicial é adicionada sem alterar o saldo existente. A venda oferece
 | Cabra / bode | 230 | Um leite de cabra a cada 150s; venda 26 |
 | Cachorro | 180 | Protege contra roubo por 24h |
 
-Cada coleta recebe um único produto, sem acúmulo infinito offline. Ovos e leites entram no inventário e são vendidos junto da colheita. A feira, nesta versão, negocia culturas; não negocia animais ou produtos animais.
+Cada coleta recebe um único produto, sem acúmulo infinito offline. Ovos e leites entram no inventário e são vendidos junto da colheita. A feira também negocia ovos, leite de vaca e leite de cabra. Os produtos anunciados saem do estoque disponível e ficam reservados até a venda ou o cancelamento. Cada lote tem de 1 a 99 unidades e custa de 1 a 9.999 moedas; até 10 ofertas abertas por jogador. Filtros separam horta, animais e ofertas próprias, com saldo e preço por unidade. As ofertas próprias aparecem primeiro entre até 60 exibidas. Animais vivos não são negociados.
 
 ## Amizade e roubo
 
@@ -45,4 +45,4 @@ A venda contém abas Sementes, Animais e ração e Decoração. Compras consecut
 
 A migração aditiva preserva moedas, plantas, missão, inventário e posição das contas anteriores. Novas culturas começam com zero sementes em saves antigos; os novos jogadores começam com oito de cada no teste. A versão do documento local continua 1 para manter compatibilidade. A revisão online continua sendo incrementada a cada comando.
 
-O interior atual não é salvo como posição online: ao reabrir, o jogador volta à última posição externa confirmada. Visitar o mapa do amigo em tempo real, co-op e produção animal negociável na feira continuam pendentes. Testes em celulares físicos e credenciais Google próprias para lançamento público continuam necessários.
+O interior atual não é salvo como posição online: ao reabrir, o jogador volta à última posição externa confirmada. Visitar o mapa do amigo em tempo real e co-op continuam pendentes. Testes em celulares físicos e credenciais Google próprias para lançamento público continuam necessários.

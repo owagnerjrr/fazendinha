@@ -1,5 +1,12 @@
 # Caminho do projeto
 
+## Preparado para a beta 0.5.1 — publicação pendente
+
+- [x] Feira com ovos, leite de vaca e leite de cabra, filtros, estoque disponível e preço por unidade.
+- [x] Compatibilidade da feira com as versões antigas da PWA.
+
+Migração do banco aguarda autorização específica; detalhes em [FEIRA_0_5_1.md](FEIRA_0_5_1.md).
+
 ## Entregue na beta 0.5
 
 - [x] Botões Google/Gmail e vinculação pela identidade Neon (Google próprio para lançamento permanece pendente).
@@ -41,7 +48,7 @@ Escopo detalhado e limites em [VIDA_NO_VALE.md](VIDA_NO_VALE.md).
 ## Próximas funcionalidades
 
 - [ ] Entrar e caminhar no mapa da fazenda de um amigo.
-- [ ] Receitas, construções livres e comércio de produtos animais na feira.
+- [ ] Receitas e construções livres.
 - [ ] Áudio original/licenciado e animações adicionais.
 - [ ] Clima e estações com efeitos, pesca e exploração.
 - [ ] Presença e personagens andando juntos, com servidor de movimento e reconexão.

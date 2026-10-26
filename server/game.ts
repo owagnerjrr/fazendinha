@@ -1,5 +1,6 @@
 import { LIFE_COMMANDS } from '../src/life-rules.js';
 import { dogProtects } from '../src/content.js';
+import { reserveLot, returnLot, transferLot } from '../src/market.js';
 import { createHash } from 'node:crypto';
 import type { PoolClient } from 'pg';
 import { pool } from './db.js';
@@ -19,9 +20,10 @@ export async function snapshot(id: string) {
   const row = rows[0]; upgradeFarm(row.state);replenish(row.state,Date.now());
   return { farm: row.state, revision: row.revision, code: row.public_code, name: row.name, now: Date.now() };
 }
-export async function community(id: string) {
+export async function community(id: string, marketVersion=1) {
   const friends = await pool.query(`SELECT f.public_code AS code,f.name,r.accepted,(r.recipient=$1) AS incoming FROM friendships r JOIN farms f ON f.user_id=CASE WHEN r.sender=$1 THEN r.recipient ELSE r.sender END WHERE r.sender=$1 OR r.recipient=$1 ORDER BY r.created_at DESC LIMIT 100`,[id]);
-  const market = await pool.query(`SELECT m.id,m.crop,m.quantity,m.price,(m.seller=$1) AS mine,f.name,f.public_code AS code FROM market_listings m JOIN farms f ON f.user_id=m.seller WHERE m.status='open' ORDER BY m.created_at DESC LIMIT 50`,[id]);
+  // Older installed PWAs only know crops. Keep their response compatible until they update.
+  const market = await pool.query(`SELECT m.id,m.crop,m.quantity,m.price,(m.seller=$1) AS mine,f.name,f.public_code AS code FROM market_listings m JOIN farms f ON f.user_id=m.seller WHERE m.status='open' AND ($2 OR m.crop IN ('carrot','lettuce','tomato')) ORDER BY (m.seller=$1) DESC,m.created_at DESC LIMIT 60`,[id,marketVersion>=2]);
   return { friends: friends.rows, market: market.rows };
 }
 export async function visit(id: string, code: string) {
@@ -123,11 +125,9 @@ async function social(db:PoolClient,user:string,row:any,c:any,now:number) {
     return {ok:true,message:'Ajuda concluída! +5 XP pela amizade.'};
   }
   if(c.type==='list') {
-    if(!Object.hasOwn(CROPS,c.crop)||!Number.isInteger(c.quantity)||c.quantity<1||c.quantity>99||!Number.isInteger(c.price)||c.price<1||c.price>9999) throw new GameError('Oferta inválida.');
-    if(row.state.inventory[c.crop as Crop]<c.quantity) throw new GameError('Você não tem esta quantidade no celeiro.');
     const count=await db.query("SELECT count(*) FROM market_listings WHERE seller=$1 AND status='open'",[user]);
     if(Number(count.rows[0].count)>=10) throw new GameError('Limite de 10 ofertas abertas.');
-    row.state.inventory[c.crop as Crop]-=c.quantity;
+    const result=reserveLot(row.state,c);if(!result.ok)throw new GameError(result.message);
     await db.query('INSERT INTO market_listings(seller,crop,quantity,price) VALUES($1,$2,$3,$4)',[user,c.crop,c.quantity,c.price]);
     return {ok:true,message:'Oferta publicada. Os produtos ficam reservados até a venda ou cancelamento.'};
   }
@@ -137,14 +137,13 @@ async function social(db:PoolClient,user:string,row:any,c:any,now:number) {
     if(!listing) throw new GameError('Esta oferta já foi vendida ou cancelada.',409);
     if(c.type==='cancel-listing') {
       if(listing.seller!==user) throw new GameError('Esta oferta não é sua.',403);
-      row.state.inventory[listing.crop as Crop]+=listing.quantity;
+      const result=returnLot(row.state,listing);if(!result.ok)throw new GameError(result.message);
       await db.query("UPDATE market_listings SET status='cancelled' WHERE id=$1",[listing.id]);
       return {ok:true,message:'Oferta cancelada. Produtos devolvidos ao celeiro.'};
     }
     if(listing.seller===user) throw new GameError('Você não pode comprar sua própria oferta.');
-    if(row.state.coins<listing.price) throw new GameError('Moedas insuficientes.');
     const seller=await getFarm(db,listing.seller);
-    row.state.coins-=listing.price; row.state.inventory[listing.crop as Crop]+=listing.quantity; seller.state.coins+=listing.price;
+    const result=transferLot(row.state,seller.state,listing);if(!result.ok)throw new GameError(result.message);
     await db.query('UPDATE farms SET state=$2,revision=revision+1 WHERE user_id=$1',[listing.seller,seller.state]);
     await db.query("UPDATE market_listings SET status='sold',buyer=$2 WHERE id=$1",[listing.id,user]);
     return {ok:true,message:'Compra feita! Os produtos estão no seu celeiro.'};

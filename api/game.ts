@@ -7,7 +7,7 @@ async function handle(request:Request) {
     await ensureFarm(user.id,user.name);
     const url=new URL(request.url);
     if(request.method==='GET') {
-      if(url.searchParams.has('community')) return json(await community(user.id));
+      if(url.searchParams.has('community')) return json(await community(user.id,url.searchParams.get('marketVersion')==='2'?2:1));
       if(url.searchParams.has('visit')) return json(await visit(user.id,url.searchParams.get('visit')!));
       return json(await snapshot(user.id));
     }

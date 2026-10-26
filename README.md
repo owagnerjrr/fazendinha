@@ -1,6 +1,6 @@
 # Fazendinha WJ
 
-Versão 0.5.0 — Vida no Vale. Protótipo original de um jogo de fazenda para navegador, pensado para celular e PC. O nome do cenário, **Vale do Sossego**, é provisório.
+Código da versão 0.5.1 — Vida no Vale. A ampliação da feira está pronta para revisão; migração e publicação pendentes, conforme [FEIRA_0_5_1.md](docs/FEIRA_0_5_1.md). A versão pública atual é a 0.5.0. Protótipo original de um jogo de fazenda para navegador, pensado para celular e PC. O nome do cenário, **Vale do Sossego**, é provisório.
 
 A correção 0.3.1 usa sprites completos para carregar enxada, sementes e regador, com o item desenhado junto às mãos durante a caminhada.
 
@@ -35,7 +35,7 @@ npm run build
 - Teste local preservado, separado da fazenda da conta.
 - Conta por e-mail, salvamento online e mesma fazenda entre celular e PC.
 - Servidor determina preços, tempo, energia, XP, expansão e resultados das ações.
-- Amizades com aceite, visita em painel aos canteiros, ajuda diária para regar e feira com produtos reservados.
+- Amizades com aceite, visita em painel aos canteiros, ajuda diária para regar e feira de culturas, ovos e leites com produtos reservados.
 - Instalação PWA pelo navegador e cache da interface e da arte.
 
 ## Controles

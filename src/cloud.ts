@@ -1,9 +1,10 @@
 import { sessionToken } from './session-token';
 import type { Farm } from './farm';
 import type { OnlineFarm } from './online-rules';
+import type { MarketItem } from './market';
 export type Snapshot = { farm: OnlineFarm; revision: number; code?: string; name?: string; now: number; message?: string; harvest?: boolean };
 export type Friend = {code:string;name:string;accepted:boolean;incoming:boolean};
-export type Listing = {id:string;crop:string;quantity:number;price:number;mine:boolean;name:string;code:string};
+export type Listing = {id:string;crop:MarketItem;quantity:number;price:number;mine:boolean;name:string;code:string};
 const authUrl = (import.meta as any).env.VITE_NEON_AUTH_URL as string | undefined;
 let client: any;
 export async function auth() { if (!authUrl) throw new Error('Conta online indisponível neste ambiente.'); return client ??= (await import('@neondatabase/auth')).createAuthClient(`${location.origin}/api/auth`); }
