@@ -1,3 +1,4 @@
+import { sessionToken } from './session-token';
 import type { Farm } from './farm';
 import type { OnlineFarm } from './online-rules';
 export type Snapshot = { farm: OnlineFarm; revision: number; code?: string; name?: string; now: number; message?: string; harvest?: boolean };
@@ -14,9 +15,9 @@ export class CloudFarm {
   onSnapshot: (snapshot:Snapshot,initial:boolean)=>void = ()=>{};
   onStatus:(message:string)=>void=()=>{};
   async request(path='',body?:unknown) {
-    const a=await auth(), token=await a.token(); if(token.error||!token.data?.token) throw new Error('Sua sessão expirou. Entre novamente.');
-    this.accessToken=token.data.token;
-    const r=await fetch(`/api/game${path}`,{method:body?'POST':'GET',headers:{Authorization:`Bearer ${token.data.token}`,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,cache:'no-store',signal:AbortSignal.timeout(15000)});
+    const a=await auth(), token=sessionToken(await a.token()); if(!token) throw new Error('Sua sessão expirou. Entre novamente.');
+    this.accessToken=token;
+    const r=await fetch(`/api/game${path}`,{method:body?'POST':'GET',headers:{Authorization:`Bearer ${token}`,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,cache:'no-store',signal:AbortSignal.timeout(15000)});
     const result=await r.json(); if(!r.ok) { const error=new Error(result.error??'Falha ao sincronizar.') as Error & {status:number}; error.status=r.status; throw error; } return result;
   }
   accept(snapshot:Snapshot,initial=false) { if(!initial&&snapshot.revision<this.revision) return; this.revision=snapshot.revision; this.offset=snapshot.now-Date.now(); this.code=snapshot.code??this.code; this.name=snapshot.name??this.name; this.onSnapshot(snapshot,initial); this.onStatus('Progresso online sincronizado'); }

@@ -15,6 +15,7 @@ async function proxy(request:Request) {
     headers.set('Origin',url.origin);
     const upstream=await fetch(`${base}/${path}${url.search}`,{method:request.method,headers,body,redirect:'manual',signal:AbortSignal.timeout(12000)});
     const output=new Headers({'Cache-Control':'no-store','Content-Type':upstream.headers.get('content-type')??'application/json','X-Content-Type-Options':'nosniff'});
+    const jwt=upstream.headers.get('set-auth-jwt');if(jwt)output.set('set-auth-jwt',jwt);
     for(const cookie of upstream.headers.getSetCookie())output.append('Set-Cookie',cookie.replace(/;\s*Domain=[^;]+/ig,''));
     return new Response(upstream.body,{status:upstream.status,headers:output});
   }catch{console.error('auth_proxy_failed');return Response.json({error:{message:'Não foi possível conectar à sua conta.'}},{status:503});}

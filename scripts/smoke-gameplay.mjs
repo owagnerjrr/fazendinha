@@ -1,0 +1,18 @@
+import {readFileSync} from 'node:fs';import {randomUUID} from 'node:crypto';import assert from 'node:assert/strict';
+const base=process.argv[2];if(!base)throw new Error('Informe a URL.');const {a,b}=JSON.parse(readFileSync('.qa-session.json','utf8'));
+const delay=ms=>new Promise(r=>setTimeout(r,ms));
+async function api(u,body,query=''){const r=await fetch(`${base}/api/game${query}`,{method:body?'POST':'GET',headers:{Authorization:`Bearer ${u.token}`,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined});return {status:r.status,...await r.json()};}
+async function action(u,command,position){await delay(200);const s=await api(u);const body={id:randomUUID(),revision:s.revision,command,position};const result=await api(u,body);if(result.status!==200)throw new Error(`${command.type}: ${result.status} ${result.error}`);return {body,result};}
+const pos={x:676,y:444};
+const initial=(await api(a)).farm.plots[0];if(!initial.tilled)await action(a,{type:'work',plot:0,tool:'hoe',crop:'carrot'},pos);if(!initial.crop)await action(a,{type:'work',plot:0,tool:'seed',crop:'carrot'},pos);const watered=await action(a,{type:'work',plot:0,tool:'water',crop:'carrot'},pos);
+const s=await api(a),early=await api(a,{id:randomUUID(),revision:s.revision,command:{type:'work',plot:0,tool:'hand',crop:'carrot'},position:pos});assert.equal(early.status,400);assert.equal((await api(a)).farm.inventory.carrot,0);console.log('PASS server refuses early harvest');
+await action(a,{type:'work',plot:1,tool:'hoe',crop:'carrot'},pos);await action(a,{type:'work',plot:1,tool:'seed',crop:'carrot'},pos);
+const helped=await action(b,{type:'help',code:s.code,plot:1});assert.equal(helped.result.farm.xp,5);assert.ok((await api(a)).farm.plots[1].wateredAt);const sb=await api(b);const twice=await api(b,{id:randomUUID(),revision:sb.revision,command:{type:'help',code:s.code,plot:1}});assert.equal(twice.status,400);console.log('PASS friend waters a dry crop and cannot claim repeated help');
+const now=Date.now(),matureAt=watered.result.farm.plots[0].wateredAt+45000;
+if(matureAt>now){console.log('Waiting for real server growth…');await delay(matureAt-now+200);}
+const harvest=await action(a,{type:'work',plot:0,tool:'hand',crop:'carrot'},pos);const repeated=await api(a,harvest.body);assert.equal(repeated.replayed,true);assert.equal(repeated.farm.inventory.carrot,3);assert.equal(repeated.farm.coins,285);console.log('PASS mature harvest and quest credited once');
+await action(a,{type:'list',crop:'carrot',quantity:2,price:30});assert.equal((await api(a)).farm.inventory.carrot,1);
+const market=await api(a,undefined,'?community=1'),offer=market.market.find(m=>m.mine&&m.quantity===2);assert.ok(offer);
+const buyer=await api(b),requests=[1,2].map(()=>({id:randomUUID(),revision:buyer.revision,command:{type:'trade',listing:offer.id}}));const results=await Promise.all(requests.map(body=>api(b,body)));assert.deepEqual(results.map(r=>r.status).sort(),[200,409]);assert.equal((await api(b)).farm.inventory.carrot,2);assert.equal((await api(b)).farm.coins,220);assert.equal((await api(a)).farm.coins,315);console.log('PASS concurrent market purchase transfers goods and coins once');
+await action(a,{type:'list',crop:'carrot',quantity:1,price:15});const market2=await api(a,undefined,'?community=1'),own=market2.market.find(m=>m.mine);const cancel=await action(a,{type:'cancel-listing',listing:own.id});assert.equal(cancel.result.farm.inventory.carrot,1);assert.equal((await api(a,cancel.body)).farm.inventory.carrot,1);console.log('PASS cancel returns escrow once');
+const sold=await action(a,{type:'sell'});assert.equal(sold.result.farm.coins,327);assert.equal(sold.result.farm.inventory.carrot,0);console.log('PASS barn sale and server balances');

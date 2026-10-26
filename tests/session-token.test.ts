@@ -1,0 +1,2 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {sessionToken} from '../src/session-token';
+test('accepts token endpoint and cached Neon session response envelopes',()=>{assert.equal(sessionToken({data:{token:'aaa.bbb.ccc'}}),'aaa.bbb.ccc');assert.equal(sessionToken({data:{session:{token:'aaa.bbb.ccc'}}}),'aaa.bbb.ccc');assert.equal(sessionToken({data:{session:{token:'opaque-session-token'}}}),null);assert.equal(sessionToken({data:null,error:{message:'unauthorized'}}),null);});
