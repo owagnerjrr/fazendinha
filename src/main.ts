@@ -205,8 +205,8 @@ class FarmScene extends Phaser.Scene {
       this.navigate({ x: Phaser.Math.Clamp(p.x, 105, 1480), y: Phaser.Math.Clamp(p.y, 190, 1070) });
     });
     window.addEventListener('blur', () => { this.finishCurrentWork(); this.cancelMovement(); });
-    window.addEventListener('pagehide', () => { this.finishCurrentWork(); farm.player = { x: this.player.x, y: this.player.y }; save(); });
-    document.addEventListener('visibilitychange', () => { if (document.hidden) { this.finishCurrentWork(); this.cancelMovement(); farm.player = { x: this.player.x, y: this.player.y }; save(); } else this.paintFields(); });
+    window.addEventListener('pagehide', () => { this.finishCurrentWork(); farm.player = { x: this.player.x, y: this.player.y }; cloud.flushPosition(farm.player); save(); });
+    document.addEventListener('visibilitychange', () => { if (document.hidden) { this.finishCurrentWork(); this.cancelMovement(); farm.player = { x: this.player.x, y: this.player.y }; cloud.flushPosition(farm.player); save(); } else this.paintFields(); });
     this.paintFields(); syncUI();
     this.time.delayedCall(1400, () => toast('Bem-vindo ao vale! Escolha a enxada para começar.'));
   }
@@ -303,7 +303,8 @@ class FarmScene extends Phaser.Scene {
     if (modal || this.activeWork) return;
     if (Phaser.Math.Distance.Between(this.player.x, this.player.y, 1030, 425) < 85) { shop(); return; }
     if (Phaser.Math.Distance.Between(this.player.x, this.player.y, 1050, 840) < 85) { inventory(); return; }
-    const target = choosePlot(farm, this.fields, this.player, tool, selected, this.focusedField);
+    const available = cloud.active ? this.fields.filter(f=>f.id<(farm as OnlineFarm).unlockedPlots) : this.fields;
+    const target = choosePlot(farm, available, this.player, tool, selected, this.focusedField, Date.now() + cloud.offset);
     if (target !== null) this.useField(target);
     else toast('Aproxime-se de um canteiro, da venda ou do celeiro.');
   }

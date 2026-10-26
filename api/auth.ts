@@ -1,7 +1,8 @@
 // Same-origin auth transport keeps the session usable on mobile browsers that block third-party cookies.
 const allowed=new Set(['get-session','sign-up/email','sign-in/email','sign-out','token','email-otp/send-verification-otp','sign-in/email-otp']);
 async function proxy(request:Request) {
-  const url=new URL(request.url),path=url.pathname.replace(/^\/api\/auth\/?/,'');
+  const url=new URL(request.url),path=url.searchParams.get('path')??url.pathname.replace(/^\/api\/auth\/?/,'');
+  url.searchParams.delete('path');
   if(!allowed.has(path))return Response.json({error:'Rota não disponível.'},{status:404});
   const base=process.env.NEON_AUTH_BASE_URL;if(!base)return Response.json({error:'Autenticação indisponível.'},{status:503});
   const origin=request.headers.get('origin');

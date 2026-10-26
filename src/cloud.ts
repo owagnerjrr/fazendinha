@@ -8,11 +8,14 @@ let client: any;
 export async function auth() { if (!authUrl) throw new Error('Conta online indisponível neste ambiente.'); return client ??= (await import('@neondatabase/auth')).createAuthClient(`${location.origin}/api/auth`); }
 export class CloudFarm {
   active=false; busy=false; revision=0; code=''; name=''; offset=0;
+  private accessToken='';
+  private pendingCount=0;
   private queue:Promise<unknown>=Promise.resolve();
   onSnapshot: (snapshot:Snapshot,initial:boolean)=>void = ()=>{};
   onStatus:(message:string)=>void=()=>{};
   async request(path='',body?:unknown) {
     const a=await auth(), token=await a.token(); if(token.error||!token.data?.token) throw new Error('Sua sessão expirou. Entre novamente.');
+    this.accessToken=token.data.token;
     const r=await fetch(`/api/game${path}`,{method:body?'POST':'GET',headers:{Authorization:`Bearer ${token.data.token}`,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,cache:'no-store',signal:AbortSignal.timeout(15000)});
     const result=await r.json(); if(!r.ok) { const error=new Error(result.error??'Falha ao sincronizar.') as Error & {status:number}; error.status=r.status; throw error; } return result;
   }
@@ -28,6 +31,7 @@ export class CloudFarm {
     catch(error) { if((error as any).status&& (error as any).status<500) {sessionStorage.removeItem('wj-pending-action');this.accept(await this.request());return null;} else throw error; }
   }
   command(command:unknown,position?:Farm['player']):Promise<Snapshot> {
+    this.pendingCount++;this.busy=true;
     const task=this.queue.then(async()=>{
       this.busy=true; this.onStatus('Sincronizando…');
       try {
@@ -41,8 +45,20 @@ export class CloudFarm {
         const status=(error as any).status;
         if(status&&status<500) {sessionStorage.removeItem('wj-pending-action');try{this.accept(await this.request());}catch{}}
         this.onStatus('Ação não confirmada · tente novamente');throw error;
-      } finally {this.busy=false;}
+      } finally {this.pendingCount--;this.busy=this.pendingCount>0;}
     }); this.queue=task.catch(()=>{}); return task;
+  }
+  flushPosition(position:Farm['player']) {
+    if(!this.active||this.busy||!this.accessToken||sessionStorage.getItem('wj-pending-action'))return;
+    const body={id:crypto.randomUUID(),revision:this.revision,command:{type:'position'},position};
+    sessionStorage.setItem('wj-pending-action',JSON.stringify({code:this.code,body}));
+    // Persist a receipt first: a new page can safely confirm the same request after closing this one.
+    void fetch('/api/game',{method:'POST',headers:{Authorization:`Bearer ${this.accessToken}`,'Content-Type':'application/json'},body:JSON.stringify(body),keepalive:true}).then(async response=>{
+      if(!response.ok)return;
+      const result=await response.json();
+      const pending=sessionStorage.getItem('wj-pending-action');
+      if(pending&&JSON.parse(pending).body.id===body.id){sessionStorage.removeItem('wj-pending-action');this.accept(result);}
+    }).catch(()=>{});
   }
   async disconnect() { if(this.busy) throw new Error('Aguarde a sincronização antes de sair.'); await this.retryPending(); await (await auth()).signOut(); this.active=false;localStorage.removeItem('wj-cloud-session'); }
 }
