@@ -1,4 +1,4 @@
-import { act, buySeeds, CROPS, makeFarm, sellAll, type Crop, type Farm, type Tool } from './farm';
+import { act, buySeeds, CROPS, makeFarm, sellAll, type Crop, type Farm, type Tool } from './farm.js';
 export const ECONOMY = { energyMax: 80, energyStepMs: 60000, harvestXp: 10, initialPlots: 12,
   expansions: [{ plots: 18, price: 200, level: 2 }, { plots: 24, price: 500, level: 3 }],
   toolEnergy: { hand: 1, hoe: 2, seed: 1, water: 1 } } as const;
