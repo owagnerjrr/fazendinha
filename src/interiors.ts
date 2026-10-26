@@ -36,14 +36,14 @@ export class InteriorScene extends Phaser.Scene {
   label(600,840,'SAÍDA · VOLTAR À FAZENDA');this.points.push({x:600,y:790,run:()=>this.leave()});
   this.player=this.physics.add.sprite(600,735,'farmer-down-0').setVisible(false).setOrigin(.5,1).setCollideWorldBounds(true);this.player.body!.setSize(14,10).setOffset(17,52);this.physics.world.setBounds(165,220,870,600);this.physics.add.collider(this.player,group);
   this.actor=this.add.sprite(600,735,'farmer-down-0').setOrigin(.5,62/64).setScale(1.08);
-  this.cameras.main.setBounds(100,80,1000,840);this.cameras.main.startFollow(this.player,true,.1,.1,0,30);this.resize();this.scale.on('resize',this.resize,this);
+  this.cameras.main.setBounds(0,0,1200,950);this.cameras.main.startFollow(this.player,true,.1,.1,0,30);this.resize();this.scale.on('resize',this.resize,this);
   this.keys=this.input.keyboard!.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,E,ESC') as Record<string,Phaser.Input.Keyboard.Key>;
   this.input.keyboard!.on('keydown-E',()=>this.interact());this.input.keyboard!.on('keydown-ESC',()=>{if(!s.modal())this.leave();});
   this.input.on('pointerdown',(p:Phaser.Input.Pointer)=>{if(s.modal())return;const point=this.cameras.main.getWorldPoint(p.x,p.y);const item=this.points.find(t=>Math.hypot(t.x-point.x,t.y-30-point.y)<85);const target=item?{x:item.x,y:item.y,run:item.run}:{x:Phaser.Math.Clamp(point.x,185,1015),y:Phaser.Math.Clamp(point.y,240,790)};this.route=findPath(this.player,target,this.blocks);if(this.route.length)this.target=target;else s.toast('Aproxime-se pelo corredor livre.');});
   this.events.once('shutdown',()=>this.scale.off('resize',this.resize,this));
   s.toast(this.room==='house'?'Sua casa: cama, sala, TV e guarda-roupa. Toque para explorar.':'Explore o celeiro. Aproxime-se de um animal ou do suporte de ferramentas.');
  }
- private resize(){this.cameras.main.setZoom(this.scale.width<600?1.05:1.1);}
+ private resize(){const camera=this.cameras.main;if(this.scale.width>=900){camera.stopFollow();camera.setZoom(Math.min(this.scale.width/1150,this.scale.height/850));camera.centerOn(600,470);}else{camera.startFollow(this.player,true,.1,.1,0,30);camera.setZoom(1.05);}}
  private leave(){this.player.setVelocity(0);this.target=null;this.route=[];this.scene.stop();this.scene.wake('Farm');this.services.exit();}
  interact(){if(this.services.modal())return;const nearest=[...this.points].sort((a,b)=>Phaser.Math.Distance.Between(this.player.x,this.player.y,a.x,a.y)-Phaser.Math.Distance.Between(this.player.x,this.player.y,b.x,b.y))[0];if(nearest&&Math.hypot(this.player.x-nearest.x,this.player.y-nearest.y)<110)nearest.run();else this.services.toast('Aproxime-se de um móvel, animal ou da saída.');}
  update(time:number){if(!this.player)return;const s=this.services;let vx=0,vy=0;
