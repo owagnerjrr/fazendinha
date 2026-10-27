@@ -2,6 +2,10 @@
 
 # Validação da versão 0.1
 
+## Compatibilidade local do terreno
+
+O save local mantém os 24 canteiros originais na chave anterior e guarda os 12 novos em uma chave separada, para evitar que versões antigas descartem a fazenda ao encontrar mais de 24 canteiros. Se os dados adicionais não puderem ser lidos, o salvamento local é pausado. Um teste cobre restauração da fazenda principal, novos canteiros e rejeição de dados adicionais ausentes. O fluxo online isolado e o comportamento em celulares reais permanecem sem validação.
+
 ## Terreno adicional — implementação de teste
 
 Um terreno ao lado da casa custa 750 moedas e acrescenta 12 canteiros, sem substituir os 24 anteriores. Na conta online exige os 24 originais liberados. A compra é confirmada na interface e processada pelo servidor; a verificação de proximidade usa as coordenadas compartilhadas dos novos canteiros. Testes automatizados cobrem preço, pré-requisito, duplicação, save, uso de ferramentas e rotas com obstáculos principais. Em uma versão de teste local isolada, foram conferidas pela interface a compra, a permanência após recarregar, o preparo de um canteiro, o plantio e a rega. A inspeção identificou vegetação sobre a área e foi aplicada uma correção que ainda precisa de nova validação visual. Esta etapa ainda não foi validada em aparelhos reais nem contra banco online isolado. Não há construções novas, criação livre de canteiros, pasto, lago, pomar, bosque ou vila. Visitas sociais aos canteiros adicionais não foram implementadas.
