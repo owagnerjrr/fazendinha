@@ -32,12 +32,24 @@ for (const c of Object.keys(CROPS) as Crop[]) test(`${c}: exact maturity boundar
 test('occupied plots cannot be tilled or seeded again and watering does not reset timer', () => {
   const f = makeFarm(); act(f, 0, 'hoe', 'carrot', 0); act(f, 0, 'seed', 'carrot', 0); act(f, 0, 'water', 'carrot', 0);
   assert.equal(act(f, 0, 'hoe', 'tomato', 50).ok, false); assert.equal(act(f, 0, 'seed', 'tomato', 50).ok, false);
-  assert.equal(act(f, 0, 'water', 'carrot', 500).ok, false); assert.equal(f.plots[0].wateredAt, 0); assert.equal(f.seeds.tomato, 8);
+  assert.equal(act(f, 0, 'water', 'carrot', 500).ok, true); assert.equal(f.plots[0].wateredAt, 0); assert.equal(f.seeds.tomato, 8);
 });
 test('no seeds, invalid plots and dry watering are safe', () => {
   const f = makeFarm(); f.seeds.carrot = 0;
   act(f, 0, 'hoe', 'carrot'); assert.equal(act(f, 0, 'seed', 'carrot').ok, false);
-  assert.equal(act(f, 100, 'hand', 'carrot').ok, false); assert.equal(act(f, 0, 'water', 'carrot').ok, false);
+  assert.equal(act(f, 100, 'hand', 'carrot').ok, false); assert.equal(act(f, 0, 'water', 'carrot').ok, true);
+});
+test('repeated hoe and watering never change crops, timers or rewards', () => {
+  const f = makeFarm();
+  act(f, 0, 'hoe', 'carrot', 10);
+  const prepared = structuredClone(f);
+  assert.equal(act(f, 0, 'hoe', 'carrot', 20).ok, true);
+  assert.deepEqual(f, prepared);
+  act(f, 0, 'seed', 'carrot', 30); act(f, 0, 'water', 'carrot', 40);
+  const planted = structuredClone(f);
+  assert.equal(act(f, 0, 'hoe', 'carrot', 50).ok, false);
+  assert.equal(act(f, 0, 'water', 'carrot', 60).ok, true);
+  assert.deepEqual(f, planted);
 });
 test('purchasing respects balance and rejects invalid quantities', () => {
   const f = makeFarm(); assert.equal(buySeeds(f, 'carrot'), true); assert.equal(f.coins, 210); assert.equal(f.seeds.carrot, 13);

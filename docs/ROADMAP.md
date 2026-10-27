@@ -1,5 +1,14 @@
 # Caminho do projeto
 
+## Evolução solicitada em 27/10/2026
+
+- [x] Repetir enxada em canteiro preparado e regar canteiro vazio ou já molhado sem apagar cultivo ou reiniciar o prazo.
+- [x] Efeito de regador em chão próximo fora dos canteiros; não transforma superfícies em novos canteiros.
+- [ ] Ajustar e validar proporções de todos os animais e equipamentos em todos os cenários e em celulares físicos.
+- [ ] Animais individuais com nomes, cuidados, novas espécies, crescimento e reprodução limitada; comportamento real em ambientes compatíveis.
+- [ ] Compra de terras exploráveis, novos canteiros e cenários conectados com persistência; a expansão atual libera apenas canteiros existentes.
+- [ ] Aprimorar ferramentas direcionais e preparar novos canteiros fora da horta; testar controles completos em PC e celular.
+
 ## Entregue na beta 0.6
 
 - [x] Nome, galeria de personagens, personalização e conta antes da primeira entrada.

@@ -87,7 +87,7 @@ $('inventory').onclick = inventory; $('seed-choice').onclick = seedPanel; $('hel
 document.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach(b => b.onclick = () => setTool(b.dataset.tool as Tool));
 
 type Destination = { x: number; y: number; field?: number; shop?: boolean; barn?: boolean; house?:boolean };
-type Work = { clock: ActionClock; field: number; crop: Crop };
+type Work = { clock: ActionClock; field: number; crop: Crop; ground?: Point };
 type Field = { x: number; y: number; soil: Phaser.GameObjects.Image; plant: Phaser.GameObjects.Image; label: Phaser.GameObjects.Text; id: number };
 class FarmScene extends Phaser.Scene {
   player!: Phaser.Physics.Arcade.Sprite;
@@ -209,6 +209,7 @@ class FarmScene extends Phaser.Scene {
       if(p.x>285&&p.x<525&&p.y>265&&p.y<460){this.navigate({x:408,y:490,house:true});return;}
       if (p.x > 930 && p.x < 1130 && p.y > 245 && p.y < 410) { this.navigate({ x: 1030, y: 425, shop: true }); return; }
       if (p.x > 960 && p.x < 1140 && p.y > 620 && p.y < 820) { this.navigate({ x: 1050, y: 840, barn: true }); return; }
+      if (tool === 'water' && Math.hypot(p.x-this.player.x,p.y-this.player.y) <= 65) { this.waterGround(p); return; }
       this.navigate({ x: Phaser.Math.Clamp(p.x, 105, 1480), y: Phaser.Math.Clamp(p.y, 190, 1070) });
     });
     window.addEventListener('blur', () => { this.finishCurrentWork(); this.cancelMovement(); });
@@ -258,6 +259,7 @@ class FarmScene extends Phaser.Scene {
     this.player.setVelocity(0);
   }
   commitWork(work: Work) {
+    if (work.ground) { this.workEffects.wetSoil(work.ground); return; }
     if (cloud.active) {
       void cloud.command({type:'work',plot:work.field,tool:work.clock.tool,crop:work.crop},{x:this.player.x,y:this.player.y}).then(result=>{toast(result.message!);const target=this.fields[work.field];if(work.clock.tool==='hoe')this.workEffects.dirt(target);else if(work.clock.tool==='water')this.workEffects.wetSoil(target);else if(result.harvest)this.workEffects.harvest(target);}).catch(error=>toast(error.message));
       return;
@@ -284,7 +286,7 @@ class FarmScene extends Phaser.Scene {
     if (work.clock.tool === 'water' && isPouring(elapsed)) {
       const frame = actionFrame('water', elapsed);
       const nozzle = nozzleAnchors.water[this.direction][frame];
-      this.workEffects.pour({ x: this.player.x + (nozzle.x - 48) * 1.08, y: this.player.y - 2 + (nozzle.y - 100) * 1.08 }, this.fields[work.field], time);
+      this.workEffects.pour({ x: this.player.x + (nozzle.x - 48) * 1.08, y: this.player.y - 2 + (nozzle.y - 100) * 1.08 }, work.ground ?? this.fields[work.field], time);
     }
     work.clock.commitIfDue(time, () => this.commitWork(work));
     if (work.clock.finished(time)) { this.activeWork = null; const next=this.queuedDestination;this.queuedDestination=null;if(next)this.navigate(next); }
@@ -308,6 +310,13 @@ class FarmScene extends Phaser.Scene {
     this.actor.setPosition(this.player.x, this.player.y - 2 + bob).setDepth(this.player.y);
     this.playerShadow.setPosition(this.player.x + 1, this.player.y - 3);
   }
+  waterGround(point: Point) {
+    if (this.activeWork || modal) return;
+    const dx=point.x-this.player.x,dy=point.y-this.player.y;
+    this.direction=Math.abs(dx)>Math.abs(dy)?dx<0?'left':'right':dy<0?'up':'down';
+    this.activeWork={clock:new ActionClock('water',this.time.now),field:-1,crop:selected,ground:point};
+    this.player.setVelocity(0);
+  }
   interactNearest() {
     if (modal || this.activeWork) return;
     if(Phaser.Math.Distance.Between(this.player.x,this.player.y,408,490)<85){enterInterior('house');return;}
@@ -316,6 +325,7 @@ class FarmScene extends Phaser.Scene {
     const available = cloud.active ? this.fields.filter(f=>f.id<(farm as OnlineFarm).unlockedPlots) : this.fields;
     const target = choosePlot(farm, available, this.player, tool, selected, this.focusedField, Date.now() + cloud.offset);
     if (target !== null) this.useField(target);
+    else if(tool==='water') { const offsets={up:[0,-40],down:[0,40],left:[-40,0],right:[40,0]};const [dx,dy]=offsets[this.direction];this.waterGround({x:this.player.x+dx,y:this.player.y+dy}); }
     else toast('Aproxime-se de um canteiro, da venda ou do celeiro.');
   }
   update(time: number, delta: number) {

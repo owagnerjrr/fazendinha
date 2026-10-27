@@ -25,7 +25,7 @@ export function act(farm: Farm, id: number, tool: Tool, crop: Crop, now = Date.n
   if (!plot) return { ok: false, message: 'Este canteiro não existe.' };
   if (tool === 'hoe') {
     if (plot.crop) return { ok: false, message: 'Já tem uma plantação aqui. Vamos cuidar dela!' };
-    if (plot.tilled) return { ok: false, message: 'Terra preparada! Escolha Plantar.' };
+    if (plot.tilled) return { ok: true, message: 'Você cuidou da terra já preparada.' };
     plot.tilled = true;
     return { ok: true, message: 'Terra fofinha. Hora de plantar uma semente!' };
   }
@@ -38,8 +38,8 @@ export function act(farm: Farm, id: number, tool: Tool, crop: Crop, now = Date.n
     return { ok: true, message: `${CROPS[crop].name} plantada! Agora use o regador.` };
   }
   if (tool === 'water') {
-    if (!plot.crop) return { ok: false, message: 'Plante uma semente antes de regar.' };
-    if (plot.wateredAt !== null) return { ok: false, message: 'Já está regada. A natureza cuida do resto.' };
+    if (!plot.crop) return { ok: true, message: 'Você regou o chão.' };
+    if (plot.wateredAt !== null) return { ok: true, message: 'Você regou novamente. A planta continua crescendo.' };
     plot.wateredAt = now;
     plot.pestAt=(plot.id+farm.harvests)%3===1 ? now+Math.max(30000,CROPS[plot.crop].seconds*650) : null;
     return { ok: true, message: `Regadinha! Pronta em ${CROPS[plot.crop].seconds} segundos.` };
