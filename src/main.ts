@@ -26,12 +26,12 @@ import { act, hasPests, buySeeds, CROPS, makeFarm, remaining, restoreFarm, SAVE_
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const cloud = new CloudFarm();
 let onlineLoading = false;
-const hadLocalFarm=!!localStorage.getItem(SAVE_KEY);
+const hadLocalFarm=true;
 let booting=true;
 let journey:ReturnType<typeof setupJourney>;
 const cropKeys = Object.keys(CROPS) as Crop[];
 let farm: Farm;
-try { farm = restoreFarm(localStorage.getItem(SAVE_KEY)); } catch { farm = makeFarm(); }
+try { const saved=localStorage.getItem(SAVE_KEY); farm = restoreFarm(saved); if(!saved) farm.coins=2000; } catch { farm = makeFarm(); farm.coins=2000; }
 let selected: Crop = 'carrot', tool: Tool = 'hand', modal = false, toastTimer: ReturnType<typeof setTimeout>;
 let joystick = { x: 0, y: 0 };
 let scene: FarmScene;
