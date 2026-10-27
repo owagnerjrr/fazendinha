@@ -29,8 +29,8 @@ export function setupLifeUI(s:Services){
  let autoBusy=false,lastAuto=0;
  setInterval(()=>{
   updateAnimalStates();const now=s.now();if(busy||autoBusy||now-lastAuto<5000)return;
-  const farm=s.farm();const mother=farm.animals.find(a=>a.kind==='chicken'&&a.incubationAt!=null&&now-a.incubationAt>=120000&&farm.animals.length<12);
-  const grown=farm.animals.find(a=>a.kind==='chick'&&a.bornAt!=null&&now-a.bornAt>=300000&&a.fedAt!=null&&now>=a.fedAt&&now-a.fedAt<86400000&&animalHydrated(a,now));
+  const farm=s.farm();const mother=farm.animals.find(a=>a.kind==='chicken'&&a.incubationAt!=null&&now-a.incubationAt>=2000&&farm.animals.length<12);
+  const grown=farm.animals.find(a=>a.kind==='chick'&&a.bornAt!=null&&now-a.bornAt>=5000&&a.fedAt!=null&&now>=a.fedAt&&now-a.fedAt<86400000&&animalHydrated(a,now));
   const command=mother?{type:'hatch-chick',id:mother.id}:grown?{type:'mature-chick',id:grown.id}:null;if(!command)return;
   autoBusy=true;lastAuto=now;void s.command(command).then(result=>s.toast(result.message??'Seu animal cresceu!')).catch(()=>{}).finally(()=>{autoBusy=false;});
  },1000);

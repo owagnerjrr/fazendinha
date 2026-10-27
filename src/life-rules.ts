@@ -30,11 +30,11 @@ export function applyLife(f:Farm,c:any,now:number):{ok:boolean;message:string} {
    f.products.egg--;a.incubationAt=now;return {ok:true,message:'Ovo reservado para incubação. Volte em 2 minutos.'};
   }
   if(c.type==='hatch-chick'){
-   if(a.kind!=='chicken'||a.incubationAt==null)return fail('Não há ovo em incubação.');if(now-a.incubationAt<120000)return fail('O ovo ainda está em incubação.');if(f.animals.length>=12)return fail('Não há espaço no celeiro.');
+   if(a.kind!=='chicken'||a.incubationAt==null)return fail('Não há ovo em incubação.');if(now-a.incubationAt<2000)return fail('O ovo ainda está em incubação.');if(f.animals.length>=12)return fail('Não há espaço no celeiro.');
    a.incubationAt=null;f.animals.push({id:`chick-${now}-${f.animals.length}`,kind:'chick',fedAt:null,wateredAt:null,pettedAt:null,collectedAt:now,bornAt:now});return {ok:true,message:'Um pintinho nasceu! Alimente e ofereça água.'};
   }
   if(c.type==='mature-chick'){
-   if(a.kind!=='chick'||a.bornAt==null)return fail('Este animal não é um pintinho.');if(now-a.bornAt<300000||!cared(a))return fail('O pintinho precisa de cinco minutos, ração e água para crescer.');a.kind='chicken';a.collectedAt=now;return {ok:true,message:'Seu pintinho cresceu e virou uma galinha!'};
+   if(a.kind!=='chick'||a.bornAt==null)return fail('Este animal não é um pintinho.');if(now-a.bornAt<5000||!cared(a))return fail('O pintinho precisa de cinco minutos, ração e água para crescer.');a.kind='chicken';a.collectedAt=now;return {ok:true,message:'Seu pintinho cresceu e virou uma galinha!'};
   }
   if(c.type==='rename-animal'){if(typeof c.name!=='string')return fail('Informe um nome válido.');const name=c.name.trim().replace(/\s+/g,' ');if(name.length<1||name.length>24||/[<>\u0000-\u001f\u007f]/.test(name))return fail('Use um nome de 1 a 24 caracteres, sem símbolos de controle.');a.name=name;return {ok:true,message:`Nome salvo: ${name}.`};}
   if(c.type==='water-animal'){if(a.wateredAt!==undefined&&a.wateredAt!==null&&now>=a.wateredAt&&now-a.wateredAt<86400000)return fail('Este animal já tem água por 24 horas.');a.wateredAt=now;return {ok:true,message:'Água fresca disponível por 24 horas!'};}

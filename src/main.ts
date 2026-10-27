@@ -33,7 +33,7 @@ let journey:ReturnType<typeof setupJourney>;
 const cropKeys = Object.keys(CROPS) as Crop[];
 let farm: Farm;
 let localSaveBlocked=false;
-try { const raw=localStorage.getItem(SAVE_KEY);farm=restoreLocalFarm(raw,localStorage.getItem(LAND_SAVE_KEY));if(!raw)farm.coins=2000; } catch { farm=makeFarm(); farm.coins=2000; }
+try { const raw=localStorage.getItem(SAVE_KEY);farm=restoreLocalFarm(raw,localStorage.getItem(LAND_SAVE_KEY));if(!raw){farm.coins=2000;farm.products.egg=1;} } catch { farm=makeFarm(); farm.coins=2000; }
 let selected: Crop = 'carrot', tool: Tool = 'hand', modal = false, toastTimer: ReturnType<typeof setTimeout>;
 let joystick = { x: 0, y: 0 };
 let scene: FarmScene;
