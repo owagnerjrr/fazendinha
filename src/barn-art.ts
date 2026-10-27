@@ -16,10 +16,10 @@ export function buildBarn(scene:Phaser.Scene,farm:Farm,block:Block,animals:(id?:
  for(const pen of pens){
   const {x,y,width:w,height:h}=pen;block(x,y,w,h);
   const floor=scene.add.graphics().setDepth(2);floor.fillStyle(0x55402b,.3);floor.fillRoundedRect(x-3,y+7,w+6,h+5,6);floor.fillStyle(0x8b713d);floor.fillRect(x,y,w,h);
-  floor.fillStyle(0xc3a45d,.5);floor.fillEllipse(x+w/2,y+66,w-24,73);floor.lineStyle(1,0xe0bb69,.65);
+  floor.fillStyle(0x5b4528,.32);floor.fillEllipse(x+w/2+3,y+72,w-18,76);floor.fillStyle(0xc3a45d,.5);floor.fillEllipse(x+w/2,y+66,w-24,73);floor.lineStyle(1,0xe0bb69,.65);
   for(let j=0;j<70;j++){const sx=x+13+(j*47+pen.id*19)%(w-26),sy=y+20+(j*23)%(h-29);floor.lineBetween(sx,sy,sx+5,sy-2);}
   // Rear boards, feeding trough and water. They sit behind the animals.
-  const rear=scene.add.graphics().setDepth(y+26);rear.fillStyle(0x513b28);rear.fillRect(x,y-3,w,7);rear.fillStyle(0xa47b45);rear.fillRect(x,y-7,w,5);
+  const rear=scene.add.graphics().setDepth(y+26);rear.fillStyle(0x513b28);rear.fillRect(x,y-3,w,7);rear.fillStyle(0xa47b45);rear.fillRect(x,y-7,w,5);rear.lineStyle(1,0xe5c38a,.5);for(let k=12;k<w;k+=38){rear.lineBetween(x+k,y-6,x+k+20,y-6);}
   rear.fillStyle(0x584431);rear.fillRoundedRect(x+w-69,y+11,54,19,3);rear.fillStyle(0x649caa);rear.fillEllipse(x+w-42,y+17,41,9);rear.lineStyle(1,0xb1d3ca,.8);rear.lineBetween(x+w-56,y+15,x+w-33,y+15);
   if(pen.kind==='chicken'){
    for(let n=0;n<3;n++){const nx=x+18+n*51;rear.fillStyle(0x6c4b2e);rear.fillRect(nx,y+5,43,26);rear.fillStyle(0xd0ad5e);rear.fillEllipse(nx+21,y+24,34,12);rear.fillStyle(0xeee0b6);rear.fillEllipse(nx+22,y+20,8,10);}
@@ -27,7 +27,7 @@ export function buildBarn(scene:Phaser.Scene,farm:Farm,block:Block,animals:(id?:
   }else{
    rear.fillStyle(0x5f4830);rear.fillRect(x+18,y+11,pen.kind==='dog'?48:110,16);rear.fillStyle(0xb79c51);rear.fillRect(x+23,y+12,pen.kind==='dog'?38:100,7);
   }
-  const front=scene.add.graphics().setDepth(y+h+10);front.fillStyle(0x65482d);front.fillRect(x,y+h-2,w,6);front.fillStyle(0xb18b51);front.fillRect(x,y+h-6,w,4);
+  const front=scene.add.graphics().setDepth(y+h+10);front.fillStyle(0x65482d);front.fillRect(x,y+h-2,w,6);front.fillStyle(0xb18b51);front.fillRect(x,y+h-6,w,4);front.lineStyle(1,0xe4bf80,.45);for(let k=8;k<w-20;k+=37)front.lineBetween(x+k,y+h-5,x+k+20,y+h-5);
   // Closed wooden gates face the central corridor. Their footprint is part of the pen collider.
   for(const edge of [x,x+w-6]){front.fillStyle(0x63472e);front.fillRect(edge,y,6,h);for(const postY of [y,y+h-13]){front.fillStyle(0x785631);front.fillRect(edge-3,postY,12,21);front.fillStyle(0xc49b5c);front.fillRect(edge-3,postY,12,4);}}
   const gateX=pen.side==='left'?x+w-10:x-2;front.lineStyle(3,0xc09759);front.strokeRect(gateX,y+39,12,39);front.lineBetween(gateX,y+42,gateX+12,y+75);

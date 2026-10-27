@@ -12,6 +12,11 @@ export class InteriorScene extends Phaser.Scene {
   const s=this.services;this.art=new AvatarArt(this);this.cameras.main.setBackgroundColor('#20382f');
   const g=this.add.graphics();g.fillStyle(this.room==='house'?0x8d633d:0x746347);g.fillRect(160,210,880,610);
   for(let y=210;y<820;y+=30)for(let x=160;x<1040;x+=80){g.fillStyle(this.room==='house'?((x+y)%3?0xb28a52:0xa37a47):((x+y)%3?0x998457:0x8b764e));g.fillRect(x,y,Math.min(78,1040-x),28);g.lineStyle(1,0x5d4b35,.3);g.strokeRect(x,y,80,30);}
+  if(this.room==='barn'){
+   // Grain and narrow joints add depth without introducing new obstacles.
+   g.lineStyle(1,0x5a412b,.20);
+   for(let y=225;y<795;y+=30)for(let x=180;x<1020;x+=40){const k=(x*19+y*7)%31;g.lineBetween(x,y+k%12,x+12+(k%16),y+k%12);g.fillStyle(0xd2b785,.16);g.fillRect(x+(k%19),y+18,5,1);}
+  }
   g.fillStyle(0xc3b183);g.fillRect(150,140,900,80);g.fillStyle(0x624b36);g.fillRect(150,210,900,14);g.fillRect(150,140,14,680);g.fillRect(1036,140,14,680);g.fillRect(150,806,380,14);g.fillRect(670,806,380,14);g.fillStyle(0x9b7b4e);g.fillRect(530,790,140,35);
   const group=this.physics.add.staticGroup();
   const block=(x:number,y:number,w:number,h:number)=>{const z=this.add.zone(x+w/2,y+h/2,w,h);group.add(z);(z.body as Phaser.Physics.Arcade.StaticBody).setSize(w,h);this.blocks.push({x,y,width:w,height:h});};

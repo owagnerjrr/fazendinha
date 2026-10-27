@@ -16,6 +16,7 @@ import { createArt } from './art';
 import { ACTIONS, ActionClock, actionFrame, DIRECTION_ROW, isPouring, type Direction } from './action-timing';
 import { ChickenFlock } from './chickens';
 import { DogCompanions } from './dog-companion';
+import { Atmosphere } from './atmosphere';
 import { WorkEffects } from './work-effects';
 import nozzleAnchors from '../public/assets/v3/anchors.json';
 import { choosePlot } from './interaction';
@@ -102,6 +103,7 @@ class FarmScene extends Phaser.Scene {
   actor!: Phaser.GameObjects.Sprite;
   flock!: ChickenFlock;
   private dogCompanions!: DogCompanions;
+  private atmosphere!: Atmosphere;
   avatarArt!:AvatarArt;
   previewArt!:AvatarArt;
   private decorSprites:Phaser.GameObjects.Image[]=[];
@@ -124,6 +126,7 @@ class FarmScene extends Phaser.Scene {
     for(const key of ['bed','tv','sofa','window','wardrobe','rack','cow','goat','dog','chicken','strawberry','tulip','sunflower','corn','cocoaTree','flowerPlanter'])this.load.image(`life-${key}`,`/assets/v5/${key}.png`);
     for(const style of ['crop','puffs','short','braids'])for(const dir of ['down','left','right','up'])this.load.image(`head-${style}-${dir}`,`/assets/v5/head-${style}-${dir}.png`);
     this.load.image('farmer-v2', '/assets/v2/farmer.png');
+    this.load.spritesheet('dog-walk','/assets/v7/dog-walk.png',{frameWidth:48,frameHeight:48});
     this.load.spritesheet('chickens-v3', '/assets/v3/chickens.png', { frameWidth: 40, frameHeight: 40 });
     for (const kind of ['hoe', 'water']) this.load.spritesheet(`${kind}-actions`, `/assets/v3/farmer-${kind}.png`, { frameWidth: 96, frameHeight: 112 });
     for (const key of ['hoe', 'seed', 'water']) this.load.spritesheet(`carry-${key}`, `/assets/v3/carry-${key}.png`, { frameWidth: 128, frameHeight: 112 });
@@ -199,6 +202,7 @@ class FarmScene extends Phaser.Scene {
       const pollen = this.add.rectangle(rand!.between(270, 1200), rand!.between(250, 980), i % 3 ? 2 : 3, 2, i % 3 ? 0xf3dc83 : 0xc1d483, .6).setDepth(1550);
       this.tweens.add({ targets: pollen, x: pollen.x + 35, y: pollen.y - 32, alpha: .1, duration: 4200 + i * 130, yoyo: true, repeat: -1, delay: i * 140 });
     }
+    this.atmosphere = new Atmosphere(this,this.occluders);
     this.resize();
     this.scale.on('resize', this.resize, this);
     this.keys = this.input.keyboard!.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,E,ONE,TWO,THREE,FOUR') as Record<string, Phaser.Input.Keyboard.Key>;
@@ -333,7 +337,10 @@ class FarmScene extends Phaser.Scene {
   }
   update(time: number, delta: number) {
     if (!this.player) return;
-    this.flock.update(time, delta); this.dogCompanions.update(farm); this.workEffects.update(time);
+    const places=[{x:408,y:490,name:'Casa'},{x:1030,y:425,name:'Venda'},{x:1050,y:840,name:'Celeiro'}];
+    const near=places.find(p=>Math.hypot(this.player.x-p.x,this.player.y-p.y)<85);
+    const enterButton=$<HTMLButtonElement>('enter-place');enterButton.hidden=!near||modal||inside;if(near)enterButton.textContent=`Entrar: ${near.name} · E`;
+    this.flock.update(time, delta); this.dogCompanions.update(farm); this.atmosphere.update(time); this.workEffects.update(time);
     if (this.activeWork) { this.updateWork(time); this.player.setVelocity(0); this.renderAvatar(time, false); return; }
     if (modal) { this.player.setVelocity(0); this.renderAvatar(time, false); return; }
     let vx = Number(this.keys.D.isDown || this.keys.RIGHT.isDown) - Number(this.keys.A.isDown || this.keys.LEFT.isDown) + joystick.x;
@@ -372,6 +379,7 @@ stick.addEventListener('pointerdown', e => { if (stickPointer !== null) return; 
 stick.addEventListener('pointermove', moveStick);
 const releaseStick = (e: PointerEvent) => { if (e.pointerId !== stickPointer) return; stickPointer = null; joystick = { x: 0, y: 0 }; knob.style.transform = ''; };
 stick.addEventListener('pointerup', releaseStick); stick.addEventListener('pointercancel', releaseStick); stick.addEventListener('lostpointercapture', releaseStick);
+$('enter-place').onclick = () => { if(!inside&&!modal) scene?.interactNearest(); };
 $('touch-action').onclick = () => inside ? (game.scene.getScene('Interior') as InteriorScene).interact() : scene?.interactNearest();
 cloud.onStatus=message=>{ $('save-status').textContent=message;$('save-dot').style.background=message.includes('sincronizado')?'#c4da8c':'#e69f69'; };
 cloud.onSnapshot=(snapshot,initial)=>{ farm=snapshot.farm;if(initial&&scene?.player){scene.finishCurrentWork();scene.cancelMovement();scene.player.setPosition(farm.player.x,farm.player.y);}syncUI();scene?.paintFields(); };
@@ -384,7 +392,7 @@ async function lifeCommand(c:any){
 }
 function enterInterior(room:'house'|'barn'){
  if(inside){game.scene.stop('Interior');}else{scene.finishCurrentWork();scene.cancelMovement();game.scene.sleep('Farm');}
- inside=true;$('quest-card').hidden=true;$('hint').textContent='Toque no cômodo para andar. Use E ou Usar perto dos objetos.';$('exit-interior').hidden=false;$('interior-view').hidden=false;$('interior-view').textContent=room==='barn'?'Aproximar':'Ver cômodo inteiro';$('world-place').textContent=room==='house'?'SUA CASA':'SEU CELEIRO';game.scene.start('Interior',{room});
+ inside=true;$('enter-place').hidden=true;$('quest-card').hidden=true;$('hint').textContent='Toque no cômodo para andar. Use E ou Usar perto dos objetos.';$('exit-interior').hidden=false;$('interior-view').hidden=false;$('interior-view').textContent=room==='barn'?'Aproximar':'Ver cômodo inteiro';$('world-place').textContent=room==='house'?'SUA CASA':'SEU CELEIRO';game.scene.start('Interior',{room});
 }
 life=setupLifeUI({farm:()=>farm,online:()=>cloud.active,now:()=>Date.now()+cloud.offset,open:openPanel,close:closePanel,command:lifeCommand,enter:enterInterior,equip:setTool,toast,preview:previewAvatar});
 setupInstall(toast);
