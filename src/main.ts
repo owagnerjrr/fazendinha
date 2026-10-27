@@ -371,7 +371,7 @@ async function lifeCommand(c:any){
 }
 function enterInterior(room:'house'|'barn'){
  if(inside){game.scene.stop('Interior');}else{scene.finishCurrentWork();scene.cancelMovement();game.scene.sleep('Farm');}
- inside=true;$('quest-card').hidden=true;$('hint').textContent='Toque no cômodo para andar. Use E ou Usar perto dos objetos.';$('exit-interior').hidden=false;$('world-place').textContent=room==='house'?'SUA CASA':'SEU CELEIRO';game.scene.start('Interior',{room});
+ inside=true;$('quest-card').hidden=true;$('hint').textContent='Toque no cômodo para andar. Use E ou Usar perto dos objetos.';$('exit-interior').hidden=false;$('interior-view').hidden=false;$('interior-view').textContent=room==='barn'?'Aproximar':'Ver cômodo inteiro';$('world-place').textContent=room==='house'?'SUA CASA':'SEU CELEIRO';game.scene.start('Interior',{room});
 }
 life=setupLifeUI({farm:()=>farm,online:()=>cloud.active,now:()=>Date.now()+cloud.offset,open:openPanel,close:closePanel,command:lifeCommand,enter:enterInterior,equip:setTool,toast,preview:previewAvatar});
 setupInstall(toast);
@@ -383,6 +383,8 @@ syncUI();
 const game = new Phaser.Game({ type: Phaser.AUTO, parent: 'game', backgroundColor: '#92ae69', pixelArt: true, roundPixels: true, antialias: false, scale: { mode: Phaser.Scale.RESIZE, width: window.innerWidth, height: window.innerHeight }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [FarmScene], input: { activePointers: 3 }, render: { powerPreference: 'low-power' } });
 window.addEventListener('error', () => { $('save-status').textContent = 'Ocorreu um erro. Recarregue para continuar.'; });
 // Expose no account state or mutation hooks. The Phaser instance remains module-local.
-game.scene.add('Interior',new InteriorScene({farm:()=>farm,stick:()=>joystick,modal:()=>modal,tool:()=>tool,now:()=>Date.now()+cloud.offset,avatar:()=>life.avatar(),animals:id=>life.animals(id),equipment:()=>life.equipment(),toast,open:openPanel,exit:()=>{inside=false;$('quest-card').hidden=false;setTool(tool);$('exit-interior').hidden=true;$('world-place').textContent='VALE DO SOSSEGO';scene.cancelMovement();}}),false);
-$('exit-interior').onclick=()=>{if(inside){game.scene.stop('Interior');game.scene.wake('Farm');inside=false;$('quest-card').hidden=false;setTool(tool);$('exit-interior').hidden=true;$('world-place').textContent='VALE DO SOSSEGO';scene.cancelMovement();}};
+game.scene.add('Interior',new InteriorScene({farm:()=>farm,stick:()=>joystick,modal:()=>modal,tool:()=>tool,now:()=>Date.now()+cloud.offset,avatar:()=>life.avatar(),animals:id=>life.animals(id),equipment:()=>life.equipment(),toast,open:openPanel,exit:()=>{inside=false;$('quest-card').hidden=false;setTool(tool);$('exit-interior').hidden=true;$('interior-view').hidden=true;$('world-place').textContent='VALE DO SOSSEGO';scene.cancelMovement();}}),false);
+$('exit-interior').onclick=()=>{if(inside){game.scene.stop('Interior');game.scene.wake('Farm');inside=false;$('quest-card').hidden=false;setTool(tool);$('exit-interior').hidden=true;$('interior-view').hidden=true;$('world-place').textContent='VALE DO SOSSEGO';scene.cancelMovement();}};
 void game;
+
+$('interior-view').onclick=()=>{const overview=(game.scene.getScene('Interior') as InteriorScene).toggleView();$('interior-view').textContent=overview?'Aproximar':'Ver cômodo inteiro';};

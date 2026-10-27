@@ -23,7 +23,7 @@ export function buildBarn(scene:Phaser.Scene,farm:Farm,block:Block,animals:(id?:
   rear.fillStyle(0x584431);rear.fillRoundedRect(x+w-69,y+11,54,19,3);rear.fillStyle(0x649caa);rear.fillEllipse(x+w-42,y+17,41,9);rear.lineStyle(1,0xb1d3ca,.8);rear.lineBetween(x+w-56,y+15,x+w-33,y+15);
   if(pen.kind==='chicken'){
    for(let n=0;n<3;n++){const nx=x+18+n*51;rear.fillStyle(0x6c4b2e);rear.fillRect(nx,y+5,43,26);rear.fillStyle(0xd0ad5e);rear.fillEllipse(nx+21,y+24,34,12);rear.fillStyle(0xeee0b6);rear.fillEllipse(nx+22,y+20,8,10);}
-   rear.lineStyle(4,0x62462d);rear.lineBetween(x+190,y+22,x+244,y+22);rear.lineBetween(x+195,y+18,x+195,y+37);rear.lineBetween(x+238,y+18,x+238,y+37);
+   rear.lineStyle(4,0x62462d);rear.lineBetween(x+170,y+22,x+210,y+22);rear.lineBetween(x+174,y+18,x+174,y+37);rear.lineBetween(x+206,y+18,x+206,y+37);
   }else{
    rear.fillStyle(0x5f4830);rear.fillRect(x+18,y+11,pen.kind==='dog'?48:110,16);rear.fillStyle(0xb79c51);rear.fillRect(x+23,y+12,pen.kind==='dog'?38:100,7);
   }

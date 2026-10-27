@@ -14,11 +14,11 @@ Google continua usando a autenticação gerenciada Neon e o provedor compartilha
 
 ## Celeiro
 
-O mesmo InteriorScene real é usado no jogo e nos testes visuais. O layout distribui até 12 animais em oito áreas por espécie: vacas (até duas por baia), cabras (três), galinhas (seis) e cães (quatro). As combinações são testadas para não perder animais na distribuição. Áreas sem animais recebem feno, palha, ração e utensílios em vez de placas grandes de vazio.
+O mesmo InteriorScene real é usado no jogo e nos testes visuais. O layout distribui até 12 animais em oito áreas por espécie: vacas (até duas por baia), cabras (três), galinhas (seis) e cães (quatro). As combinações são testadas para não perder animais na distribuição. As baias de vacas são mais largas (335 pixels) que os recintos de cabras (315), galinhas (285) e cães (290), mantendo os portões alinhados ao corredor. Áreas sem animais recebem feno, palha, ração e utensílios em vez de placas grandes de vazio.
 
 Tamanhos máximos de exibição em pixels do mundo: vaca 68×62, cabra 44×47, cachorro 34×32, galinha 21×23. O personagem mantém cerca de 69 pixels de altura. Cercas, portões fechados, comedouros, água, palha, ninhos e poleiros são desenhados no estilo do ambiente, usando os sprites originais dos animais e equipamentos.
 
-O corredor central é caminhável. A baia inteira é um obstáculo físico e também entra na busca A*: o personagem interage pelo portão, sem atravessar os animais. Cada animal permanece em uma célula interna e não atravessa cercas ou outro animal. Caminhadas curtas, respiração, pequenas inclinações de alimentação e texturas de piscada dão movimento sem alterar relógios de produção. As cercas da frente sobrepõem os animais; placas ficam acima. Novas compras reorganizam o interior ao fechar os painéis.
+No celular, o celeiro abre com visão geral e oferece Aproximar / Ver cômodo inteiro; o modo aproximado acompanha o personagem. O corredor central é caminhável. A baia inteira é um obstáculo físico e também entra na busca A*: o personagem interage pelo portão, sem atravessar os animais. Cada animal permanece em uma célula interna e não atravessa cercas ou outro animal. Caminhadas curtas, respiração, pequenas inclinações de alimentação e texturas de piscada dão movimento sem alterar relógios de produção. As cercas da frente sobrepõem os animais; placas ficam acima. Novas compras reorganizam o interior ao fechar os painéis.
 
 Alimentação, coleta e proteção do cachorro continuam usando as regras e comandos reais existentes. Nenhum animal ou produto visual foi acrescentado ao inventário dos jogadores.
 
@@ -28,4 +28,14 @@ Alimentação, coleta e proteção do cachorro continuam usando as regras e coma
 
 Na prévia local foram conferidos nome vazio, escolha do menino negro Caio, avanço à conta e restauração após recarregar. O celeiro foi inspecionado usando uma fazenda fictícia com as quatro espécies, sem alterar contas reais: `tests/barn-preview.html`. Interação por E no corredor abriu o painel de cuidados de teste. `tests/barn-mobile.html` e `tests/mobile-preview.html` permitem conferência em 390×844.
 
-Os testes HTTP publicados e a conferência do jogo com conta real de QA serão registrados após o deploy. Uma conferência em viewport móvel não substitui teste em Android/iPhone físicos. Não declarar autorização Google pessoal como concluída apenas por validar o redirecionamento.
+O teste HTTP publicado com conta sintética confirmou nome/avatar gravados uma vez, replay idempotente, recarga com moedas e sementes preservadas e recusa de substituição do perfil. O OAuth iniciou e redirecionou para accounts.google.com. A galeria também foi conferida no endereço de produção. O consentimento Google e a entrada final pelo navegador com uma conta pessoal não foram executados. Uma conferência em viewport móvel não substitui teste em Android/iPhone físicos. Não declarar autorização Google pessoal como concluída apenas por validar o redirecionamento.
+
+
+![Galeria publicada](screenshots/personagens-0.6.jpg)
+
+Celeiro renderizado pelo código real com animais de teste:
+
+![Celeiro em QA visual](screenshots/celeiro-0.6.jpg)
+
+
+A segunda rodada HTTP aguardou a produção real da galinha e confirmou alimentação, consumo de uma ração, coleta de um ovo, replay sem duplicação e rejeição de nova coleta antecipada. Não foram alterados relógios nem saldos por SQL. A visão geral e o modo aproximado também foram alternados no iframe móvel.

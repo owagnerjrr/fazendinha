@@ -5,9 +5,9 @@ import type { Farm, Tool } from './farm';
 import { findPath } from './pathfinding';
 type Services={farm:()=>Farm;stick:()=>{x:number;y:number};modal:()=>boolean;tool:()=>Tool;now:()=>number;avatar:()=>void;animals:(id?:string)=>void;equipment:()=>void;toast:(s:string)=>void;open:(title:string,html:string)=>void;exit:()=>void};
 export class InteriorScene extends Phaser.Scene {
- private room:'house'|'barn'='house';private player!:Phaser.Physics.Arcade.Sprite;private actor!:Phaser.GameObjects.Sprite;private art!:AvatarArt;private keys!:Record<string,Phaser.Input.Keyboard.Key>;private dir=0;private target:{x:number;y:number;run?:()=>void}|null=null;private route:{x:number;y:number}[]=[];private blocks:{x:number;y:number;width:number;height:number}[]=[];private points:RoomPoint[]=[];private barn?:ReturnType<typeof buildBarn>;private animalSignature='';
+ private room:'house'|'barn'='house';private overview=false;private player!:Phaser.Physics.Arcade.Sprite;private actor!:Phaser.GameObjects.Sprite;private art!:AvatarArt;private keys!:Record<string,Phaser.Input.Keyboard.Key>;private dir=0;private target:{x:number;y:number;run?:()=>void}|null=null;private route:{x:number;y:number}[]=[];private blocks:{x:number;y:number;width:number;height:number}[]=[];private points:RoomPoint[]=[];private barn?:ReturnType<typeof buildBarn>;private animalSignature='';
  constructor(private services:Services){super('Interior');}
- init(data:{room:'house'|'barn'}){this.room=data.room;this.target=null;this.route=[];this.blocks=[];this.points=[];this.barn=undefined;this.animalSignature='';}
+ init(data:{room:'house'|'barn'}){this.room=data.room;this.overview=this.room==='barn';this.target=null;this.route=[];this.blocks=[];this.points=[];this.barn=undefined;this.animalSignature='';}
  create(){
   const s=this.services;this.art=new AvatarArt(this);this.cameras.main.setBackgroundColor('#20382f');
   const g=this.add.graphics();g.fillStyle(this.room==='house'?0x8d633d:0x746347);g.fillRect(160,210,880,610);
@@ -38,7 +38,9 @@ export class InteriorScene extends Phaser.Scene {
   this.events.once('shutdown',()=>this.scale.off('resize',this.resize,this));
   s.toast(this.room==='house'?'Sua casa: cama, sala, TV e guarda-roupa. Toque para explorar.':'Explore o celeiro. Aproxime-se de um animal ou do suporte de ferramentas.');
  }
- private resize(){const camera=this.cameras.main;if(this.scale.width>=900){camera.stopFollow();camera.setZoom(Math.min(this.scale.width/1150,this.scale.height/850));camera.centerOn(600,470);}else{camera.startFollow(this.player,true,.1,.1,0,30);camera.setZoom(1.05);}}
+ private resize(){const camera=this.cameras.main;if(this.scale.width>=900){camera.stopFollow();camera.removeBounds();camera.setZoom(Math.min(this.scale.width/1150,this.scale.height/850));camera.centerOn(600,470);}else if(this.overview){camera.stopFollow();camera.removeBounds();camera.setZoom(Math.min(this.scale.width/980,(this.scale.height-170)/800));camera.centerOn(600,470);}else{camera.setBounds(0,0,1200,950);camera.startFollow(this.player,true,.1,.1,0,30);camera.setZoom(1.05);}}
+ toggleView(){this.overview=!this.overview;this.resize();return this.overview;}
+
  private leave(){this.player.setVelocity(0);this.target=null;this.route=[];this.scene.stop();this.scene.wake('Farm');this.services.exit();}
  interact(){if(this.services.modal())return;const nearest=[...this.points].sort((a,b)=>Phaser.Math.Distance.Between(this.player.x,this.player.y,a.x,a.y)-Phaser.Math.Distance.Between(this.player.x,this.player.y,b.x,b.y))[0];if(nearest&&Math.hypot(this.player.x-nearest.x,this.player.y-nearest.y)<110)nearest.run();else this.services.toast('Aproxime-se de um móvel, animal ou da saída.');}
  update(time:number){if(!this.player)return;const s=this.services;let vx=0,vy=0;
