@@ -1,10 +1,19 @@
 import { ANIMALS, DECOR, DECOR_SLOTS, animalReady, animalHydrated, validAvatar, type AnimalKind, type DecorationKind } from './content.js';
+import { LAND_PRICE, ORIGINAL_PLOTS, EXTRA_PLOTS } from './plots.js';
 import type { Farm } from './farm.js';
-export const LIFE_COMMANDS=['avatar','buy-animal','buy-feed','feed-animal','water-animal','pet-animal','rename-animal','start-incubation','hatch-chick','mature-chick','collect-animal','buy-decor','move-decor','raids-setting'] as const;
+export const LIFE_COMMANDS=['avatar','buy-land','buy-animal','buy-feed','feed-animal','water-animal','pet-animal','rename-animal','start-incubation','hatch-chick','mature-chick','collect-animal','buy-decor','move-decor','raids-setting'] as const;
 export function applyLife(f:Farm,c:any,now:number):{ok:boolean;message:string} {
  const fail=(message:string)=>({ok:false,message});
  if(c.type==='avatar'){if(!validAvatar(c.avatar))return fail('Escolha um avatar válido.');f.avatar={...c.avatar};return {ok:true,message:'Seu avatar foi atualizado!'};}
  if(c.type==='raids-setting'){if(typeof c.enabled!=='boolean')return fail('Opção inválida.');f.socialRaids=c.enabled;return {ok:true,message:c.enabled?'Brincadeira de roubo ativada com amigos participantes.':'Sua fazenda está fora da brincadeira de roubo.'};}
+ if(c.type==='buy-land'){
+  if(f.landOwned)return fail('Este terreno já pertence à sua fazenda.');
+  const online=f as Farm & {unlockedPlots?:number};if(online.unlockedPlots!==undefined&&online.unlockedPlots<24)return fail('Libere os 24 canteiros da horta inicial antes de comprar este terreno.');
+  if(f.coins<LAND_PRICE)return fail(`Você precisa de ${LAND_PRICE} moedas para comprar o terreno.`);
+  if(f.plots.length!==ORIGINAL_PLOTS)return fail('Não foi possível conferir seus canteiros.');
+  f.coins-=LAND_PRICE;f.landOwned=true;for(let i=0;i<EXTRA_PLOTS;i++)f.plots.push({id:ORIGINAL_PLOTS+i,tilled:false,crop:null,wateredAt:null});
+  return {ok:true,message:'Terreno adquirido! Você ganhou 12 novos canteiros.'};
+ }
  if(c.type==='buy-animal'){
   if(!Object.hasOwn(ANIMALS,c.kind))return fail('Animal inválido.');const kind=c.kind as AnimalKind,item=ANIMALS[kind];
   if(f.animals.length+f.animals.filter(x=>x.incubationAt!=null).length>=12)return fail('Seu celeiro comporta 12 animais, incluindo ovos em incubação.');if(f.coins<item.price)return fail('Moedas insuficientes.');

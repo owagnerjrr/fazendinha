@@ -11,7 +11,7 @@ export const CROPS = {
 export type Crop = keyof typeof CROPS;
 export type Tool = 'hand' | 'hoe' | 'seed' | 'water';
 export type Plot = { id: number; tilled: boolean; crop: Crop | null; wateredAt: number | null; pestAt?:number|null; stolen?:number };
-export type Farm = { version: 1; profileComplete?:boolean; playerName?:string; coins: number; seeds: Record<Crop, number>; inventory: Record<Crop, number>; plots: Plot[]; harvests: number; questClaimed: boolean; player: { x: number; y: number }; avatar:Avatar; animals:Animal[]; products:Record<AnimalProduct,number>; feed:number; decorations:Decoration[]; socialRaids:boolean; raidProtectionUntil:number; visitLog:{name:string;action:string;at:number}[] };
+export type Farm = { version: 1; profileComplete?:boolean; playerName?:string; landOwned?:boolean; coins: number; seeds: Record<Crop, number>; inventory: Record<Crop, number>; plots: Plot[]; harvests: number; questClaimed: boolean; player: { x: number; y: number }; avatar:Avatar; animals:Animal[]; products:Record<AnimalProduct,number>; feed:number; decorations:Decoration[]; socialRaids:boolean; raidProtectionUntil:number; visitLog:{name:string;action:string;at:number}[] };
 const crops = Object.keys(CROPS) as Crop[];
 export const SAVE_KEY = 'wj-fazendinha-v1';
 export const makeFarm = (): Farm => ({ version: 1, coins: 250, seeds: Object.fromEntries(crops.map(c=>[c,8])) as Record<Crop,number>, inventory: Object.fromEntries(crops.map(c=>[c,0])) as Record<Crop,number>, plots: Array.from({ length: 24 }, (_, id) => ({ id, tilled: false, crop: null, wateredAt: null })), harvests: 0, questClaimed: false, player: { x: 710, y: 650 }, avatar:{...DEFAULT_AVATAR}, animals:[{id:'starter-hen',kind:'chicken',fedAt:null,collectedAt:0}], products:{egg:0,milk:0,goatMilk:0},feed:5,decorations:[],socialRaids:false,raidProtectionUntil:0,visitLog:[] });
@@ -79,7 +79,7 @@ export function restoreFarm(raw: string | null): Farm {
     if (data.version !== 1 || !count(data.coins) || !count(data.harvests) || typeof data.questClaimed !== 'boolean' || !data.player || !Number.isFinite(data.player.x) || !Number.isFinite(data.player.y)) return makeFarm();
     for(const c of crops){if(!['carrot','lettuce','tomato'].includes(c)){data.seeds[c]??=0;data.inventory[c]??=0;}}
     if (!crops.every(c => count(data.seeds?.[c]) && count(data.inventory?.[c]))) return makeFarm();
-    if (!Array.isArray(data.plots) || data.plots.length !== 24 || !data.plots.every((p, id) => p.id === id && typeof p.tilled === 'boolean' && (p.crop === null || crops.includes(p.crop)) && (p.wateredAt === null || (Number.isFinite(p.wateredAt) && p.wateredAt >= 0)) && (p.crop !== null || p.wateredAt === null) && (!p.crop || p.tilled))) return makeFarm();
+    if (!Array.isArray(data.plots) || ![24,36].includes(data.plots.length) || (data.plots.length===36 && data.landOwned!==true) || !data.plots.every((p, id) => p.id === id && typeof p.tilled === 'boolean' && (p.crop === null || crops.includes(p.crop)) && (p.wateredAt === null || (Number.isFinite(p.wateredAt) && p.wateredAt >= 0)) && (p.crop !== null || p.wateredAt === null) && (!p.crop || p.tilled))) return makeFarm();
     data.player.x = Math.max(100, Math.min(1480, data.player.x)); data.player.y = Math.max(180, Math.min(1040, data.player.y));
     upgradeFarm(data);return data;
   } catch { return makeFarm(); }

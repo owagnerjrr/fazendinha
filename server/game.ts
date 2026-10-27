@@ -1,3 +1,4 @@
+import { plotPosition } from '../src/plots.js';
 import { requiresNewClient, CLIENT_UPDATE_MESSAGE } from '../src/client-compat.js';
 import { initializeProfile } from '../src/profile.js';
 import { LIFE_COMMANDS } from '../src/life-rules.js';
@@ -66,8 +67,8 @@ export async function mutate(user: string, body: any, version?: string|null) {
     else if(['work','buy','sell','expand',...LIFE_COMMANDS].includes(c.type)) {
       if(c.type==='work') {
         move(row,body.position,now);
-        if(!Number.isInteger(c.plot)||c.plot<0||c.plot>=24) throw new GameError('Canteiro inválido.');
-        const x=634+(c.plot%6)*40,y=434+Math.floor(c.plot/6)*40;
+        const point=plotPosition(c.plot);if(!point)throw new GameError('Canteiro inválido.');
+        const {x,y}=point;
         if(Math.hypot(row.state.player.x-x,row.state.player.y-y)>70) throw new GameError('Aproxime-se do canteiro.');
       }
       const result=applyCommand(row.state,c,now); if(!result.ok) throw new GameError(result.message);

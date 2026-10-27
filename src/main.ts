@@ -17,6 +17,7 @@ import { ACTIONS, ActionClock, actionFrame, DIRECTION_ROW, isPouring, type Direc
 import { ChickenFlock } from './chickens';
 import { DogCompanions } from './dog-companion';
 import { Atmosphere } from './atmosphere';
+import { plotPosition } from './plots';
 import { WorkEffects } from './work-effects';
 import nozzleAnchors from '../public/assets/v3/anchors.json';
 import { choosePlot } from './interaction';
@@ -159,6 +160,13 @@ class FarmScene extends Phaser.Scene {
       const text = this.add.text(x, y - 27, '', { fontFamily: 'monospace', fontSize: '10px', color: '#fff6ce', backgroundColor: '#40563ddd', padding: { x: 4, y: 2 } }).setOrigin(.5).setDepth(1800);
       this.fields.push({ x, y, id, soil, plant, label: text });
     }
+    for(let id=24;id<36;id++) {const {x,y}=plotPosition(id)!;
+      const soil=this.add.image(x,y,'plot-raw').setDepth(1);
+      const plant=this.add.image(x,y+11,'carrot-0').setOrigin(.5,1).setDepth(y+2).setVisible(false);
+      const text=this.add.text(x,y-27,'',{fontFamily:'monospace',fontSize:'10px',color:'#fff6ce',backgroundColor:'#40563ddd',padding:{x:4,y:2}}).setOrigin(.5).setDepth(1800);
+      this.fields.push({x,y,id,soil,plant,label:text});
+    }
+    label(290,510,'TERRENO ADICIONAL');
     // Mixed woodland, original tiles and a clear playable center.
     const rand = Phaser.Math.RandomDataGenerator ? new Phaser.Math.RandomDataGenerator(['wj-vale']) : null;
     for (let y = 110; y <= 1110; y += 68) for (let x = 95; x < 1300; x += 64) {
@@ -170,7 +178,7 @@ class FarmScene extends Phaser.Scene {
       this.occluders.push(this.add.image(px, py, key).setOrigin(.5, 1).setScale(rand!.realInRange(1.12, 1.4)).setDepth(py));
       block(px, py - 9, 18, 20);
     }
-    for (const [i, [x, y]] of [[300, 600], [330, 790], [535, 860], [940, 940], [1150, 540], [530, 280], [877, 260]].entries()) { shadow(x + 9, y - 2, 95, 24); this.occluders.push(this.add.image(x, y, `tree${i % 3}`).setOrigin(.5, 1).setScale(1.2).setDepth(y)); block(x, y - 9, 18, 20); }
+    for (const [i, [x, y]] of [[190, 680], [330, 790], [535, 860], [940, 940], [1150, 540], [530, 280], [877, 260]].entries()) { shadow(x + 9, y - 2, 95, 24); this.occluders.push(this.add.image(x, y, `tree${i % 3}`).setOrigin(.5, 1).setScale(1.2).setDepth(y)); block(x, y - 9, 18, 20); }
     for (let i = 0; i < 6; i++) { const x = 350 + i * 48; this.add.image(x, 762, 'fence').setOrigin(.5, 1).setDepth(762); block(x, 755, 46, 9); }
     for (let i = 0; i < 4; i++) { this.add.image(350 + i * 48, 889, 'fence').setOrigin(.5, 1).setDepth(889); block(350 + i * 48, 882, 46, 9); }
     this.flock = new ChickenFlock(this);
@@ -215,7 +223,7 @@ class FarmScene extends Phaser.Scene {
       if (modal) return;
       const p = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
       const field = this.fields.find(f => Math.abs(f.x - p.x) < 20 && Math.abs(f.y - p.y) < 20);
-      if (field) { this.navigate({ x: field.x + 42, y: field.y + 10, field: field.id }); return; }
+      if (field) { if(field.id>=24&&!farm.landOwned){life.land();return;} this.navigate({ x: field.x + (field.id>=24?-40:42), y: field.y + 10, field: field.id }); return; }
       if(p.x>285&&p.x<525&&p.y>265&&p.y<460){this.navigate({x:408,y:490,house:true});return;}
       if (p.x > 930 && p.x < 1130 && p.y > 245 && p.y < 410) { this.navigate({ x: 1030, y: 425, shop: true }); return; }
       if (p.x > 960 && p.x < 1140 && p.y > 620 && p.y < 820) { this.navigate({ x: 1050, y: 840, barn: true }); return; }
@@ -235,7 +243,7 @@ class FarmScene extends Phaser.Scene {
     const signature=JSON.stringify(farm.decorations);if(signature!==this.decorSignature){this.decorSprites.forEach(x=>x.destroy());this.decorSprites=[];this.decorSignature=signature;for(const d of farm.decorations){const slot=DECOR_SLOTS[d.slot],item=DECOR[d.kind];if(slot&&item)this.decorSprites.push(this.add.image(slot.x,slot.y,`life-${item.texture}`).setOrigin(.5,1).setDepth(slot.y).setScale(d.kind==='cocoaTree'?.85:.65));}}
     for (const field of this.fields) {
       const plot = farm.plots[field.id];
-      if (cloud.active && field.id >= (farm as OnlineFarm).unlockedPlots) { field.soil.setTexture('plot-raw').setAlpha(.35);field.plant.setVisible(false);field.label.setText('×').setVisible(true);continue; }
+      if ((field.id>=24&&!farm.landOwned)||(cloud.active && field.id<24 && field.id >= (farm as OnlineFarm).unlockedPlots)) { field.soil.setTexture('plot-raw').setAlpha(.35);field.plant.setVisible(false);field.label.setText('×').setVisible(true);continue; }
       field.soil.setAlpha(1);
       field.soil.setTexture(plot.wateredAt !== null ? 'plot-wet' : plot.tilled ? 'plot-tilled' : 'plot-raw');
       field.plant.setVisible(!!plot.crop);
@@ -258,6 +266,7 @@ class FarmScene extends Phaser.Scene {
   }
   useField(id: number) {
     if (this.activeWork || onlineLoading || cloud.busy) return;
+    if(id>=24&&!farm.landOwned){life.land();return;}
     if (Math.hypot(this.player.x-this.fields[id].x,this.player.y-this.fields[id].y)>70) {toast('Aproxime-se do canteiro.');return;}
     this.focusedField = id;
     const check = cloud.active ? applyCommand(structuredClone(farm) as OnlineFarm,{type:'work',plot:id,tool,crop:selected},Date.now()+cloud.offset) : act(structuredClone(farm), id, tool, selected);
@@ -332,7 +341,7 @@ class FarmScene extends Phaser.Scene {
     if(Phaser.Math.Distance.Between(this.player.x,this.player.y,408,490)<85){enterInterior('house');return;}
     if (Phaser.Math.Distance.Between(this.player.x, this.player.y, 1030, 425) < 85) { shop(); return; }
     if (Phaser.Math.Distance.Between(this.player.x, this.player.y, 1050, 840) < 85) { enterInterior('barn'); return; }
-    const available = cloud.active ? this.fields.filter(f=>f.id<(farm as OnlineFarm).unlockedPlots) : this.fields;
+    const available = cloud.active ? this.fields.filter(f=>f.id<24?f.id<(farm as OnlineFarm).unlockedPlots:!!farm.landOwned) : this.fields.filter(f=>f.id<24||!!farm.landOwned);
     const target = choosePlot(farm, available, this.player, tool, selected, this.focusedField, Date.now() + cloud.offset);
     if (target !== null) this.useField(target);
     else if(tool==='water') { const offsets={up:[0,-40],down:[0,40],left:[-40,0],right:[40,0]};const [dx,dy]=offsets[this.direction];this.waterGround({x:this.player.x+dx,y:this.player.y+dy}); }

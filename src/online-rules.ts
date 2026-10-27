@@ -19,7 +19,7 @@ export function applyCommand(farm: OnlineFarm, input: unknown, now: number): { o
   upgradeFarm(farm);replenish(farm, now);
   if((LIFE_COMMANDS as readonly string[]).includes(c.type))return applyLife(farm,c,now);
   if (c.type === 'work') {
-    if (!Number.isInteger(c.plot) || c.plot < 0 || c.plot >= farm.unlockedPlots || !['hand', 'hoe', 'seed', 'water'].includes(c.tool) || !Object.hasOwn(CROPS, c.crop)) return { ok: false, message: 'Canteiro bloqueado ou ferramenta inválida.' };
+    if (!Number.isInteger(c.plot) || c.plot < 0 || (c.plot < 24 ? c.plot >= farm.unlockedPlots : c.plot >= 36 || !farm.landOwned) || !['hand', 'hoe', 'seed', 'water'].includes(c.tool) || !Object.hasOwn(CROPS, c.crop)) return { ok: false, message: 'Canteiro bloqueado ou ferramenta inválida.' };
     const cost = ECONOMY.toolEnergy[c.tool];
     if (farm.energy < cost) return { ok: false, message: 'Descanse um pouco: recupera 1 energia por minuto.' };
     const result = act(farm, c.plot, c.tool, c.crop, now);
