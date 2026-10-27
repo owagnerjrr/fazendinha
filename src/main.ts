@@ -18,6 +18,7 @@ import { ChickenFlock } from './chickens';
 import { DogCompanions } from './dog-companion';
 import { Atmosphere } from './atmosphere';
 import { plotPosition } from './plots';
+import { LAND_SAVE_KEY,restoreLocalFarm,splitLocalFarm } from './local-farm';
 import { WorkEffects } from './work-effects';
 import nozzleAnchors from '../public/assets/v3/anchors.json';
 import { choosePlot } from './interaction';
@@ -31,7 +32,8 @@ let booting=true;
 let journey:ReturnType<typeof setupJourney>;
 const cropKeys = Object.keys(CROPS) as Crop[];
 let farm: Farm;
-try { farm = restoreFarm(localStorage.getItem(SAVE_KEY)); } catch { farm = makeFarm(); }
+let localSaveBlocked=false;
+try { farm = restoreLocalFarm(localStorage.getItem(SAVE_KEY),localStorage.getItem(LAND_SAVE_KEY)); } catch { farm = restoreFarm(localStorage.getItem(SAVE_KEY)); localSaveBlocked=true; }
 let selected: Crop = 'carrot', tool: Tool = 'hand', modal = false, toastTimer: ReturnType<typeof setTimeout>;
 let joystick = { x: 0, y: 0 };
 let scene: FarmScene;
@@ -43,8 +45,8 @@ const dialog = $<HTMLDialogElement>('panel');
 let activePanel: 'shop' | 'other' = 'other';
 function toast(message: string) { $('toast').textContent = message; $('toast').classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => $('toast').classList.remove('show'), 4200); }
 function save() {
-  if (cloud.active || onlineLoading || booting) return;
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify(farm)); $('save-status').textContent = 'Salvo neste aparelho'; $('save-dot').style.background = '#c4da8c'; }
+  if (cloud.active || onlineLoading || booting || localSaveBlocked) return;
+  try { const parts=splitLocalFarm(farm);if(parts.land!==null)localStorage.setItem(LAND_SAVE_KEY,parts.land);localStorage.setItem(SAVE_KEY,parts.core); $('save-status').textContent = 'Salvo neste aparelho'; $('save-dot').style.background = '#c4da8c'; }
   catch { $('save-status').textContent = 'Não foi possível salvar'; $('save-dot').style.background = '#e69f69'; }
 }
 function syncUI() {
@@ -234,6 +236,7 @@ class FarmScene extends Phaser.Scene {
     window.addEventListener('pagehide', () => { this.finishCurrentWork(); farm.player = { x: this.player.x, y: this.player.y }; cloud.flushPosition(farm.player); save(); });
     document.addEventListener('visibilitychange', () => { if (document.hidden) { this.finishCurrentWork(); this.cancelMovement(); farm.player = { x: this.player.x, y: this.player.y }; cloud.flushPosition(farm.player); save(); } else this.paintFields(); });
     this.paintFields(); syncUI();
+    if(localSaveBlocked){$('save-status').textContent='Terreno salvo indisponível; salvamento pausado';toast('Não foi possível carregar o terreno salvo. Não altere os dados do navegador.');}
     void journey.start(hadLocalFarm);
   }
   resize() { this.cameras.main.setZoom(this.scale.width < 600 ? 1.1 : this.scale.height < 560 ? .9 : 1.08); this.vignette?.setDisplaySize(this.scale.width, this.scale.height); }
@@ -243,7 +246,7 @@ class FarmScene extends Phaser.Scene {
     const signature=JSON.stringify(farm.decorations);if(signature!==this.decorSignature){this.decorSprites.forEach(x=>x.destroy());this.decorSprites=[];this.decorSignature=signature;for(const d of farm.decorations){const slot=DECOR_SLOTS[d.slot],item=DECOR[d.kind];if(slot&&item)this.decorSprites.push(this.add.image(slot.x,slot.y,`life-${item.texture}`).setOrigin(.5,1).setDepth(slot.y).setScale(d.kind==='cocoaTree'?.85:.65));}}
     for (const field of this.fields) {
       const plot = farm.plots[field.id];
-      if ((field.id>=24&&!farm.landOwned)||(cloud.active && field.id<24 && field.id >= (farm as OnlineFarm).unlockedPlots)) { field.soil.setTexture('plot-raw').setAlpha(.35);field.plant.setVisible(false);field.label.setText('×').setVisible(true);continue; }
+      if ((field.id>=24&&(!farm.landOwned||!plot))||(cloud.active && field.id<24 && field.id >= (farm as OnlineFarm).unlockedPlots)) { field.soil.setTexture('plot-raw').setAlpha(.35);field.plant.setVisible(false);field.label.setText('×').setVisible(true);continue; }
       field.soil.setAlpha(1);
       field.soil.setTexture(plot.wateredAt !== null ? 'plot-wet' : plot.tilled ? 'plot-tilled' : 'plot-raw');
       field.plant.setVisible(!!plot.crop);
@@ -266,7 +269,7 @@ class FarmScene extends Phaser.Scene {
   }
   useField(id: number) {
     if (this.activeWork || onlineLoading || cloud.busy) return;
-    if(id>=24&&!farm.landOwned){life.land();return;}
+    if(id>=24&&(!farm.landOwned||!farm.plots[id])){if(!localSaveBlocked)life.land();else toast('Terreno salvo indisponível.');return;}
     if (Math.hypot(this.player.x-this.fields[id].x,this.player.y-this.fields[id].y)>70) {toast('Aproxime-se do canteiro.');return;}
     this.focusedField = id;
     const check = cloud.active ? applyCommand(structuredClone(farm) as OnlineFarm,{type:'work',plot:id,tool,crop:selected},Date.now()+cloud.offset) : act(structuredClone(farm), id, tool, selected);
@@ -395,7 +398,7 @@ $('enter-place').onclick = () => { if(!inside&&!modal) scene?.interactNearest();
 $('touch-action').onclick = () => inside ? (game.scene.getScene('Interior') as InteriorScene).interact() : scene?.interactNearest();
 cloud.onStatus=message=>{ $('save-status').textContent=message;$('save-dot').style.background=message.includes('sincronizado')?'#c4da8c':'#e69f69'; };
 cloud.onSnapshot=(snapshot,initial)=>{ farm=snapshot.farm;if(initial&&scene?.player){scene.finishCurrentWork();scene.cancelMovement();scene.player.setPosition(farm.player.x,farm.player.y);}syncUI();scene?.paintFields(); };
-setupOnlineUI(cloud,openPanel,closePanel,toast,()=>farm as OnlineFarm,()=>{farm=restoreFarm(localStorage.getItem(SAVE_KEY));scene?.cancelMovement();scene?.player.setPosition(farm.player.x,farm.player.y);scene?.paintFields();syncUI();save();},()=>journey.show());
+setupOnlineUI(cloud,openPanel,closePanel,toast,()=>farm as OnlineFarm,()=>{farm=restoreLocalFarm(localStorage.getItem(SAVE_KEY),localStorage.getItem(LAND_SAVE_KEY));scene?.cancelMovement();scene?.player.setPosition(farm.player.x,farm.player.y);scene?.paintFields();syncUI();save();},()=>journey.show());
 async function lifeCommand(c:any){
  if(onlineLoading)throw new Error('Aguarde a conexão com sua conta.');
  if(cloud.active)return cloud.command(c);
