@@ -1,11 +1,11 @@
 # Caminho do projeto
 
-## Preparado para a beta 0.5.1 — publicação pendente
+## Entregue na beta 0.5.1
 
 - [x] Feira com ovos, leite de vaca e leite de cabra, filtros, estoque disponível e preço por unidade.
 - [x] Compatibilidade da feira com as versões antigas da PWA.
 
-Migração do banco aguarda autorização específica; detalhes em [FEIRA_0_5_1.md](FEIRA_0_5_1.md).
+Migração aplicada e versão publicada; detalhes em [FEIRA_0_5_1.md](FEIRA_0_5_1.md).
 
 ## Entregue na beta 0.5
 
