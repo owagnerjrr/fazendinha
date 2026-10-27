@@ -127,6 +127,7 @@ class FarmScene extends Phaser.Scene {
     for(const style of ['crop','puffs','short','braids'])for(const dir of ['down','left','right','up'])this.load.image(`head-${style}-${dir}`,`/assets/v5/head-${style}-${dir}.png`);
     this.load.image('farmer-v2', '/assets/v2/farmer.png');
     this.load.spritesheet('dog-walk','/assets/v7/dog-walk.png',{frameWidth:48,frameHeight:48});
+    this.load.spritesheet('dog-rest','/assets/v7/dog-rest.png',{frameWidth:48,frameHeight:48});
     this.load.spritesheet('chickens-v3', '/assets/v3/chickens.png', { frameWidth: 40, frameHeight: 40 });
     for (const kind of ['hoe', 'water']) this.load.spritesheet(`${kind}-actions`, `/assets/v3/farmer-${kind}.png`, { frameWidth: 96, frameHeight: 112 });
     for (const key of ['hoe', 'seed', 'water']) this.load.spritesheet(`carry-${key}`, `/assets/v3/carry-${key}.png`, { frameWidth: 128, frameHeight: 112 });
@@ -172,7 +173,8 @@ class FarmScene extends Phaser.Scene {
     for (let i = 0; i < 6; i++) { const x = 350 + i * 48; this.add.image(x, 762, 'fence').setOrigin(.5, 1).setDepth(762); block(x, 755, 46, 9); }
     for (let i = 0; i < 4; i++) { this.add.image(350 + i * 48, 889, 'fence').setOrigin(.5, 1).setDepth(889); block(350 + i * 48, 882, 46, 9); }
     this.flock = new ChickenFlock(this);
-    for (let i = 0; i < 27; i++) { const x = rand!.between(250, 1190), y = rand!.between(280, 980); if (x > 580 && x < 900 && y < 620 || Math.abs(y - 640) < 50 || Math.abs(x - 750) < 50) continue; this.add.image(x, y, i % 3 ? 'bush' : 'rock').setOrigin(.5, 1).setDepth(y); }
+    const windPlants:Phaser.GameObjects.Image[] = this.fields.map(f=>f.plant);
+    for (let i = 0; i < 27; i++) { const x = rand!.between(250, 1190), y = rand!.between(280, 980); if (x > 580 && x < 900 && y < 620 || Math.abs(y - 640) < 50 || Math.abs(x - 750) < 50) continue; const foliage=this.add.image(x, y, i % 3 ? 'bush' : 'rock').setOrigin(.5, 1).setDepth(y);if(i%3)windPlants.push(foliage); }
     // River bank is solid, with one crossing at the bridge.
     block(1280, 420, 28, 760); block(1280, 1020, 28, 280);
     for (let i = 0; i < 40; i++) {
@@ -186,7 +188,7 @@ class FarmScene extends Phaser.Scene {
     this.actor = this.add.sprite(this.player.x, this.player.y - 2, 'farmer-down-0').setOrigin(.5, 62 / 64).setScale(1.08);
     this.workEffects = new WorkEffects(this);
     this.physics.add.collider(this.player, this.obstacles);
-    this.dogCompanions = new DogCompanions(this, this.player, this.obstacles);
+    this.dogCompanions = new DogCompanions(this, this.player, this.obstacles,this.flock.sprites());
     // A saved spawn may become blocked if a future map changes.
     const inObstacle = this.obstacles.getChildren().some(o => { const b = (o as Phaser.GameObjects.Zone).body as Phaser.Physics.Arcade.StaticBody; return Phaser.Geom.Rectangle.Contains(new Phaser.Geom.Rectangle(b.x - 10, b.y - 10, b.width + 20, b.height + 20), this.player.x, this.player.y - 5); });
     if (inObstacle) this.player.setPosition(710, 650);
@@ -202,7 +204,7 @@ class FarmScene extends Phaser.Scene {
       const pollen = this.add.rectangle(rand!.between(270, 1200), rand!.between(250, 980), i % 3 ? 2 : 3, 2, i % 3 ? 0xf3dc83 : 0xc1d483, .6).setDepth(1550);
       this.tweens.add({ targets: pollen, x: pollen.x + 35, y: pollen.y - 32, alpha: .1, duration: 4200 + i * 130, yoyo: true, repeat: -1, delay: i * 140 });
     }
-    this.atmosphere = new Atmosphere(this,this.occluders);
+    this.atmosphere = new Atmosphere(this,[...this.occluders,...windPlants]);
     this.resize();
     this.scale.on('resize', this.resize, this);
     this.keys = this.input.keyboard!.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,E,ONE,TWO,THREE,FOUR') as Record<string, Phaser.Input.Keyboard.Key>;

@@ -10,9 +10,11 @@ export class ChickenFlock {
       const x = 388 + i * 28, y = 804 + i % 2 * 43;
       const shadow = scene.add.ellipse(x, y - 1, 28, 10, 0x263729, .28).setDepth(3);
       const sprite = scene.add.sprite(x, y, 'chickens-v3', 0).setOrigin(.5, 38 / 40).setScale(1.05).setDepth(y);
+      scene.physics.add.existing(sprite);const body=sprite.body as Phaser.Physics.Arcade.Body;body.setSize(24,10).setOffset(8,28).setImmovable(true);
       this.hens.push({ sprite, shadow, x, y, tx: x, ty: y, until: i * 390 + 500, phase: i % 2 ? 'peck' : 'idle', right: i % 2 === 0, offset: i * 180 });
     }
   }
+  sprites(){return this.hens.map(h=>h.sprite);}
   update(time: number, delta: number) {
     const dt = Math.min(delta, 80) / 1000;
     for (const hen of this.hens) {
