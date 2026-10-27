@@ -15,6 +15,7 @@ import './theme.css';
 import { createArt } from './art';
 import { ACTIONS, ActionClock, actionFrame, DIRECTION_ROW, isPouring, type Direction } from './action-timing';
 import { ChickenFlock } from './chickens';
+import { DogCompanions } from './dog-companion';
 import { WorkEffects } from './work-effects';
 import nozzleAnchors from '../public/assets/v3/anchors.json';
 import { choosePlot } from './interaction';
@@ -100,6 +101,7 @@ class FarmScene extends Phaser.Scene {
   activeWork: Work | null = null;
   actor!: Phaser.GameObjects.Sprite;
   flock!: ChickenFlock;
+  private dogCompanions!: DogCompanions;
   avatarArt!:AvatarArt;
   previewArt!:AvatarArt;
   private decorSprites:Phaser.GameObjects.Image[]=[];
@@ -181,6 +183,7 @@ class FarmScene extends Phaser.Scene {
     this.actor = this.add.sprite(this.player.x, this.player.y - 2, 'farmer-down-0').setOrigin(.5, 62 / 64).setScale(1.08);
     this.workEffects = new WorkEffects(this);
     this.physics.add.collider(this.player, this.obstacles);
+    this.dogCompanions = new DogCompanions(this, this.player, this.obstacles);
     // A saved spawn may become blocked if a future map changes.
     const inObstacle = this.obstacles.getChildren().some(o => { const b = (o as Phaser.GameObjects.Zone).body as Phaser.Physics.Arcade.StaticBody; return Phaser.Geom.Rectangle.Contains(new Phaser.Geom.Rectangle(b.x - 10, b.y - 10, b.width + 20, b.height + 20), this.player.x, this.player.y - 5); });
     if (inObstacle) this.player.setPosition(710, 650);
@@ -330,7 +333,7 @@ class FarmScene extends Phaser.Scene {
   }
   update(time: number, delta: number) {
     if (!this.player) return;
-    this.flock.update(time, delta); this.workEffects.update(time);
+    this.flock.update(time, delta); this.dogCompanions.update(farm); this.workEffects.update(time);
     if (this.activeWork) { this.updateWork(time); this.player.setVelocity(0); this.renderAvatar(time, false); return; }
     if (modal) { this.player.setVelocity(0); this.renderAvatar(time, false); return; }
     let vx = Number(this.keys.D.isDown || this.keys.RIGHT.isDown) - Number(this.keys.A.isDown || this.keys.LEFT.isDown) + joystick.x;
