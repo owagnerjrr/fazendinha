@@ -1,3 +1,4 @@
+import { setupJourney } from './journey';
 import { setupLifeUI } from './life-ui';
 import { applyLife } from './life-rules';
 import { AvatarArt } from './avatar-art';
@@ -22,6 +23,9 @@ import { act, hasPests, buySeeds, CROPS, makeFarm, remaining, restoreFarm, SAVE_
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const cloud = new CloudFarm();
 let onlineLoading = false;
+const hadLocalFarm=!!localStorage.getItem(SAVE_KEY);
+let booting=true;
+let journey:ReturnType<typeof setupJourney>;
 const cropKeys = Object.keys(CROPS) as Crop[];
 let farm: Farm;
 try { farm = restoreFarm(localStorage.getItem(SAVE_KEY)); } catch { farm = makeFarm(); }
@@ -36,13 +40,14 @@ const dialog = $<HTMLDialogElement>('panel');
 let activePanel: 'shop' | 'other' = 'other';
 function toast(message: string) { $('toast').textContent = message; $('toast').classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => $('toast').classList.remove('show'), 4200); }
 function save() {
-  if (cloud.active || onlineLoading) return;
+  if (cloud.active || onlineLoading || booting) return;
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(farm)); $('save-status').textContent = 'Salvo neste aparelho'; $('save-dot').style.background = '#c4da8c'; }
   catch { $('save-status').textContent = 'Não foi possível salvar'; $('save-dot').style.background = '#e69f69'; }
 }
 function syncUI() {
   const appearance=JSON.stringify(farm.avatar);if(scene?.previewArt&&appearance!==portraitSignature){portraitSignature=appearance;const el=document.querySelector<HTMLElement>('.farm-mark')!;el.style.backgroundImage=`url(${previewAvatar(farm.avatar)})`;el.style.backgroundSize='43px 57px';el.style.backgroundPosition='center bottom';}
   $('account').textContent = cloud.active ? 'Minha conta' : 'Conta';
+  $('day-label').textContent=cloud.active?cloud.name:(farm.playerName||'Um novo começo');
   $('online-bar').hidden = false;
   $('progression').hidden=!cloud.active;$('community').hidden=!cloud.active;
   if (cloud.active) { const f=farm as OnlineFarm; $('progression').textContent = `Nível ${levelOf(f.xp)} · Energia ${f.energy}/${ECONOMY.energyMax}`; }
@@ -60,7 +65,7 @@ function openPanel(title: string, content: string, kind: 'shop' | 'other' = 'oth
   modal = true; scene?.cancelMovement(); $('panel-eyebrow').textContent = 'UM POUQUINHO DE VIDA NO CAMPO'; $('panel-content').innerHTML = `<h2>${title}</h2>${content}`; document.body.classList.add('modal-open'); if (!dialog.open) dialog.showModal();
 }
 function closePanel() { dialog.close(); }
-dialog.addEventListener('close', () => { modal = false; activePanel = 'other'; document.body.classList.remove('modal-open'); joystick = { x: 0, y: 0 }; $('joystick-knob').style.transform = ''; });
+dialog.addEventListener('close', () => { modal = document.body.classList.contains('journey-open'); activePanel = 'other'; document.body.classList.remove('modal-open'); joystick = { x: 0, y: 0 }; $('joystick-knob').style.transform = ''; });
 $('close-panel').onclick = closePanel;
 dialog.addEventListener('cancel', e => { if (activePanel === 'shop') e.preventDefault(); });
 dialog.addEventListener('click', e => { if (activePanel !== 'shop' && e.target === dialog) { const r = dialog.getBoundingClientRect(); if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) closePanel(); } });
@@ -77,7 +82,7 @@ function seedPanel() {
   document.querySelectorAll<HTMLButtonElement>('[data-crop]').forEach(b => b.onclick = () => { selected = b.dataset.crop as Crop; setTool('seed'); closePanel(); });
 }
 function shop(){life.shop();}
-function help() { openPanel('Um novo começo', `<p>Bem-vindo ao Vale do Sossego. Aqui, um pedacinho de terra já é uma boa história.</p><ol class="controls-list"><li>Escolha a <b>enxada</b> e toque em um canteiro.</li><li>Selecione <b>Plantar</b> e use uma semente.</li><li>Use o <b>regador</b>. O crescimento começa agora.</li><li>Quando estiver pronta, use a <b>mão</b> para colher.</li><li>Abra o <b>celeiro</b> e venda sua colheita.</li></ol><p>No PC, ande com <b>WASD ou setas</b>. Use <b>E</b> para agir perto de um canteiro ou da venda. As teclas <b>1–4</b> trocam a ferramenta. Você também pode clicar no terreno para caminhar. No celular, use o joystick ou toque no mapa.</p><p class="quiet-note"><b>Versão de testes 0.5.1:</b> use Conta para criar sua fazenda online e continuar em outro aparelho. Sem entrar, você joga no teste local deste navegador. Minha fazenda abre seu avatar, os animais e o jardim. Entre na casa e no celeiro para explorar. Use a mão para remover pragas. A conta libera ainda níveis, energia, expansão, amigos e feira. Compras e colheitas online precisam de conexão. As plantas regadas continuam crescendo ao fechar. A arte é provisória e original do projeto.</p><button class="primary" id="start-playing">Vamos plantar</button>`); $('start-playing').onclick = closePanel; }
+function help() { openPanel('Um novo começo', `<p>Bem-vindo ao Vale do Sossego. Aqui, um pedacinho de terra já é uma boa história.</p><ol class="controls-list"><li>Escolha a <b>enxada</b> e toque em um canteiro.</li><li>Selecione <b>Plantar</b> e use uma semente.</li><li>Use o <b>regador</b>. O crescimento começa agora.</li><li>Quando estiver pronta, use a <b>mão</b> para colher.</li><li>Abra o <b>celeiro</b> e venda sua colheita.</li></ol><p>No PC, ande com <b>WASD ou setas</b>. Use <b>E</b> para agir perto de um canteiro ou da venda. As teclas <b>1–4</b> trocam a ferramenta. Você também pode clicar no terreno para caminhar. No celular, use o joystick ou toque no mapa.</p><p class="quiet-note"><b>Versão de testes 0.6.0:</b> use Conta para criar sua fazenda online e continuar em outro aparelho. Sem entrar, você joga no teste local deste navegador. Minha fazenda abre seu avatar, os animais e o jardim. Entre na casa e no celeiro para explorar. Use a mão para remover pragas. A conta libera ainda níveis, energia, expansão, amigos e feira. Compras e colheitas online precisam de conexão. As plantas regadas continuam crescendo ao fechar. A arte é provisória e original do projeto.</p><button class="primary" id="start-playing">Vamos plantar</button>`); $('start-playing').onclick = closePanel; }
 $('inventory').onclick = inventory; $('seed-choice').onclick = seedPanel; $('help').onclick = help;
 document.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach(b => b.onclick = () => setTool(b.dataset.tool as Tool));
 
@@ -210,7 +215,7 @@ class FarmScene extends Phaser.Scene {
     window.addEventListener('pagehide', () => { this.finishCurrentWork(); farm.player = { x: this.player.x, y: this.player.y }; cloud.flushPosition(farm.player); save(); });
     document.addEventListener('visibilitychange', () => { if (document.hidden) { this.finishCurrentWork(); this.cancelMovement(); farm.player = { x: this.player.x, y: this.player.y }; cloud.flushPosition(farm.player); save(); } else this.paintFields(); });
     this.paintFields(); syncUI();
-    this.time.delayedCall(1400, () => toast('Bem-vindo ao vale! Escolha a enxada para começar.'));
+    void journey.start(hadLocalFarm);
   }
   resize() { this.cameras.main.setZoom(this.scale.width < 600 ? 1.1 : this.scale.height < 560 ? .9 : 1.08); this.vignette?.setDisplaySize(this.scale.width, this.scale.height); }
   cancelMovement() { this.destination = null; this.route = []; this.queuedDestination = null; this.player?.setVelocity(0); this.input.keyboard?.resetKeys(); joystick.x = 0; joystick.y = 0; }
@@ -357,7 +362,7 @@ stick.addEventListener('pointerup', releaseStick); stick.addEventListener('point
 $('touch-action').onclick = () => inside ? (game.scene.getScene('Interior') as InteriorScene).interact() : scene?.interactNearest();
 cloud.onStatus=message=>{ $('save-status').textContent=message;$('save-dot').style.background=message.includes('sincronizado')?'#c4da8c':'#e69f69'; };
 cloud.onSnapshot=(snapshot,initial)=>{ farm=snapshot.farm;if(initial&&scene?.player){scene.finishCurrentWork();scene.cancelMovement();scene.player.setPosition(farm.player.x,farm.player.y);}syncUI();scene?.paintFields(); };
-setupOnlineUI(cloud,openPanel,closePanel,toast,()=>farm as OnlineFarm,()=>{farm=restoreFarm(localStorage.getItem(SAVE_KEY));scene?.cancelMovement();scene?.player.setPosition(farm.player.x,farm.player.y);scene?.paintFields();syncUI();save();});
+setupOnlineUI(cloud,openPanel,closePanel,toast,()=>farm as OnlineFarm,()=>{farm=restoreFarm(localStorage.getItem(SAVE_KEY));scene?.cancelMovement();scene?.player.setPosition(farm.player.x,farm.player.y);scene?.paintFields();syncUI();save();},()=>journey.show());
 async function lifeCommand(c:any){
  if(onlineLoading)throw new Error('Aguarde a conexão com sua conta.');
  if(cloud.active)return cloud.command(c);
@@ -370,7 +375,7 @@ function enterInterior(room:'house'|'barn'){
 }
 life=setupLifeUI({farm:()=>farm,online:()=>cloud.active,now:()=>Date.now()+cloud.offset,open:openPanel,close:closePanel,command:lifeCommand,enter:enterInterior,equip:setTool,toast,preview:previewAvatar});
 setupInstall(toast);
-if(localStorage.getItem('wj-cloud-session')||new URLSearchParams(location.search).has('neon_auth_session_verifier')) { onlineLoading=true;$('save-status').textContent='Conectando à sua conta…';void cloud.connect().then(ok=>{if(!ok){localStorage.removeItem('wj-cloud-session');toast('Entre novamente para abrir sua fazenda online.');}}).catch(()=>toast('Não foi possível abrir sua conta. Reconecte pelo botão Conta.')).finally(()=>{onlineLoading=false;}); }
+journey=setupJourney({cloud,farm:()=>farm,preview:previewAvatar,block:active=>{modal=active;onlineLoading=active;scene?.cancelMovement();},entered:()=>{booting=false;onlineLoading=false;syncUI();},toast});
 setInterval(()=>{if(!document.hidden)void cloud.refresh();},15000);
 window.addEventListener('online',()=>{if(cloud.active)void cloud.retryPending().then(()=>cloud.refresh()).catch(()=>{});});
 window.addEventListener('focus',()=>void cloud.refresh());

@@ -1,3 +1,4 @@
+import { initializeProfile } from '../src/profile.js';
 import { LIFE_COMMANDS } from '../src/life-rules.js';
 import { dogProtects } from '../src/content.js';
 import { reserveLot, returnLot, transferLot } from '../src/market.js';
@@ -56,7 +57,10 @@ export async function mutate(user: string, body: any) {
     if (body.revision !== row.revision) throw new GameError('Sua fazenda mudou em outro aparelho. Sincronize e tente novamente.',409);
     if(now-new Date(row.last_action_at).getTime()<150) throw new GameError('Aguarde um instante entre as ações.',429);
     const c=body.command;
-    if(c.type==='position') move(row,body.position,now);
+    if(c.type==='initialize-profile'){
+      const result=initializeProfile(row.state,c);if(!result.ok)throw new GameError(result.message,result.existing?409:400);
+      row.name=row.state.playerName;await db.query('UPDATE farms SET name=$2 WHERE user_id=$1',[user,row.name]);row.result=result;
+    }else if(c.type==='position') move(row,body.position,now);
     else if(['work','buy','sell','expand',...LIFE_COMMANDS].includes(c.type)) {
       if(c.type==='work') {
         move(row,body.position,now);
@@ -68,10 +72,12 @@ export async function mutate(user: string, body: any) {
       row.result=result;
     } else row.result=await social(db,user,row,c,now);
     row.result??={ok:true,message:'Posição salva.'};
+    // Older cached clients may play before seeing the new welcome flow. Preserve that farm too.
+    if(c.type!=='position'&&c.type!=='initialize-profile'&&row.state.profileComplete===false)row.state.profileComplete=true;
     await db.query('UPDATE farms SET state=$2,revision=revision+1,last_action_at=now(),position_at=CASE WHEN $3 THEN now() ELSE position_at END WHERE user_id=$1',[user,row.state,c.type==='position'||c.type==='work']);
     await db.query('INSERT INTO action_receipts(user_id,id,hash,result) VALUES($1,$2,$3,$4)',[user,body.id,hash,row.result]);
     await db.query('COMMIT');
-    return {...row.result,farm:row.state,revision:row.revision+1,now};
+    return {...row.result,farm:row.state,revision:row.revision+1,name:row.name,now};
   } catch(error) { await db.query('ROLLBACK'); throw error; } finally { db.release(); }
 }
 async function social(db:PoolClient,user:string,row:any,c:any,now:number) {

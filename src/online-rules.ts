@@ -7,7 +7,7 @@ export const ECONOMY = { energyMax: 80, energyStepMs: 60000, harvestXp: 10, init
 export type OnlineFarm = Farm & { xp: number; energy: number; energyAt: number; unlockedPlots: number };
 export type Command = { type: 'work'; plot: number; tool: Tool; crop: Crop } | { type: 'buy'; crop: Crop } | { type: 'sell' } | { type: 'expand' };
 export const levelOf = (xp: number) => 1 + Math.floor(Math.sqrt(xp / 40));
-export function newOnlineFarm(now: number): OnlineFarm { return { ...makeFarm(), xp: 0, energy: ECONOMY.energyMax, energyAt: now, unlockedPlots: ECONOMY.initialPlots }; }
+export function newOnlineFarm(now: number): OnlineFarm { return { ...makeFarm(), profileComplete:false, xp: 0, energy: ECONOMY.energyMax, energyAt: now, unlockedPlots: ECONOMY.initialPlots }; }
 export function replenish(farm: OnlineFarm, now: number) {
   const units = Math.floor(Math.max(0, now - farm.energyAt) / ECONOMY.energyStepMs);
   farm.energy = Math.min(ECONOMY.energyMax, farm.energy + units);

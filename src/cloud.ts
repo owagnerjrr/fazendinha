@@ -13,6 +13,7 @@ export class CloudFarm {
   private accessToken='';
   private pendingCount=0;
   private queue:Promise<unknown>=Promise.resolve();
+  onConnected:()=>Promise<void>|void=()=>{};
   onSnapshot: (snapshot:Snapshot,initial:boolean)=>void = ()=>{};
   onStatus:(message:string)=>void=()=>{};
   async request(path='',body?:unknown) {
@@ -22,7 +23,7 @@ export class CloudFarm {
     const result=await r.json(); if(!r.ok) { const error=new Error(result.error??'Falha ao sincronizar.') as Error & {status:number}; error.status=r.status; throw error; } return result;
   }
   accept(snapshot:Snapshot,initial=false) { if(!initial&&snapshot.revision<this.revision) return; this.revision=snapshot.revision; this.offset=snapshot.now-Date.now(); this.code=snapshot.code??this.code; this.name=snapshot.name??this.name; this.onSnapshot(snapshot,initial); this.onStatus('Progresso online sincronizado'); }
-  async connect() { const a=await auth(), session=await a.getSession(); if(!session.data?.user) return false; const result=await this.request(); this.active=true; this.accept(result,true); localStorage.setItem('wj-cloud-session','1'); await this.retryPending(); return true; }
+  async connect() { const a=await auth(), session=await a.getSession(); if(!session.data?.user) return false; const result=await this.request(); this.active=true; this.accept(result,true); localStorage.setItem('wj-cloud-session','1'); await this.retryPending();await this.onConnected(); return true; }
   async refresh() { if(!this.active||this.busy||sessionStorage.getItem('wj-pending-action')) return; try { this.accept(await this.request()); } catch { this.onStatus('Sem conexão · reconecte para continuar'); } }
   async retryPending() {
     const raw=sessionStorage.getItem('wj-pending-action'); if(!raw) return null;

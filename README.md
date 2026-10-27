@@ -1,6 +1,6 @@
 # Fazendinha WJ
 
-Versão 0.5.1 — Vida no Vale. Feira ampliada com ovos, leite de vaca e leite de cabra. Migração aplicada e versão publicada; detalhes em [FEIRA_0_5_1.md](docs/FEIRA_0_5_1.md). Protótipo original de um jogo de fazenda para navegador, pensado para celular e PC. O nome do cenário, **Vale do Sossego**, é provisório.
+Versão 0.6.0 — Chegada ao vale e celeiro reorganizado. Nome, seleção visual de personagem e conta antes da primeira fazenda; perfis existentes preservados. Detalhes em [CHEGADA_E_CELEIRO.md](docs/CHEGADA_E_CELEIRO.md). Protótipo original de um jogo de fazenda para navegador, pensado para celular e PC. O nome do cenário, **Vale do Sossego**, é provisório.
 
 A correção 0.3.1 usa sprites completos para carregar enxada, sementes e regador, com o item desenhado junto às mãos durante a caminhada.
 

@@ -1,5 +1,14 @@
 # Caminho do projeto
 
+## Entregue na beta 0.6
+
+- [x] Nome, galeria de personagens, personalização e conta antes da primeira entrada.
+- [x] Rascunho persistente e inicialização única do perfil sem sobrescrever fazendas antigas.
+- [x] Celeiro por espécie, escala proporcional, cercas, corredores e reservas organizadas.
+- [x] Animações internas limitadas às baias, preservando a produção real.
+
+Escopo e limites em [CHEGADA_E_CELEIRO.md](CHEGADA_E_CELEIRO.md).
+
 ## Entregue na beta 0.5.1
 
 - [x] Feira com ovos, leite de vaca e leite de cabra, filtros, estoque disponível e preço por unidade.
