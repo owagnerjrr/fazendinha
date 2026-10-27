@@ -6,6 +6,7 @@
 - [x] Efeito de regador em chão próximo fora dos canteiros; não transforma superfícies em novos canteiros.
 - [ ] Ajustar e validar proporções de todos os animais e equipamentos em todos os cenários e em celulares físicos.
 - [ ] Animais individuais com nomes, cuidados, novas espécies, crescimento e reprodução limitada; comportamento real em ambientes compatíveis.
+- [x] Nomes individuais, água, carinho e indicador básico de bem-estar para galinha, vaca, cabra e cachorro existentes; produção e proteção de animais novos exigem água e alimento.
 - [ ] Compra de terras exploráveis, novos canteiros e cenários conectados com persistência; a expansão atual libera apenas canteiros existentes.
 - [ ] Aprimorar ferramentas direcionais e preparar novos canteiros fora da horta; testar controles completos em PC e celular.
 
