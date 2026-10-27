@@ -6,6 +6,8 @@
 - [x] Efeito de regador em chão próximo fora dos canteiros; não transforma superfícies em novos canteiros.
 - [ ] Ajustar e validar proporções de todos os animais e equipamentos em todos os cenários e em celulares físicos.
 - [ ] Animais individuais com nomes, cuidados, novas espécies, crescimento e reprodução limitada; comportamento real em ambientes compatíveis.
+- [x] Galo, pintinho e incubação limitada com água, ração e ovos; crescimento de pintinho cuidado em tempo de demonstração.
+- [ ] Implementar função de proteção/alerta para o galo e as outras espécies pedidas; validar a interface e o fluxo online em dispositivos reais.
 - [x] Nomes individuais, água, carinho e indicador básico de bem-estar para galinha, vaca, cabra e cachorro existentes; produção e proteção de animais novos exigem água e alimento.
 - [x] Representar cães possuídos acompanhando o jogador no mapa externo; o servidor mantém a regra existente de proteção.
 - [ ] Criar casinha, patrulha autônoma e animações de caminhada e descanso dos cães; validar trajetos em celulares.

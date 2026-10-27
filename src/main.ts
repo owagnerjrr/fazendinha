@@ -125,6 +125,7 @@ class FarmScene extends Phaser.Scene {
     }
     for(const key of ['bed','tv','sofa','window','wardrobe','rack','cow','goat','dog','chicken','strawberry','tulip','sunflower','corn','cocoaTree','flowerPlanter'])this.load.image(`life-${key}`,`/assets/v5/${key}.png`);
     for(const style of ['crop','puffs','short','braids'])for(const dir of ['down','left','right','up'])this.load.image(`head-${style}-${dir}`,`/assets/v5/head-${style}-${dir}.png`);
+    for(const key of ['rooster','chick'])this.load.image(`life-${key}`,`/assets/v8/${key}.png`);
     this.load.image('farmer-v2', '/assets/v2/farmer.png');
     this.load.spritesheet('dog-walk','/assets/v7/dog-walk.png',{frameWidth:48,frameHeight:48});
     this.load.spritesheet('dog-rest','/assets/v7/dog-rest.png',{frameWidth:48,frameHeight:48});

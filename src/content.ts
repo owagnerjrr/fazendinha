@@ -5,6 +5,8 @@ export type Avatar={style:'classic'|'crop'|'puffs'|'short'|'braids';skin:number;
 export const DEFAULT_AVATAR:Avatar={style:'classic',skin:0,hair:1,shirt:0};
 export const AVATAR_STYLES={classic:'Original com chapéu',crop:'Crespo curto',puffs:'Afro com dois coques',short:'Liso curto',braids:'Tranças'} as const;
 export const ANIMALS={
+ rooster:{name:'Galo',icon:'🐓',price:130,product:null,productName:'Reprodução',sellPrice:0,seconds:0},
+ chick:{name:'Pintinho',icon:'🐤',price:45,product:null,productName:'Crescimento',sellPrice:0,seconds:0},
  chicken:{name:'Galinha',icon:'🐔',price:90,product:'egg',productName:'Ovo',sellPrice:12,seconds:90},
  cow:{name:'Vaca',icon:'🐄',price:350,product:'milk',productName:'Leite',sellPrice:35,seconds:180},
  goat:{name:'Bode / cabra',icon:'🐐',price:230,product:'goatMilk',productName:'Leite de cabra',sellPrice:26,seconds:150},
@@ -12,7 +14,7 @@ export const ANIMALS={
 } as const;
 export type AnimalKind=keyof typeof ANIMALS;
 export type AnimalProduct='egg'|'milk'|'goatMilk';
-export type Animal={id:string;kind:AnimalKind;fedAt:number|null;collectedAt:number;name?:string;wateredAt?:number|null;pettedAt?:number|null};
+export type Animal={id:string;kind:AnimalKind;fedAt:number|null;collectedAt:number;name?:string;wateredAt?:number|null;pettedAt?:number|null;bornAt?:number;incubationAt?:number|null};
 export const DECOR={
  cocoaTree:{name:'Árvore do Cacau Encantado',price:120,texture:'cocoaTree',description:'Cacau, flores rosadas e uma história só nossa.'},
  flowerPlanter:{name:'Jardineira florida',price:45,texture:'flowerPlanter',description:'Flores para dar cor aos caminhos.'},

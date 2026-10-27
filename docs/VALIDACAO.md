@@ -2,6 +2,10 @@
 
 # Validação da versão 0.1
 
+## Galo e pintinho — etapa de aves
+
+Inclui galo e pintinho compráveis, com arte original gerada da referência da galinha. Um ovo do inventário pode ser reservado por galinha alimentada e hidratada, desde que haja um galo também cuidado e espaço: após dois minutos de incubação, nasce um pintinho. O filhote alimentado e com água cresce após cinco minutos e vira galinha; as ações de conclusão são executadas ao reabrir o jogo ou podem ser acionadas na interface. A produção de ovos para consumo continua independente do galo. A reserva conta no limite de 12 animais e evita superlotação; as mutações online são transacionais. Clientes antigos recebem aviso para atualizar quando uma fazenda já possuir as novas espécies, antes de alterar o estado. Tempo de jogo é provisório, o galo ainda não possui função ativa de proteção e não há outras espécies novas nesta etapa. Testes automatizados cobrem condições, prazos, capacidade, save e versão; não houve teste físico de celular nem validação visual completa neste momento.
+
 ## Poses e vento — continuação de 27/10/2026
 
 Adicionados quadros de cachorro sentado/atento e deitado após repouso, gerados a partir da arte do projeto. A física agora registra colisões dos cães com personagem, cães e as galinhas decorativas do mapa. Folhas discretas aparecem em rajadas; arbustos e plantas usam o mesmo balanço das árvores, desabilitado com movimento reduzido. A disposição dos fardos varia nas baias. O build e os testes automatizados passam, mas os novos efeitos e colisões ainda não tiveram validação visual ou em aparelho físico; visual e navegação no celeiro continuam em aperfeiçoamento. Os demais animais, reprodução, compra de terras e expansão do mundo continuam pendentes.

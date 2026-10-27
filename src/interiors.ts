@@ -31,7 +31,7 @@ export class InteriorScene extends Phaser.Scene {
    prop('wardrobe',910,430,1,[860,320,95,105],()=>s.avatar());label(910,300,'GUARDA-ROUPA');
    prop('flowerPlanter',390,260,.7);label(300,285,'CAMA');label(690,245,'TV');
   }else{
-   this.barn=buildBarn(this,s.farm(),block,id=>s.animals(id),()=>s.equipment());this.points.push(...this.barn.points);this.animalSignature=JSON.stringify(s.farm().animals.map(a=>a.id));
+   this.barn=buildBarn(this,s.farm(),block,id=>s.animals(id),()=>s.equipment());this.points.push(...this.barn.points);this.animalSignature=JSON.stringify(s.farm().animals.map(a=>[a.id,a.kind]));
   }
   label(600,840,'SAÍDA · VOLTAR À FAZENDA');this.points.push({x:600,y:790,run:()=>this.leave()});
   this.player=this.physics.add.sprite(600,735,'farmer-down-0').setVisible(false).setOrigin(.5,1).setCollideWorldBounds(true);this.player.body!.setSize(14,10).setOffset(17,52);this.physics.world.setBounds(165,220,870,600);this.physics.add.collider(this.player,group);
@@ -55,6 +55,6 @@ export class InteriorScene extends Phaser.Scene {
   const len=Math.hypot(vx,vy);this.player.setVelocity(len?vx/Math.max(1,len)*145:0,len?vy/Math.max(1,len)*145:0);if(len>.1)this.dir=Math.abs(vx)>Math.abs(vy)?vx<0?1:2:vy<0?3:0;
   const tool=s.tool(),base=tool==='hand'?'farmer-v2':`carry-${tool}`,key=this.art.key(base,s.farm().avatar),frame=this.dir*4+(len>.1?Math.floor(time/140)%4:0);this.actor.setTexture(key,frame).setOrigin(.5,tool==='hand'?62/64:100/112).setPosition(this.player.x,this.player.y-2).setDepth(this.player.y);
   this.barn?.update(time,s.farm(),s.now());
-  if(this.barn&&!s.modal()&&this.animalSignature!==JSON.stringify(s.farm().animals.map(a=>a.id)))this.scene.restart({room:'barn'});
+  if(this.barn&&!s.modal()&&this.animalSignature!==JSON.stringify(s.farm().animals.map(a=>[a.id,a.kind])))this.scene.restart({room:'barn'});
  }
 }

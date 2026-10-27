@@ -51,6 +51,6 @@ function ensureBlink(scene:Phaser.Scene,kind:AnimalKind){
  const key=`life-${kind}-blink`;if(scene.textures.exists(key))return;
  const source=scene.textures.get(`life-${kind}`).getSourceImage() as HTMLImageElement;
  const canvas=document.createElement('canvas');canvas.width=source.width;canvas.height=source.height;const c=canvas.getContext('2d')!;c.drawImage(source,0,0);
- const eye:Record<AnimalKind,[number,number]>={cow:[.72,.42],goat:[.72,.39],chicken:[.80,.35],dog:[.67,.34]};const [px,py]=eye[kind],x=Math.round(px*source.width),y=Math.round(py*source.height),fur=c.getImageData(Math.max(0,x-5),y,1,1).data;
+ const eye:Record<AnimalKind,[number,number]>={rooster:[.72,.40],chick:[.72,.40],cow:[.72,.42],goat:[.72,.39],chicken:[.80,.35],dog:[.67,.34]};const [px,py]=eye[kind],x=Math.round(px*source.width),y=Math.round(py*source.height),fur=c.getImageData(Math.max(0,x-5),y,1,1).data;
  c.fillStyle=`rgb(${fur[0]},${fur[1]},${fur[2]})`;c.fillRect(x-3,y-3,6,6);c.fillStyle='#3c2c20';c.fillRect(x-3,y,6,1);scene.textures.addCanvas(key,canvas);
 }
