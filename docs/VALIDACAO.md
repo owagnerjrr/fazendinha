@@ -181,3 +181,12 @@ A animação anterior alternava um único pixel a cada 700 ms. Agora usa inspira
 ## Casa e celeiro 0.9.2 — 28/10/2026
 
 79 testes e build aprovados. O teste de navegação inclui todos os novos móveis e os obstáculos de decoração; confirmou acesso à cama no canto, armário, TV, mesa de centro, sofá, mesa, cadeira e saída, além do alinhamento e das orientações opostas de TV e sofá. Conferência visual no navegador com InteriorScene e dados fictícios: cama e armário junto às paredes, sofá visto de costas olhando para a TV, revestimentos, tapetes, corredor de pedra do celeiro, lanternas e novos contornos dos objetos. A visão geral da casa também foi inspecionada em iframe de 390×844. Não há alteração de conta, banco, save ou produção; não foi repetido o teste de autenticação ou usado aparelho físico. Capturas em [INTERIORES_0_9_2.md](INTERIORES_0_9_2.md).
+
+
+## Casa, descanso e calendário 0.10.0 — 28/10/2026
+
+82 testes automatizados passaram; TypeScript, Vite e geração do cache PWA aprovados. Na cena real com dados fictícios foram conferidos o abajur junto ao canto da parede, a orientação do sofá, personagem sentada com sobreposição correta, TV ligada com animação na tela, personagem sob a coberta com sinal de sono, despertar na manhã seguinte e mudança gradual de iluminação. O controle exclusivo de QA confirmou Verão no calendário; os testes cobrem as quatro estações e a virada do ano. Capturas em `screenshots/casa-tv-0.10.jpg` e `screenshots/casa-descanso-0.10.jpg`. A captura da TV antecede a correção da opacidade da iluminação, que foi conferida depois.
+
+Publicado no commit `96e577e41a3672625b855edf2a7e464eaf00394c`, deploy `dpl_HRCzmejKdYZzMWLDS89YXnjNUBkY` READY. Endereço principal respondeu HTTP 200, e o navegador exibiu v0.10.0 e o novo relógio. `scripts/smoke-home.mjs` passou no serviço publicado com uma única conta sintética: perfil/avatar, persistência da TV e calendário, tempo mínimo real do sono, próximo amanhecer, recibos idempotentes, recusa de comandos inválidos e de cliente legado, preservação da plantação/rega, moedas e recuperação normal de energia. Nenhuma credencial foi gravada.
+
+Nesta entrega não foi concluída uma nova sessão jogável em 390×844: a página principal abriu o cadastro inicial, que não foi contornado. Não houve teste em celular físico, nova autenticação pessoal Google nem medição de FPS/bateria. O calendário não adiciona neve ou regras de cultivo sazonais. Detalhes em [TEMPO_E_CASA.md](TEMPO_E_CASA.md).
