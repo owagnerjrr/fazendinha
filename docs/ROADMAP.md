@@ -1,3 +1,5 @@
+Atualização 0.10.1: respiração preservada também nas poses de sentar e dormir; amplitude mais perceptível em repouso.
+
 # Caminho do projeto
 
 ## Vida em casa e calendário 0.10

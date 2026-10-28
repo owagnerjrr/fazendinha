@@ -29,9 +29,9 @@ test('dog play has a shared cooldown with petting, preserves protection and pers
 });
 import {breathingScale,IdleBreathing} from '../src/idle-art';
 test('breathing smoothly inhales and exhales, starts at rest and stops immediately for walking, actions or reduced motion',()=>{
- assert.equal(breathingScale(0),1);assert.equal(breathingScale(1500),1.026);assert.equal(breathingScale(3000),1);
- for(let t=0;t<=3000;t+=10){assert.ok(breathingScale(t)>=1&&breathingScale(t)<=1.026);assert.ok(Math.abs(breathingScale(t+1)-breathingScale(t))<.00003);}
- const idle=new IdleBreathing();assert.equal(idle.sample(1234,false,false,false),1);assert.equal(idle.sample(2734,false,false,false),1.026);
+ assert.equal(breathingScale(0),1);assert.equal(breathingScale(1500),1.034);assert.equal(breathingScale(3000),1);
+ for(let t=0;t<=3000;t+=10){assert.ok(breathingScale(t)>=1&&breathingScale(t)<=1.034);assert.ok(Math.abs(breathingScale(t+1)-breathingScale(t))<.00004);}
+ const idle=new IdleBreathing();assert.equal(idle.sample(1234,false,false,false),1);assert.equal(idle.sample(2734,false,false,false),1.034);
  for(const flags of [[true,false,false],[false,true,false],[false,false,true]]){
   assert.equal(idle.sample(2800,...flags as [boolean,boolean,boolean]),1);assert.equal(idle.sample(2900,false,false,false),1);assert.ok(idle.sample(3500,false,false,false)>1);
  }

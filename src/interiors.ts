@@ -90,10 +90,10 @@ export class InteriorScene extends Phaser.Scene {
   s.open('À mesa','<p>Um cantinho tranquilo para desacelerar.</p>');
  }
  private releaseRest(){if(!this.rest||this.rest.kind==='leaving'||this.services.farm().home?.sleep||this.homeBusy)return;this.rest={kind:'leaving',start:this.time.now,from:{x:this.actor.x,y:this.actor.y}};}
- private restFrame(time:number){
+ private restFrame(time:number,breath:number){
   const rest=this.rest;if(!rest)return;
   const destination=rest.kind==='sit'?HOUSE_SEAT:rest.kind==='sleep'?HOUSE_SLEEP:{x:this.player.x,y:this.player.y-2};const t=Math.min(1,(time-rest.start)/600),ease=t*t*(3-2*t);
-  this.actor.setTexture(this.art.key(rest.kind==='sleep'?'pose-sleep':'pose-sit',this.services.farm().avatar)).setOrigin(.5,1).setScale(1.08).setPosition(rest.from.x+(destination.x-rest.from.x)*ease,rest.from.y+(destination.y-rest.from.y)*ease).setDepth(rest.kind==='sleep'?316:520);
+  this.actor.setTexture(this.art.key(rest.kind==='sleep'?'pose-sleep':'pose-sit',this.services.farm().avatar)).setOrigin(.5,1).setScale(1.08,1.08*(rest.kind==='leaving'?1:breath)).setPosition(rest.from.x+(destination.x-rest.from.x)*ease,rest.from.y+(destination.y-rest.from.y)*ease).setDepth(rest.kind==='sleep'?316:520);
   if(rest.kind==='leaving'&&t>=1){this.rest=null;this.actor.setDepth(this.player.y);}
  }
  private updateHouseControls(){
@@ -117,7 +117,7 @@ export class InteriorScene extends Phaser.Scene {
   const len=Math.hypot(vx,vy);this.player.setVelocity(len?vx/Math.max(1,len)*145:0,len?vy/Math.max(1,len)*145:0);if(len>.1)this.dir=Math.abs(vx)>Math.abs(vy)?vx<0?1:2:vy<0?3:0;
   const breath=this.breathing.sample(time,len>.1,!!bond,this.reduced.matches);
   const tool=bond?'hand':s.tool(),base=tool==='hand'?'farmer-v2':`carry-${tool}`,key=this.art.key(base,s.farm().avatar),frame=this.dir*4+(len>.1?Math.floor(time/140)%4:0);this.actor.setTexture(key,frame).setScale(1.08,1.08*breath).setOrigin(.5,tool==='hand'?62/64:100/112).setPosition(this.player.x,this.player.y-2).setDepth(this.player.y);
-  this.restFrame(time);this.house?.updateHome(s.farm().home,time,this.rest?.kind==='sleep',this.reduced.matches);this.updateHouseControls();
+  this.restFrame(time,breath);this.house?.updateHome(s.farm().home,time,this.rest?.kind==='sleep',this.reduced.matches);this.updateHouseControls();
   this.barn?.update(time,s.farm(),s.now(),this.player);this.gesture.clear();
   const near=this.points.filter(p=>p.name).sort((a,b)=>Math.hypot(a.x-this.player.x,a.y-this.player.y)-Math.hypot(b.x-this.player.x,b.y-this.player.y))[0];
   this.context.setVisible(!this.rest&&!this.homeBusy&&!bond&&!s.modal()&&!!near&&Math.hypot(near.x-this.player.x,near.y-this.player.y)<72);if(near)this.context.setText(`${near.name} · E / Usar`).setPosition(this.player.x,this.player.y+9);

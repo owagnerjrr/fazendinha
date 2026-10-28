@@ -1,3 +1,5 @@
+Correção 0.10.1: respiração contínua em pé, sentada e deitada, com progresso preservado.
+
 # Fazendinha WJ
 
 Versão 0.10.0 — Personagem senta, liga a TV e dorme na cama. Relógio com períodos do dia, estações e iluminação, salvo por fazenda. Detalhes em [TEMPO_E_CASA.md](docs/TEMPO_E_CASA.md).

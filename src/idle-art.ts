@@ -1,7 +1,7 @@
 /** Gentle three-second inhale/exhale, anchored at the sprite's feet. */
 export function breathingScale(elapsed:number){
  const phase=Math.max(0,elapsed)%3000/3000;
- return 1+.026*(.5-.5*Math.cos(phase*Math.PI*2));
+ return 1+.034*(.5-.5*Math.cos(phase*Math.PI*2));
 }
 export class IdleBreathing{
  private since:number|null=null;

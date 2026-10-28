@@ -190,3 +190,10 @@ A animação anterior alternava um único pixel a cada 700 ms. Agora usa inspira
 Publicado no commit `96e577e41a3672625b855edf2a7e464eaf00394c`, deploy `dpl_HRCzmejKdYZzMWLDS89YXnjNUBkY` READY. Endereço principal respondeu HTTP 200, e o navegador exibiu v0.10.0 e o novo relógio. `scripts/smoke-home.mjs` passou no serviço publicado com uma única conta sintética: perfil/avatar, persistência da TV e calendário, tempo mínimo real do sono, próximo amanhecer, recibos idempotentes, recusa de comandos inválidos e de cliente legado, preservação da plantação/rega, moedas e recuperação normal de energia. Nenhuma credencial foi gravada.
 
 Nesta entrega não foi concluída uma nova sessão jogável em 390×844: a página principal abriu o cadastro inicial, que não foi contornado. Não houve teste em celular físico, nova autenticação pessoal Google nem medição de FPS/bateria. O calendário não adiciona neve ou regras de cultivo sazonais. Detalhes em [TEMPO_E_CASA.md](TEMPO_E_CASA.md).
+
+
+## Respiração nas poses domésticas 0.10.1 — 28/10/2026
+
+As poses de sentar e dormir reaplicavam escala fixa depois da respiração, anulando o movimento. Agora recebem a mesma inspiração/expiração usada ao ficar em pé, mantendo a origem nos pés e o corpo físico inalterado. A amplitude passou de 2,6% para 3,4%, para tornar o ciclo de três segundos mais perceptível. Andar, trabalhar, fazer carinho e a preferência de movimento reduzido continuam suspendendo a respiração; levantar usa escala neutra durante a transição. Nenhuma mudança de save, calendário, conta ou economia.
+
+82 testes e build aprovados, incluindo o teste de continuidade do ciclo, interrupção e retomada. Na cena real com dados fictícios, a instrumentação leu a escala do sprite efetivamente desenhado: em pé 1,0800–1,1096 e no sofá 1,0800–1,1148, confirmando que a pose não substitui mais a animação por escala fixa. O medidor existe apenas no fixture de QA, sem exposição de contas ou comandos no jogo. Captura em `screenshots/respiracao-sofa-0.10.1.jpg`. Sem novo teste em celular físico ou autenticação online nesta correção gráfica.
