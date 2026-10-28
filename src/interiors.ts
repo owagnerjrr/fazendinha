@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import {buildHouse,HOUSE_WALLS} from './house-art';
 import {barnMaterials} from './barn-materials';
 import { SKIN_TONES, SHIRT_COLORS } from './content';
+import {idlePhase} from './idle-art';
 import { AvatarArt } from './avatar-art';
 import { buildBarn, type RoomPoint } from './barn-art';
 import type { Farm, Tool } from './farm';
@@ -69,7 +70,7 @@ export class InteriorScene extends Phaser.Scene {
   }
   const bond=this.bonding;if(bond&&bond.phase!=='arriving'){vx=0;vy=0;this.target=null;this.route=[];}
   const len=Math.hypot(vx,vy);this.player.setVelocity(len?vx/Math.max(1,len)*145:0,len?vy/Math.max(1,len)*145:0);if(len>.1)this.dir=Math.abs(vx)>Math.abs(vy)?vx<0?1:2:vy<0?3:0;
-  const tool=bond?'hand':s.tool(),idle=len<=.1&&!bond&&!this.reduced.matches,base=tool==='hand'?'farmer-v2':`carry-${tool}`,key=this.art.key(`${base}${idle?'-idle':''}`,s.farm().avatar),frame=this.dir*4+(len>.1?Math.floor(time/140)%4:idle?Math.floor(time/700)%4:0);this.actor.setTexture(key,frame).setOrigin(.5,tool==='hand'?62/64:100/112).setPosition(this.player.x,this.player.y-2).setDepth(this.player.y);
+  const tool=bond?'hand':s.tool(),idle=len<=.1&&!bond&&!this.reduced.matches,base=tool==='hand'?'farmer-v2':`carry-${tool}`,key=this.art.key(`${base}${idle?'-idle':''}`,s.farm().avatar),frame=this.dir*4+(len>.1?Math.floor(time/140)%4:idlePhase(time,len>.1,!!bond,this.reduced.matches));this.actor.setTexture(key,frame).setOrigin(.5,tool==='hand'?62/64:100/112).setPosition(this.player.x,this.player.y-2).setDepth(this.player.y);
   this.barn?.update(time,s.farm(),s.now(),this.player);this.gesture.clear();
   const near=this.points.filter(p=>p.name).sort((a,b)=>Math.hypot(a.x-this.player.x,a.y-this.player.y)-Math.hypot(b.x-this.player.x,b.y-this.player.y))[0];
   this.context.setVisible(!bond&&!s.modal()&&!!near&&Math.hypot(near.x-this.player.x,near.y-this.player.y)<72);if(near)this.context.setText(`${near.name} · E / Usar`).setPosition(this.player.x,this.player.y+9);
@@ -80,7 +81,7 @@ export class InteriorScene extends Phaser.Scene {
    }
    if(bond.phase==='reacting'){
     const elapsed=time-bond.start,side=this.dir===1?-1:1,wave=this.reduced.matches?0:Math.round(Math.sin(elapsed/140)*2),skin=parseInt(SKIN_TONES[s.farm().avatar.skin].slice(1),16),shirt=parseInt(SHIRT_COLORS[s.farm().avatar.shirt].slice(1),16);
-    this.gesture.setDepth(this.player.y+1).fillStyle(shirt).fillRect(this.player.x+side*12-3,this.player.y-29,7,7).fillStyle(skin).fillRect(this.player.x+side*19-3,this.player.y-28+wave,8,4);
+    this.gesture.setDepth(this.player.y+1).fillStyle(shirt).fillRect(this.player.x+side*17-4,this.player.y-29,12,7).fillStyle(skin).fillRect(this.player.x+side*28-4,this.player.y-28+wave,8,4);
     const pet=this.barn?.contact(bond.id);if(pet&&bond.type==='play-animal'){this.gesture.fillStyle(0xcaae63).fillCircle(pet.x-side*12,pet.y-6,3);}
     if(elapsed>2100)this.finishBond();
    }

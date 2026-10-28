@@ -1,6 +1,7 @@
 import { setupJourney } from './journey';
 import { setupLifeUI } from './life-ui';
 import { applyLife } from './life-rules';
+import {idlePhase} from './idle-art';
 import { AvatarArt } from './avatar-art';
 import { InteriorScene } from './interiors';
 import { ANIMALS, DECOR, DECOR_SLOTS, type Avatar } from './content';
@@ -325,7 +326,7 @@ class FarmScene extends Phaser.Scene {
     const elapsed = work?.clock.elapsed(time) ?? 0;
     const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
     const idle=!moving&&!work&&!reduced;
-    const frame = moving ? Math.floor(time / 130) % 4 : idle?Math.floor(time/700)%4:0;
+    const frame = moving ? Math.floor(time / 130) % 4 : idlePhase(time,moving,!!work,reduced);
     const bend = work && !usingActionSheet ? Math.sin(Math.min(1, elapsed / ACTIONS[equipped].duration) * Math.PI) : 0;
     const bob = (moving ? Math.sin(time / 65) * .65 : 0) + bend * 1.5;
     if (usingActionSheet) {
@@ -414,7 +415,7 @@ function enterInterior(room:'house'|'barn'){
  if(performance.now()<entranceLockedUntil||(inside&&currentInterior===room))return;entranceLockedUntil=performance.now()+600;
  if(inside)game.scene.stop('Interior');else{scene.finishCurrentWork();scene.cancelMovement();game.scene.sleep('Farm');}
  currentInterior=room;
- inside=true;$('enter-place').hidden=true;$('quest-card').hidden=true;$('hint').textContent='Toque no cômodo para andar. Use E ou Usar perto dos objetos.';$('exit-interior').hidden=false;$('interior-view').hidden=false;$('interior-view').textContent=room==='barn'?'Aproximar':'Ver cômodo inteiro';$('world-place').textContent=room==='house'?'SUA CASA':'SEU CELEIRO';game.scene.start('Interior',{room});
+ inside=true;$('hint').hidden=true;$('enter-place').hidden=true;$('quest-card').hidden=true;$('hint').textContent='Toque no cômodo para andar. Use E ou Usar perto dos objetos.';$('exit-interior').hidden=false;$('interior-view').hidden=false;$('interior-view').textContent=room==='barn'?'Aproximar':'Ver cômodo inteiro';$('world-place').textContent=room==='house'?'SUA CASA':'SEU CELEIRO';game.scene.start('Interior',{room});
 }
 async function bondAnimal(id:string,type:'pet-animal'|'play-animal'){
  closePanel();if(performance.now()<entranceLockedUntil)throw new Error('Aguarde a entrada no cômodo terminar.');const interior=game.scene.getScene('Interior') as InteriorScene;
@@ -433,8 +434,8 @@ syncUI();
 const game = new Phaser.Game({ type: Phaser.AUTO, parent: 'game', backgroundColor: '#92ae69', pixelArt: true, roundPixels: true, antialias: false, scale: { mode: Phaser.Scale.RESIZE, width: window.innerWidth, height: window.innerHeight }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [FarmScene], input: { activePointers: 3 }, render: { powerPreference: 'low-power' } });
 window.addEventListener('error', () => { $('save-status').textContent = 'Ocorreu um erro. Recarregue para continuar.'; });
 // Expose no account state or mutation hooks. The Phaser instance remains module-local.
-game.scene.add('Interior',new InteriorScene({farm:()=>farm,stick:()=>joystick,modal:()=>modal,tool:()=>tool,now:()=>Date.now()+cloud.offset,avatar:()=>life.avatar(),animals:id=>life.animals(id),equipment:()=>life.equipment(),care:lifeCommand,toast,open:openPanel,exit:()=>{entranceLockedUntil=performance.now()+600;currentInterior=null;inside=false;$('quest-card').hidden=false;setTool(tool);$('exit-interior').hidden=true;$('interior-view').hidden=true;$('world-place').textContent='VALE DO SOSSEGO';scene.cancelMovement();}}),false);
-$('exit-interior').onclick=()=>{if(inside){entranceLockedUntil=performance.now()+600;currentInterior=null;game.scene.stop('Interior');game.scene.wake('Farm');inside=false;$('quest-card').hidden=false;setTool(tool);$('exit-interior').hidden=true;$('interior-view').hidden=true;$('world-place').textContent='VALE DO SOSSEGO';scene.cancelMovement();}};
+game.scene.add('Interior',new InteriorScene({farm:()=>farm,stick:()=>joystick,modal:()=>modal,tool:()=>tool,now:()=>Date.now()+cloud.offset,avatar:()=>life.avatar(),animals:id=>life.animals(id),equipment:()=>life.equipment(),care:lifeCommand,toast,open:openPanel,exit:()=>{entranceLockedUntil=performance.now()+600;currentInterior=null;inside=false;$('hint').hidden=false;$('quest-card').hidden=false;setTool(tool);$('exit-interior').hidden=true;$('interior-view').hidden=true;$('world-place').textContent='VALE DO SOSSEGO';scene.cancelMovement();}}),false);
+$('exit-interior').onclick=()=>{if(inside){entranceLockedUntil=performance.now()+600;currentInterior=null;game.scene.stop('Interior');game.scene.wake('Farm');inside=false;$('hint').hidden=false;$('quest-card').hidden=false;setTool(tool);$('exit-interior').hidden=true;$('interior-view').hidden=true;$('world-place').textContent='VALE DO SOSSEGO';scene.cancelMovement();}};
 void game;
 
 $('interior-view').onclick=()=>{const overview=(game.scene.getScene('Interior') as InteriorScene).toggleView();$('interior-view').textContent=overview?'Aproximar':'Ver cômodo inteiro';};

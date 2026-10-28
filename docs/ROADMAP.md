@@ -1,5 +1,16 @@
 # Caminho do projeto
 
+## Entregue na beta 0.8
+
+- [x] Casa com móveis originais proporcionais, mesa e cadeira, piso de madeira e circulação validada.
+- [x] Celeiro com palha em grupos, decoração variada e placas por proximidade.
+- [x] Carinho nas espécies existentes e brincadeira com cachorro, junto ao portão de manejo, com intervalo de um minuto e persistência.
+- [x] Respiração de um pixel no tronco da personagem, mantendo pés e colisão fixos, com movimento reduzido.
+- [x] Remoção de avisos de sucesso das ferramentas.
+- [x] Integração do ramo de galo, pintinho, incubação e terreno adicional, preservando a versão 0.7 publicada.
+
+Detalhes e limitações em [INTERIORES_0_8.md](INTERIORES_0_8.md).
+
 ## Entregue na beta 0.7
 
 - [x] Caminhada em quatro direções e repouso dos cães, com passos ligados ao deslocamento externo.
