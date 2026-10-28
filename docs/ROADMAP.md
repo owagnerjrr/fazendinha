@@ -41,7 +41,8 @@ Escopo e limites em [AMBIENTE_0_7.md](AMBIENTE_0_7.md).
 - [x] Nomes individuais, água, carinho e indicador básico de bem-estar para galinha, vaca, cabra e cachorro existentes; produção e proteção de animais novos exigem água e alimento.
 - [x] Representar cães possuídos acompanhando o jogador no mapa externo; o servidor mantém a regra existente de proteção.
 - [ ] Criar casinha e patrulha autônoma dos cães; validar trajetos em celulares físicos.
-- [ ] Compra de terras exploráveis, novos canteiros e cenários conectados com persistência; a expansão atual libera apenas canteiros existentes.
+- [x] Compra de três áreas com novos canteiros e construções persistentes.
+- [ ] Novos mapas conectados e posicionamento livre de terrenos fora das três áreas atuais.
 - [ ] Aprimorar ferramentas direcionais e preparar novos canteiros fora da horta; testar controles completos em PC e celular.
 
 ## Entregue na beta 0.6

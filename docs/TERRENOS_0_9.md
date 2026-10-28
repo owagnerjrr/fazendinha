@@ -18,8 +18,8 @@ Os novos IDs são atribuídos pela ordem de compra. A posição de cada canteiro
 
 ## Verificação
 
-79 testes automatizados e build TypeScript/Vite aprovados. Incluem preservação de plantações antigas, compra na ordem norte/oeste/sul, recarga de todos os canteiros, bloqueios de construção, preços e energia online, contorno dos edifícios e limpeza do atlas do cão. As páginas de QA carregam os componentes reais com saldo e animais fictícios, sem acesso a contas pessoais. Navegador: quarto, celeiro, seleção de terreno, compra, escolha da posição, construção e recarga preservando saldo.
+79 testes automatizados e build TypeScript/Vite aprovados. Incluem preservação de plantações antigas, compra na ordem norte/oeste/sul, recarga de todos os canteiros, bloqueios de construção, preços e energia online, contorno dos edifícios e limpeza do atlas do cão. As páginas de QA carregam os componentes reais com saldo e animais fictícios, sem acesso a contas pessoais. Navegador: quarto, celeiro, cachorro caminhando sem rastro, seleção de terreno, compra, escolha da posição, construção e recarga preservando saldo. Compra e construção também foram executadas em iframe de 390 × 844.
 
-`scripts/smoke-land.mjs` valida o serviço publicado com uma conta sintética e moedas/nível obtidos pela agricultura normal, sem alterações diretas no banco. O resultado da execução deve ser registrado em VALIDACAO.md após a publicação. Não foram usados aparelhos físicos; desempenho, bateria e multitouch real continuam pendentes.
+`scripts/smoke-land.mjs` valida o serviço publicado com uma conta sintética e moedas/nível obtidos pela agricultura normal, sem alterações diretas no banco. A execução no endereço público passou: preços de compra e construção, recibos idempotentes, bloqueios de posição/ocupação, recarga e recusa segura de clientes antigos. Não foram usados aparelhos físicos; desempenho, bateria e multitouch real continuam pendentes.
 
 ![Quarto atualizado em conferência com dados fictícios](screenshots/quarto-0.9.jpg)
