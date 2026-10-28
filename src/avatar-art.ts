@@ -11,6 +11,21 @@ export class AvatarArt {
   const signature=JSON.stringify(avatar);
   if(signature!==this.signature){for(const key of this.keys.values()){this.scene.textures.remove(key);this.scene.textures.remove(`${key}-source`);}this.keys.clear();this.signature=signature;this.generation++;}
   if(this.keys.has(base))return this.keys.get(base)!;
+  if(base.endsWith('-idle')){
+   const sourceBase=base.slice(0,-5),sourceKey=this.key(sourceBase,avatar),{w,h}=spec[sourceBase];
+   const source=this.scene.textures.get(sourceKey).getSourceImage() as HTMLCanvasElement;
+   const canvas=document.createElement('canvas');canvas.width=w*4;canvas.height=h*4;const ctx=canvas.getContext('2d')!;ctx.imageSmoothingEnabled=false;
+   const feet=sourceBase==='farmer-v2'?h-10:h-20;
+   for(let row=0;row<4;row++)for(let phase=0;phase<4;phase++){
+    const x=phase*w,y=row*h,lift=phase===1||phase===2?1:0;
+    // Feet never move. Only the upper body lifts one authored pixel on inhalation.
+    ctx.drawImage(source,0,y,w,feet,x,y-lift,w,feet);
+    if(lift)ctx.drawImage(source,0,y+feet-1,w,1,x,y+feet-1,w,1);
+    ctx.drawImage(source,0,y+feet,w,h-feet,x,y+feet,w,h-feet);
+   }
+   const key=`avatar-${this.instance}-${this.generation}-${base}`,texture=this.scene.textures.addCanvas(key,canvas)!;
+   this.scene.textures.addSpriteSheet('',texture,{frameWidth:w,frameHeight:h});this.keys.set(base,key);return key;
+  }
   const {w,h}=spec[base],source=this.scene.textures.get(base).getSourceImage() as HTMLImageElement;
   const canvas=document.createElement('canvas');canvas.width=w*4;canvas.height=h*4;const ctx=canvas.getContext('2d')!;ctx.imageSmoothingEnabled=false;ctx.drawImage(source,0,0);
   const skin=rgb(SKIN_TONES[avatar.skin]),hair=rgb(HAIR_COLORS[avatar.hair]),shirt=rgb(SHIRT_COLORS[avatar.shirt]);

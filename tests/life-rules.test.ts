@@ -18,3 +18,46 @@ test('animal identity and water survive saves without replacing legacy animals',
  const restored=restoreFarm(JSON.stringify(f));assert.equal(restored.animals.at(-1)?.name,'Mimosa');assert.equal(restored.animals.at(-1)?.wateredAt,100);
  assert.equal(applyLife(restored,{type:'collect-animal',id},180100).ok,true);assert.equal(applyLife(restored,{type:'collect-animal',id},180100).ok,false);
 });
+
+test('incubation requires cared-for rooster, reserves one egg and respects time and capacity',()=>{
+ const f=makeFarm(),hen=f.animals[0];f.coins=500;f.products.egg=1;
+ assert.equal(applyLife(f,{type:'start-incubation',id:hen.id},1000).ok,false);
+ assert.equal(applyLife(f,{type:'buy-animal',kind:'rooster'},1000).ok,true);const rooster=f.animals.at(-1)!;
+ for(const a of [hen,rooster]){assert.equal(applyLife(f,{type:'feed-animal',id:a.id},2000).ok,true);assert.equal(applyLife(f,{type:'water-animal',id:a.id},2000).ok,true);}
+ assert.equal(applyLife(f,{type:'start-incubation',id:hen.id},3000).ok,true);assert.equal(f.products.egg,0);
+ assert.equal(applyLife(f,{type:'start-incubation',id:hen.id},3001).ok,false);assert.equal(applyLife(f,{type:'hatch-chick',id:hen.id},122999).ok,false);
+ assert.equal(applyLife(f,{type:'hatch-chick',id:hen.id},123000).ok,true);assert.equal(applyLife(f,{type:'hatch-chick',id:hen.id},123000).ok,false);
+ const chick=f.animals.at(-1)!;assert.equal(chick.kind,'chick');assert.equal(applyLife(f,{type:'mature-chick',id:chick.id},423000).ok,false);
+ assert.equal(applyLife(f,{type:'feed-animal',id:chick.id},124000).ok,true);assert.equal(applyLife(f,{type:'water-animal',id:chick.id},124000).ok,true);
+ assert.equal(applyLife(f,{type:'mature-chick',id:chick.id},422999).ok,false);assert.equal(applyLife(f,{type:'mature-chick',id:chick.id},423000).ok,true);assert.equal(chick.kind,'chicken');
+ assert.equal(restoreFarm(JSON.stringify(f)).animals.at(-1)?.kind,'chicken');
+});
+
+test('a reserved nest counts towards capacity and cannot be overbooked',()=>{
+ const f=makeFarm(),hen=f.animals[0];f.coins=10000;f.products.egg=1;
+ assert.equal(applyLife(f,{type:'buy-animal',kind:'rooster'},0).ok,true);const rooster=f.animals.at(-1)!;
+ for(const a of [hen,rooster]){applyLife(f,{type:'feed-animal',id:a.id},100);applyLife(f,{type:'water-animal',id:a.id},100);}
+ for(let i=0;i<9;i++)assert.equal(applyLife(f,{type:'buy-animal',kind:'chicken'},200+i).ok,true);
+ assert.equal(f.animals.length,11);assert.equal(applyLife(f,{type:'start-incubation',id:hen.id},1000).ok,true);
+ assert.equal(applyLife(f,{type:'buy-animal',kind:'chick'},1001).ok,false);
+ assert.equal(applyLife(f,{type:'hatch-chick',id:hen.id},121000).ok,true);assert.equal(f.animals.length,12);
+});
+
+test('legacy client cannot modify farms containing new kinds',async()=>{
+ const {requiresNewClient}=await import('../src/client-compat');const f=makeFarm();assert.equal(requiresNewClient(f,null),false);
+ f.coins=500;assert.equal(applyLife(f,{type:'buy-animal',kind:'rooster'},5).ok,true);
+ assert.equal(requiresNewClient(f,null),true);assert.equal(requiresNewClient(f,'2'),false);
+});
+
+test('buying extra land preserves old crops and grants twelve usable plots exactly once',()=>{
+ const f=makeFarm();f.coins=1000;act(f,0,'hoe','carrot',100);act(f,0,'seed','carrot',100);act(f,0,'water','carrot',100);const before=structuredClone(f.plots[0]);
+ assert.equal(applyLife(f,{type:'buy-land'},200).ok,true);assert.equal(f.coins,250);assert.equal(f.plots.length,36);assert.deepEqual(f.plots[0],before);
+ assert.equal(act(f,24,'hoe','carrot',200).ok,true);assert.equal(act(f,24,'seed','carrot',200).ok,true);assert.equal(act(f,24,'water','carrot',200).ok,true);
+ const restored=restoreFarm(JSON.stringify(f));assert.equal(restored.landOwned,true);assert.equal(restored.plots[24].crop,'carrot');assert.equal(restored.plots[0].wateredAt,100);
+ assert.equal(applyLife(restored,{type:'buy-land'},300).ok,false);assert.equal(restored.coins,250);assert.equal(restored.plots.length,36);
+});
+test('online land is unavailable until initial expansion and sufficient funds',()=>{
+ const f=makeFarm() as ReturnType<typeof makeFarm>&{unlockedPlots:number};f.unlockedPlots=18;f.coins=1000;
+ assert.equal(applyLife(f,{type:'buy-land'},0).ok,false);assert.equal(f.plots.length,24);assert.equal(f.coins,1000);
+ f.unlockedPlots=24;f.coins=749;assert.equal(applyLife(f,{type:'buy-land'},0).ok,false);assert.equal(f.plots.length,24);
+});

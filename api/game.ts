@@ -1,4 +1,5 @@
 import { identity } from '../server/auth.js';
+import { requiresNewClient, CLIENT_UPDATE_MESSAGE } from '../src/client-compat.js';
 import { community, ensureFarm, GameError, mutate, snapshot, visit } from '../server/game.js';
 const json=(value:unknown,status=200)=>Response.json(value,{status,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
 async function handle(request:Request) {
@@ -6,6 +7,12 @@ async function handle(request:Request) {
     const user=await identity(request);
     await ensureFarm(user.id,user.name);
     const url=new URL(request.url);
+    // Cached clients from before the new species cannot render their animal kinds safely.
+    // Refuse their requests before mutating data and ask them to update the app.
+    if(request.headers.get('X-Farm-Version')!=='2'){
+      const existing=await snapshot(user.id);
+      if(requiresNewClient(existing.farm,request.headers.get('X-Farm-Version')))return json({error:CLIENT_UPDATE_MESSAGE},409);
+    }
     if(request.method==='GET') {
       if(url.searchParams.has('community')) return json(await community(user.id,url.searchParams.get('marketVersion')==='2'?2:1));
       if(url.searchParams.has('visit')) return json(await visit(user.id,url.searchParams.get('visit')!));
@@ -15,7 +22,7 @@ async function handle(request:Request) {
     if(!request.headers.get('content-type')?.startsWith('application/json')) return json({error:'Envie JSON.'},415);
     const raw=await request.text(); if(raw.length>4096) return json({error:'Pedido muito grande.'},413);
     let body; try { body=JSON.parse(raw); } catch { return json({error:'JSON inválido.'},400); }
-    return json(await mutate(user.id,body));
+    return json(await mutate(user.id,body,request.headers.get('X-Farm-Version')));
   } catch(error) {
     if(error instanceof Error && error.message==='UNAUTHORIZED') return json({error:'Entre na sua conta para continuar.'},401);
     if(error instanceof GameError) return json({error:error.message},error.status);

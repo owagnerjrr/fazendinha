@@ -1,3 +1,5 @@
+import { plotPosition } from '../src/plots.js';
+import { requiresNewClient, CLIENT_UPDATE_MESSAGE } from '../src/client-compat.js';
 import { initializeProfile } from '../src/profile.js';
 import { LIFE_COMMANDS } from '../src/life-rules.js';
 import { dogProtects } from '../src/content.js';
@@ -40,7 +42,7 @@ function move(row: any, position: any, now: number) {
   if (Math.hypot(position.x-row.state.player.x,position.y-row.state.player.y)>elapsed*190+45) throw new GameError('Movimento rápido demais. Aguarde a sincronização.',409);
   row.state.player={x:position.x,y:position.y};
 }
-export async function mutate(user: string, body: any) {
+export async function mutate(user: string, body: any, version?: string|null) {
   if (!body || !uuid.test(body.id) || !body.command || typeof body.command !== 'object') throw new GameError('Pedido inválido.');
   const hash = createHash('sha256').update(JSON.stringify({command:body.command,position:body.position,revision:body.revision})).digest('hex');
   const db = await pool.connect();
@@ -49,6 +51,7 @@ export async function mutate(user: string, body: any) {
     // Serializes the beta economy, including trades involving two farms. Replace with ordered row locks at scale.
     await db.query("SELECT pg_advisory_xact_lock(hashtext('fazendinha-economy-v1'))");
     const row = await getFarm(db,user), now = Date.now();
+    if(requiresNewClient(row.state,version))throw new GameError(CLIENT_UPDATE_MESSAGE,409);
     const old = await db.query('SELECT hash,result FROM action_receipts WHERE user_id=$1 AND id=$2',[user,body.id]);
     if (old.rows[0]) {
       if(old.rows[0].hash!==hash) throw new GameError('Identificador já usado em outra ação.',409);
@@ -64,8 +67,8 @@ export async function mutate(user: string, body: any) {
     else if(['work','buy','sell','expand',...LIFE_COMMANDS].includes(c.type)) {
       if(c.type==='work') {
         move(row,body.position,now);
-        if(!Number.isInteger(c.plot)||c.plot<0||c.plot>=24) throw new GameError('Canteiro inválido.');
-        const x=634+(c.plot%6)*40,y=434+Math.floor(c.plot/6)*40;
+        const point=plotPosition(c.plot);if(!point)throw new GameError('Canteiro inválido.');
+        const {x,y}=point;
         if(Math.hypot(row.state.player.x-x,row.state.player.y-y)>70) throw new GameError('Aproxime-se do canteiro.');
       }
       const result=applyCommand(row.state,c,now); if(!result.ok) throw new GameError(result.message);
