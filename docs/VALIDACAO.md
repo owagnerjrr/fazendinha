@@ -150,3 +150,9 @@ O serviço publicado foi testado com contas sintéticas: inicialização única 
 ## Ambiente 0.7 — 28/10/2026
 
 60 testes e build TypeScript/Vite aprovados. Conferência visual com componentes reais e dados fictícios: celeiro detalhado, quatro espécies proporcionais, cachorro em caminhada/repouso, zoom 390×844, ambiente externo com pássaros, botões contextuais da casa e do celeiro, chegada sem entrada automática, entrada por E e entrada/saída do InteriorScene. Rotas, passos direcionais, limites de efeitos e condições de entrada recebem testes automatizados. Não foram feitos testes em aparelhos físicos nem novo teste de login Google/banco. Detalhes e captura em [AMBIENTE_0_7.md](AMBIENTE_0_7.md).
+
+## Interiores e cuidados 0.8 — 28/10/2026
+
+73 testes automatizados e build TypeScript/Vite aprovados. Conferidos no navegador com o mesmo InteriorScene e dados fictícios: proporção dos móveis, piso novo da casa, navegação até cama e guarda-roupa, abertura das interações, celeiro com seis espécies, portinhola de manejo, gesto da personagem, brincadeira do cachorro com bola e quadros direcionais, persistência de carinho/brincadeira após recarga e saldo/ração inalterados. Layout 390×844 e alternância de zoom conferidos. Nenhum erro de console observado nessa sessão. A respiração tem teste dos pixels dos pés, fases e movimento reduzido. Captura da casa em `screenshots/casa-0.8.png`.
+
+A prévia não tem configuração de conta online; o teste de componentes não simula sincronização online. A configuração que inclui a página QA no build fica apenas no ramo QA. O comando `node scripts/smoke-care.mjs URL` valida separadamente, com conta sintética, cuidados, intervalo, replay, perfil e cultivos preservados, produção real e recusa de cliente legado após compra de galo. Seu resultado no serviço publicado será registrado após execução. Não foram utilizados aparelhos físicos, nem medida de FPS/bateria, nem novo consentimento pessoal Google.

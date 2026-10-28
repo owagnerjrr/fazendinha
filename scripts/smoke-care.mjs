@@ -1,0 +1,22 @@
+// Production smoke test: a new synthetic account only. No personal accounts or DB overrides.
+import {randomBytes,randomUUID} from 'node:crypto';import assert from 'node:assert/strict';
+const base=process.argv[2];if(!base)throw new Error('Informe a URL.');const suffix=randomBytes(6).toString('hex'),password=randomBytes(24).toString('base64url');
+const signup=await fetch(`${base}/api/auth/sign-up/email`,{method:'POST',headers:{'Content-Type':'application/json',Origin:base},body:JSON.stringify({email:`qa-care-${suffix}@example.invalid`,password,name:'QA Cuidados'})});assert.equal(signup.status,200,'synthetic signup');
+const cookie=signup.headers.getSetCookie().map(c=>c.split(';')[0]).join('; '),tokenResult=await fetch(`${base}/api/auth/token`,{headers:{cookie,Origin:base}}),token=(await tokenResult.json()).token;assert.ok(token);
+async function api(body,version='2'){const r=await fetch(`${base}/api/game`,{method:body?'POST':'GET',headers:{Authorization:`Bearer ${token}`,'X-Farm-Version':version,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(20000)});return{status:r.status,...await r.json()};}
+const delay=ms=>new Promise(r=>setTimeout(r,ms));
+async function command(c,position){await delay(200);const snap=await api();assert.equal(snap.status,200);const body={id:randomUUID(),revision:snap.revision,command:c,...(position?{position}:{})};const result=await api(body);assert.equal(result.status,200,`${c.type}: ${result.error}`);return{body,result};}
+async function refused(c){await delay(200);const snap=await api(),r=await api({id:randomUUID(),revision:snap.revision,command:c});assert.ok([400,409].includes(r.status),`${c.type} should be refused`);}
+const avatar={style:'puffs',skin:4,hair:0,shirt:2};await command({type:'initialize-profile',name:'QA Cuidados',avatar});
+const dogBuy=await command({type:'buy-animal',kind:'dog'}),dog=dogBuy.result.farm.animals.find(a=>a.kind==='dog');assert.ok(dog);assert.equal(dogBuy.result.farm.coins,70);
+const fed=await command({type:'feed-animal',id:'starter-hen'});await command({type:'water-animal',id:'starter-hen'});await command({type:'feed-animal',id:dog.id});await command({type:'water-animal',id:dog.id});
+const pet=await command({type:'pet-animal',id:'starter-hen'});assert.equal((await api(pet.body)).replayed,true);await refused({type:'pet-animal',id:'starter-hen'});await refused({type:'play-animal',id:'starter-hen'});
+const play=await command({type:'play-animal',id:dog.id});assert.ok(play.result.farm.animals.find(a=>a.id===dog.id).playedAt);assert.equal((await api(play.body)).replayed,true);await refused({type:'pet-animal',id:dog.id});
+const position={x:676,y:444};for(const tool of ['hoe','seed','water'])await command({type:'work',plot:0,tool,crop:'carrot'},position);
+const watered=(await api()).farm.plots[0].wateredAt;await command({type:'work',plot:0,tool:'water',crop:'carrot'},position);assert.equal((await api()).farm.plots[0].wateredAt,watered);
+let snap=await api();assert.equal(snap.farm.coins,70);assert.equal(snap.farm.feed,3);assert.deepEqual(snap.farm.avatar,avatar);assert.equal(snap.name,'QA Cuidados');assert.equal(snap.farm.plots[0].crop,'carrot');console.log('PASS online care, cooldown, idempotence, identity, crops and reload preservation');
+const end=fed.result.now+90500;while(Date.now()<end){console.log('Waiting for real hen production…');await delay(Math.min(25000,end-Date.now()));}
+await command({type:'pet-animal',id:dog.id});const egg=await command({type:'collect-animal',id:'starter-hen'});assert.equal(egg.result.farm.products.egg,1);assert.equal((await api(egg.body)).farm.products.egg,1);await refused({type:'collect-animal',id:'starter-hen'});
+await command({type:'work',plot:0,tool:'hand',crop:'carrot'},position);snap=await api();assert.equal(snap.farm.inventory.carrot,3);assert.equal(snap.farm.coins,145);
+const rooster=await command({type:'buy-animal',kind:'rooster'});assert.equal(rooster.result.farm.animals.length,3);assert.equal(rooster.result.farm.coins,15);assert.equal((await api(undefined,'1')).status,409);snap=await api();assert.equal(snap.status,200);assert.equal(snap.farm.products.egg,1);assert.equal(snap.farm.feed,3);assert.deepEqual(snap.farm.avatar,avatar);
+console.log('PASS real production and harvest, no duplicate egg, new rooster persisted and legacy client safely refused');console.log('Online care smoke test passed. No credentials written to disk.');

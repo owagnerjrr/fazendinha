@@ -8,6 +8,7 @@ export class AvatarArt {
  private instance=++avatarInstance;
  private signature='';private keys=new Map<string,string>();private generation=0;
  constructor(private scene:Phaser.Scene){}
+ destroy(){for(const key of this.keys.values())this.scene.textures.remove(key);this.keys.clear();}
  key(base:string,avatar:Avatar){
   const signature=JSON.stringify(avatar);
   if(signature!==this.signature){for(const key of this.keys.values()){this.scene.textures.remove(key);this.scene.textures.remove(`${key}-source`);}this.keys.clear();this.signature=signature;this.generation++;}

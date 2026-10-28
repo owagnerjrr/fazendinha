@@ -47,7 +47,7 @@ export class InteriorScene extends Phaser.Scene {
   this.keys=this.input.keyboard!.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,E,ESC') as Record<string,Phaser.Input.Keyboard.Key>;
   this.input.keyboard!.on('keydown-E',(e:KeyboardEvent)=>{if(!e.repeat)this.interact();});this.input.keyboard!.on('keydown-ESC',()=>{if(!s.modal())this.leave();});
   this.input.on('pointerdown',(p:Phaser.Input.Pointer)=>{if(s.modal()||this.bonding)return;const point=this.cameras.main.getWorldPoint(p.x,p.y);const item=this.points.find(t=>Math.hypot((t.hitX??t.x)-point.x,(t.hitY??t.y-30)-point.y)<(t.radius??65));const target=item?{x:item.x,y:item.y,run:item.run}:{x:Phaser.Math.Clamp(point.x,185,1015),y:Phaser.Math.Clamp(point.y,240,790)};this.route=findPath(this.player,target,this.blocks);if(this.route.length)this.target=target;else s.toast('Aproxime-se pelo corredor livre.');});
-  this.events.once('shutdown',()=>{this.scale.off('resize',this.resize,this);this.bonding?.reject(new Error('Interação interrompida.'));this.bonding=null;});
+  this.events.once('shutdown',()=>{this.scale.off('resize',this.resize,this);this.art.destroy();this.bonding?.reject(new Error('Interação interrompida.'));this.bonding=null;});
 
  }
  private resize(){const camera=this.cameras.main;if(this.scale.width>=900){camera.stopFollow();camera.removeBounds();camera.setZoom(Math.min(this.scale.width/1150,this.scale.height/850));camera.centerOn(600,470);}else if(this.overview){camera.stopFollow();camera.removeBounds();camera.setZoom(Math.min(this.scale.width/980,(this.scale.height-170)/800));camera.centerOn(600,470);}else{camera.setBounds(0,0,1200,950);camera.startFollow(this.player,true,.1,.1,0,30);camera.setZoom(1.05);}}

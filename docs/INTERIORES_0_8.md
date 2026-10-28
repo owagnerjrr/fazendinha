@@ -20,4 +20,6 @@ A versão 0.7 publicada foi conferida e integrada ao ramo que continha galo, pin
 
 73 testes automatizados, incluindo acesso aos móveis e saída por rotas, preservação de pés na respiração, respeito a movimento reduzido, intervalo compartilhado de cuidados, produção/proteção inalteradas, persistência de carinho/brincadeira e regressões de economia, perfis, aves e terreno. Build TypeScript/Vite aprovado; permanece o aviso de tamanho do pacote Phaser.
 
-A página de QA usa o mesmo `InteriorScene`, `AvatarArt` e regras do produto com animais fictícios. Não acessa contas nem os saves do jogo. Sua configuração de build é exclusiva do ramo QA e não deve ser incorporada à produção. Conferência visual e de navegação em andamento; resultados finais em VALIDACAO.md.
+A página de QA usa o mesmo `InteriorScene`, `AvatarArt` e regras do produto com animais fictícios. Não acessa contas nem os saves do jogo. Sua configuração de build é exclusiva do ramo QA e não deve ser incorporada à produção. Conferência visual e de navegação realizada em desktop e viewport 390 × 844; resultados em VALIDACAO.md.
+
+![Casa com dados fictícios na cena real](screenshots/casa-0.8.png)
