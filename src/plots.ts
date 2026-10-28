@@ -9,7 +9,7 @@ export const LAND_SITES={
 } as const;
 export type LandSite=keyof typeof LAND_SITES;
 export type LandParcel={site:LandSite;startId:number};
-export const BUILDINGS={shed:{name:'Abrigo de ferramentas',price:250,width:2,height:2,description:'Um abrigo para acessar seus equipamentos.'},gazebo:{name:'Coreto de jardim',price:180,width:2,height:2,description:'Um cantinho com banco para decorar a fazenda.'}} as const;
+export const BUILDINGS={shed:{name:'Abrigo de ferramentas',price:250,width:2,height:2,description:'Um abrigo para acessar seus equipamentos.'},gazebo:{name:'Coreto de jardim',price:180,width:2,height:2,description:'Um cantinho com banco para decorar a fazenda.'},coop:{name:'Galinheiro externo',price:220,width:3,height:3,description:'Cercado com abrigo e ninhos. Até 6 aves, incluindo ovos em incubação.'},pasture:{name:'Piquete cercado',price:300,width:4,height:3,description:'Pasto com bebedouro e comedouro. Até 2 vacas ou cabras.'}} as const;
 export type BuildingKind=keyof typeof BUILDINGS;
 export type LandBuilding={id:string;kind:BuildingKind;site:LandSite;col:number;row:number};
 type LandFarm=Pick<Farm,'landOwned'|'landParcels'|'buildings'>;

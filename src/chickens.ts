@@ -6,8 +6,8 @@ type Hen = { sprite: Phaser.GameObjects.Sprite; shadow: Phaser.GameObjects.Ellip
 export class ChickenFlock {
   private hens: Hen[] = [];
   private random = new Phaser.Math.RandomDataGenerator(['wj-chickens-v3']);
-  constructor(private scene: Phaser.Scene) {
-    for (let i = 0; i < 4; i++) {
+  constructor(private scene: Phaser.Scene,count=4) {
+    for (let i = 0; i < count; i++) {
       const x = 388 + i * 28, y = 804 + i % 2 * 43;
       const shadow = scene.add.ellipse(x, y - 1, 16, 6, 0x263729, .28).setDepth(3);
       const sprite = scene.add.sprite(x, y, 'chickens-v3', 0).setOrigin(.5, 38 / 40).setDisplaySize(ANIMAL_SIZE.chicken.width,ANIMAL_SIZE.chicken.height).setDepth(y);

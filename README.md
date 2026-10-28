@@ -1,3 +1,5 @@
+Atualização 0.12.0: cuidados progressivos dos animais e plantas, doença e tratamentos, instalações externas com transferências, ovos visíveis e criação de pintinhos. Regras e limites em [docs/CRIACAO_0_12.md](docs/CRIACAO_0_12.md).
+
 Atualização 0.11.0: iluminação mais clara, respiração com quadros próprios de pixel art, contador real de FPS e efeitos adaptativos. Escopo e limites em [docs/DESEMPENHO_0_11.md](docs/DESEMPENHO_0_11.md).
 
 Correção 0.10.1: respiração contínua em pé, sentada e deitada, com progresso preservado.

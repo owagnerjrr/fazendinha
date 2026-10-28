@@ -1,5 +1,7 @@
 import type { Farm } from './farm.js';
 export function requiresNewClient(farm:Farm,version:string|null|undefined):boolean {
+ if(version==='5')return false;
+ if(farm.careVersion||farm.buildings?.some(b=>['coop','pasture'].includes(b.kind))||farm.animals.some(a=>a.housing&&a.housing!=='barn'))return true;
  if(version==='4')return false;
  if(farm.home||farm.calendar?.offsetMinutes)return true;
  if(version==='3')return false;

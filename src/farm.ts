@@ -1,3 +1,5 @@
+import {completeCare} from './care-migration.js';
+import {grownMs,plantNeeds,settlePlant,PLANT_CARE} from './plant-care.js';
 import {LEGACY_CLOCK_START,type Calendar,type HomeState} from './world-time.js';
 import { plotUsable, type LandParcel, type LandBuilding } from './plots.js';
 import { ANIMALS, DEFAULT_AVATAR, validAvatar, type Avatar, type Animal, type AnimalProduct, type Decoration } from './content.js';
@@ -12,15 +14,16 @@ export const CROPS = {
 } as const;
 export type Crop = keyof typeof CROPS;
 export type Tool = 'hand' | 'hoe' | 'seed' | 'water';
-export type Plot = { id: number; tilled: boolean; crop: Crop | null; wateredAt: number | null; pestAt?:number|null; stolen?:number };
-export type Farm = { version: 1; calendar?:Calendar;home?:HomeState; profileComplete?:boolean; playerName?:string; landOwned?:boolean; landParcels?:LandParcel[]; buildings?:LandBuilding[]; coins: number; seeds: Record<Crop, number>; inventory: Record<Crop, number>; plots: Plot[]; harvests: number; questClaimed: boolean; player: { x: number; y: number }; avatar:Avatar; animals:Animal[]; products:Record<AnimalProduct,number>; feed:number; decorations:Decoration[]; socialRaids:boolean; raidProtectionUntil:number; visitLog:{name:string;action:string;at:number}[] };
+export type Plot = { id: number; tilled: boolean; crop: Crop | null; wateredAt: number | null; pestAt?:number|null; stolen?:number;care?:{startedAt:number;lastWateredAt:number|null;growthMs:number;checkpointAt:number;illnessAt:number|null} };
+export type Farm = { version: 1; careVersion?:1;careStartedAt?:number;supplies?:{medicine:number;plantMedicine:number;bedding:number}; calendar?:Calendar;home?:HomeState; profileComplete?:boolean; playerName?:string; landOwned?:boolean; landParcels?:LandParcel[]; buildings?:LandBuilding[]; coins: number; seeds: Record<Crop, number>; inventory: Record<Crop, number>; plots: Plot[]; harvests: number; questClaimed: boolean; player: { x: number; y: number }; avatar:Avatar; animals:Animal[]; products:Record<AnimalProduct,number>; feed:number; decorations:Decoration[]; socialRaids:boolean; raidProtectionUntil:number; visitLog:{name:string;action:string;at:number}[] };
 const crops = Object.keys(CROPS) as Crop[];
 export const SAVE_KEY = 'wj-fazendinha-v1';
 export const makeFarm = (now=Date.now()): Farm => ({ version: 1, calendar:{startedAt:now,offsetMinutes:0}, landParcels:[],buildings:[],coins: 250, seeds: Object.fromEntries(crops.map(c=>[c,8])) as Record<Crop,number>, inventory: Object.fromEntries(crops.map(c=>[c,0])) as Record<Crop,number>, plots: Array.from({ length: 24 }, (_, id) => ({ id, tilled: false, crop: null, wateredAt: null })), harvests: 0, questClaimed: false, player: { x: 710, y: 650 }, avatar:{...DEFAULT_AVATAR}, animals:[{id:'starter-hen',kind:'chicken',fedAt:null,collectedAt:0}], products:{egg:0,milk:0,goatMilk:0},feed:5,decorations:[],socialRaids:false,raidProtectionUntil:0,visitLog:[] });
+export function enableFarmCare(f:Farm,now=Date.now()){f.careVersion??=1;f.careStartedAt??=now;completeCare(f,CROPS);return f;}
 export function hasPests(plot:Plot,now=Date.now()) {return !!plot.crop&&plot.pestAt!=null&&now>=plot.pestAt;}
 export function remaining(plot: Plot, now = Date.now()) {
   if (!plot.crop || plot.wateredAt === null) return null;
-  return Math.max(0, CROPS[plot.crop].seconds * 1000 - Math.max(0, now - plot.wateredAt));
+  return Math.max(0, CROPS[plot.crop].seconds * 1000 - (plot.care?grownMs(plot,now):Math.max(0, now - plot.wateredAt)));
 }
 export function act(farm: Farm, id: number, tool: Tool, crop: Crop, now = Date.now()): { ok: boolean; message: string; harvest?: boolean } {
   const plot = farm.plots.find(p => p.id === id);
@@ -36,11 +39,12 @@ export function act(farm: Farm, id: number, tool: Tool, crop: Crop, now = Date.n
     if (!plot.tilled) return { ok: false, message: 'Prepare a terra com a enxada primeiro.' };
     if (farm.seeds[crop] < 1) return { ok: false, message: 'Sementes acabaram. Visite a venda ao norte.' };
     farm.seeds[crop]--;
-    plot.crop = crop;plot.stolen=0;plot.pestAt=null;
+    plot.crop = crop;plot.stolen=0;plot.pestAt=null;if(farm.careVersion)plot.care={startedAt:now,lastWateredAt:null,growthMs:0,checkpointAt:now,illnessAt:null};else delete plot.care;
     return { ok: true, message: `${CROPS[crop].name} plantada! Agora use o regador.` };
   }
   if (tool === 'water') {
     if (!plot.crop) return { ok: true, message: 'Você regou o chão.' };
+    if(plot.care){const needs=plantNeeds(plot,now);if(needs.water>80)return {ok:true,message:'A terra ainda está úmida.'};settlePlant(plot,now);plot.care.lastWateredAt=now;plot.care.checkpointAt=now;if(plot.wateredAt===null){plot.wateredAt=now;plot.pestAt=(plot.id+farm.harvests)%3===1?now+Math.max(30000,CROPS[plot.crop].seconds*650):null;}return {ok:true,message:needs.sick?'Terra hidratada. A planta ainda precisa de defensivo orgânico.':'Terra hidratada! O crescimento continua sem reiniciar.'};}
     if (plot.wateredAt !== null) return { ok: true, message: 'Você regou novamente. A planta continua crescendo.' };
     plot.wateredAt = now;
     plot.pestAt=(plot.id+farm.harvests)%3===1 ? now+Math.max(30000,CROPS[plot.crop].seconds*650) : null;
@@ -48,7 +52,8 @@ export function act(farm: Farm, id: number, tool: Tool, crop: Crop, now = Date.n
   }
   if (!plot.crop) return { ok: false, message: plot.tilled ? 'Terra pronta. Escolha Plantar.' : 'Escolha a enxada para preparar este canteiro.' };
   if (plot.wateredAt === null) return { ok: false, message: 'Sua plantinha está com sede. Use o regador.' };
-  if(hasPests(plot,now)){plot.pestAt=null;return {ok:true,message:'Pragas removidas! Sua plantação está saudável de novo.'};}
+  const needs=plantNeeds(plot,now);if(needs.dry)return {ok:false,message:'A planta murchou por falta de água. Use o regador.'};if(needs.sick)return {ok:false,message:'Planta doente. Regue e aplique defensivo em Cuidados da fazenda.'};
+  if(hasPests(plot,now)){settlePlant(plot,now);plot.pestAt=plot.care?now+PLANT_CARE.pestReturnMs:null;return {ok:true,message:'Pragas removidas! Sua plantação está saudável de novo.'};}
   const wait = remaining(plot, now)!;
   if (wait > 0) return { ok: false, message: `Quase lá: faltam ${Math.ceil(wait / 1000)} segundos.` };
   const harvested = plot.crop;
@@ -56,7 +61,7 @@ export function act(farm: Farm, id: number, tool: Tool, crop: Crop, now = Date.n
   farm.inventory[harvested] += amount;
   farm.harvests++;
   plot.crop = null;
-  plot.wateredAt = null;plot.pestAt=null;plot.stolen=0;
+  plot.wateredAt = null;plot.pestAt=null;plot.stolen=0;delete plot.care;
   let reward = '';
   if (!farm.questClaimed) { farm.questClaimed = true; farm.coins += 75; reward = ' Missão cumprida: +75 moedas!'; }
   return { ok: true, harvest: true, message: `+${amount} ${CROPS[harvested].name.toLowerCase()} no celeiro!${reward}` };
@@ -90,5 +95,5 @@ export function restoreFarm(raw: string | null): Farm {
 export function upgradeFarm<T extends Farm>(data:T):T {
  data.calendar??={startedAt:LEGACY_CLOCK_START,offsetMinutes:0};
  data.landParcels??=data.landOwned?[{site:'west',startId:24}]:[];data.buildings??=[];
- data.avatar=validAvatar(data.avatar)?data.avatar:{...DEFAULT_AVATAR};data.animals??=[{id:'starter-hen',kind:'chicken',fedAt:null,collectedAt:0}];data.products??={egg:0,milk:0,goatMilk:0};data.feed??=5;data.decorations??=[];data.socialRaids??=false;data.raidProtectionUntil??=0;data.visitLog??=[];for(const c of crops){data.seeds[c]??=0;data.inventory[c]??=0;}return data;
+ data.avatar=validAvatar(data.avatar)?data.avatar:{...DEFAULT_AVATAR};data.animals??=[{id:'starter-hen',kind:'chicken',fedAt:null,collectedAt:0}];data.products??={egg:0,milk:0,goatMilk:0};data.feed??=5;data.decorations??=[];data.socialRaids??=false;data.raidProtectionUntil??=0;data.visitLog??=[];for(const c of crops){data.seeds[c]??=0;data.inventory[c]??=0;}completeCare(data,CROPS);return data;
 }

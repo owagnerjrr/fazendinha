@@ -202,3 +202,8 @@ As poses de sentar e dormir reaplicavam escala fixa depois da respiração, anul
 ## Iluminação e desempenho 0.11.0 — 28/10/2026
 
 85 testes e build aprovados; casa e celeiro com piso em cache, madrugada legível e quadros 0/1/2 da respiração conferidos na cena real. Jogo principal com save fictício preservou nome/250 moedas e foi inspecionado em 390×844. Contador real: cerca de 1 FPS neste navegador remoto, igual ao controle vazio sem jogo; CPU p95 da fazenda 2,1 ms. Não foi validado 60 FPS sustentado nem celular físico. Não houve nova autenticação pessoal ou mudança das regras online. Escopo, medições, limites e procedimento de teste em [DESEMPENHO_0_11.md](DESEMPENHO_0_11.md).
+
+
+## Criação e cuidados 0.12.0 — 28/10/2026
+
+93 testes e build aprovados. Migração não reinicia saldo, ID, nome, crescimento ou produtos prontos; validação inclui doença latente, consumo de remédio, impossibilidade de coletar duas vezes, transferência, vagas reservadas para pintinhos, tipo de instalação e trajetória limitada pelas cercas. O cenário fictício local abriu com piquete/galinheiro, indicadores e eclosão automática preparada por timestamps do fixture; o painel de plantas indicou murcha e doença. A validação online natural será registrada ao terminar. Não houve teste em celular físico. Escopo em [CRIACAO_0_12.md](CRIACAO_0_12.md).

@@ -1,3 +1,4 @@
+import {plantNeeds,settlePlant} from '../src/plant-care.js';
 import { plotPosition,plotUsable } from '../src/plots.js';
 import { requiresNewClient, CLIENT_UPDATE_MESSAGE } from '../src/client-compat.js';
 import { initializeProfile } from '../src/profile.js';
@@ -12,12 +13,13 @@ import { upgradeFarm, hasPests, remaining, CROPS, type Crop } from '../src/farm.
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const codePattern = /^[A-Z0-9]{10}$/;
 export class GameError extends Error { constructor(message: string, public status = 400) { super(message); } }
-export async function ensureFarm(id: string, name: string) {
+export async function ensureFarm(id: string, name: string,care=false) {
   const account=await pool.query('SELECT name FROM neon_auth."user" WHERE id=$1 AND banned IS NOT TRUE',[id]);
   if(!account.rowCount) throw new GameError('Conta não encontrada.',401);
   await pool.query('INSERT INTO farms(user_id,name,state) VALUES($1,$2,$3) ON CONFLICT DO NOTHING',[id,String(account.rows[0].name || name).slice(0,40),newOnlineFarm(Date.now())]);
   // Add only the missing calendar. Existing state and revision remain intact; simultaneous openings serialize this row update.
   await pool.query("UPDATE farms SET state=jsonb_set(state,'{calendar}',jsonb_build_object('startedAt',floor(extract(epoch FROM now())*1000),'offsetMinutes',0)) WHERE user_id=$1 AND NOT (state ? 'calendar')",[id]);
+  if(care)await pool.query("UPDATE farms SET state=state || jsonb_build_object('careVersion',1,'careStartedAt',floor(extract(epoch FROM now())*1000)) WHERE user_id=$1 AND NOT (state ? 'careVersion')",[id]);
 }
 async function getFarm(db: PoolClient, id: string) { const { rows } = await db.query('SELECT * FROM farms WHERE user_id=$1 FOR UPDATE',[id]); if (!rows[0]) throw new GameError('Fazenda não encontrada.',404); upgradeFarm(rows[0].state);return rows[0]; }
 export async function snapshot(id: string) {
@@ -111,7 +113,7 @@ async function social(db:PoolClient,user:string,row:any,c:any,now:number) {
     if(c.type==='steal'){
       if(!row.state.socialRaids||!target.state.socialRaids)throw new GameError('Os dois amigos precisam ativar a brincadeira de roubo.');
       if(dogProtects(target.state.animals,now)||target.state.raidProtectionUntil>now)throw new GameError('Esta fazenda está protegida. O cachorro está de olho!');
-      if(!plot.crop||remaining(plot,now)!==0||hasPests(plot,now)||(plot.stolen??0)>=1)throw new GameError('Escolha uma colheita madura e ainda não beliscada.');
+      if(!plot.crop||remaining(plot,now)!==0||plantNeeds(plot,now).dry||plantNeeds(plot,now).sick||hasPests(plot,now)||(plot.stolen??0)>=1)throw new GameError('Escolha uma colheita madura e ainda não beliscada.');
       const used=await db.query('SELECT 1 FROM farm_raids WHERE visitor=$1 AND owner=$2 AND day=$3',[user,target.user_id,day]);if(used.rowCount)throw new GameError('Você já pegou um produto deste amigo hoje.');
       row.state.inventory[plot.crop as Crop]++;plot.stolen=(plot.stolen??0)+1;target.state.raidProtectionUntil=now+3600000;
       await db.query('INSERT INTO farm_raids(visitor,owner,day,plot) VALUES($1,$2,$3,$4)',[user,target.user_id,day,c.plot]);
@@ -124,11 +126,11 @@ async function social(db:PoolClient,user:string,row:any,c:any,now:number) {
     let action='regou uma plantação';
     if(c.mode==='plant'){
       if(plot.crop||!Object.hasOwn(CROPS,c.crop)||row.state.seeds[c.crop as Crop]<1)throw new GameError('Canteiro ocupado ou semente indisponível.');
-      row.state.seeds[c.crop as Crop]--;plot.tilled=true;plot.crop=c.crop;plot.wateredAt=null;plot.pestAt=null;plot.stolen=0;action='plantou uma semente';
+      row.state.seeds[c.crop as Crop]--;plot.tilled=true;plot.crop=c.crop;plot.wateredAt=null;plot.pestAt=null;plot.stolen=0;if(target.state.careVersion)plot.care={startedAt:now,lastWateredAt:null,growthMs:0,checkpointAt:now,illnessAt:null};action='plantou uma semente';
     }else if(c.mode==='clean'){
-      if(!hasPests(plot,now))throw new GameError('Esta plantação não tem pragas.');plot.pestAt=null;action='removeu pragas';
+      if(!hasPests(plot,now))throw new GameError('Esta plantação não tem pragas.');settlePlant(plot,now);plot.pestAt=null;action='removeu pragas';
     }else{
-      if(!plot.crop||plot.wateredAt!==null)throw new GameError('Escolha uma plantação ainda sem água.');plot.wateredAt=now;
+      if(!plot.crop||plot.wateredAt!==null&&plantNeeds(plot,now).water>80)throw new GameError('Escolha uma plantação precisando de água.');if(plot.care){settlePlant(plot,now);plot.care.lastWateredAt=now;plot.care.checkpointAt=now;}plot.wateredAt??=now;
     }
     row.state.xp+=5;
     await db.query('INSERT INTO farm_help(helper,owner,day,plot) VALUES($1,$2,$3,$4)',[user,target.user_id,day,c.plot]);

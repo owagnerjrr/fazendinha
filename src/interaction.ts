@@ -1,3 +1,4 @@
+import {plantNeeds} from './plant-care';
 import { hasPests, remaining, type Crop, type Farm, type Tool } from './farm';
 type Target = { id: number; x: number; y: number };
 export function choosePlot(farm: Farm, fields: Target[], player: { x: number; y: number }, tool: Tool, crop: Crop, focused: number | null, now = Date.now()): number | null {
@@ -8,7 +9,7 @@ export function choosePlot(farm: Farm, fields: Target[], player: { x: number; y:
     if (!plot) return false;
     if (tool === 'hoe') return !plot.tilled && !plot.crop;
     if (tool === 'seed') return plot.tilled && !plot.crop && farm.seeds[crop] > 0;
-    if (tool === 'water') return !!plot.crop && plot.wateredAt === null;
+    if (tool === 'water') return !!plot.crop && (plot.wateredAt === null||plantNeeds(plot,now).water<=80);
     return !!plot.crop && (hasPests(plot,now)||remaining(plot, now) === 0);
   };
   const last = nearby.find(f => f.id === focused && distance(f) < 60);

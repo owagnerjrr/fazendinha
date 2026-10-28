@@ -5,10 +5,9 @@ export function dogFrame(facing:DogFacing,distance:number){return facing*4+Math.
 /** Closed walking loop followed by a real stop: feet animate only during travel. */
 export function penDogMotion(time:number,index=0){
  const t=((time+index*2700)%18000+18000)%18000,walking=t<8000;
- const corners=[[-12,0],[12,0],[12,-18],[-12,-18],[-12,0]];
- const leg=walking?Math.floor(t/2000):3,progress=walking?(t%2000)/2000:1;
- const [ax,ay]=corners[leg],[bx,by]=corners[leg+1],facing=dogFacing(bx-ax,by-ay);
- return{x:ax+(bx-ax)*progress,y:ay+(by-ay)*progress,facing,walking,resting:t>=11500,frame:dogFrame(facing,Math.hypot(bx-ax,by-ay)*progress)};
+ const s=walking?t/8000:1,progress=s*s*(3-2*s),angle=progress*Math.PI*2;
+ const x=12*Math.sin(angle),y=-9+9*Math.cos(angle),facing=dogFacing(12*Math.cos(angle),-9*Math.sin(angle));
+ return{x,y,facing,walking,resting:t>=11500,frame:dogFrame(facing,progress*67)};
 }
 /** Route to a free offset beside the owner, never into the owner's collider. */
 export function dogFollowRoute(start:Point,owner:Point,index:number,obstacles:Obstacle[]){
