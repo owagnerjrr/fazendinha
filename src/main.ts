@@ -417,7 +417,7 @@ function enterInterior(room:'house'|'barn'){
  inside=true;$('enter-place').hidden=true;$('quest-card').hidden=true;$('hint').textContent='Toque no cômodo para andar. Use E ou Usar perto dos objetos.';$('exit-interior').hidden=false;$('interior-view').hidden=false;$('interior-view').textContent=room==='barn'?'Aproximar':'Ver cômodo inteiro';$('world-place').textContent=room==='house'?'SUA CASA':'SEU CELEIRO';game.scene.start('Interior',{room});
 }
 async function bondAnimal(id:string,type:'pet-animal'|'play-animal'){
- closePanel();const interior=game.scene.getScene('Interior') as InteriorScene;
+ closePanel();if(performance.now()<entranceLockedUntil)throw new Error('Aguarde a entrada no cômodo terminar.');const interior=game.scene.getScene('Interior') as InteriorScene;
  if(!inside||interior.getRoom()!=='barn'){
   const created=new Promise<void>(resolve=>interior.events.once('create',()=>resolve()));enterInterior('barn');await created;
  }
