@@ -1,5 +1,9 @@
 # Caminho do projeto
 
+## Ajuste 0.9.1
+
+- [x] Respiração contínua ao parar, com ciclo de três segundos; mantém os pés e a colisão no lugar, inclusive com ferramentas. Para durante movimento e ações e respeita movimento reduzido.
+
 ## Entregue na beta 0.9
 
 - [x] Quarto com móveis detalhados originais, tapetes, cabeceira, abajur e decoração de parede; celeiro com armazenamento variado.

@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import {buildHouse,HOUSE_WALLS} from './house-art';
 import {barnMaterials} from './barn-materials';
 import { SKIN_TONES, SHIRT_COLORS } from './content';
-import {idlePhase} from './idle-art';
+import {IdleBreathing} from './idle-art';
 import { AvatarArt } from './avatar-art';
 import { buildBarn, type RoomPoint } from './barn-art';
 import type { Farm, Tool } from './farm';
@@ -10,9 +10,10 @@ import { findPath } from './pathfinding';
 type Services={farm:()=>Farm;stick:()=>{x:number;y:number};modal:()=>boolean;tool:()=>Tool;now:()=>number;avatar:()=>void;animals:(id?:string)=>void;equipment:()=>void;toast:(s:string)=>void;open:(title:string,html:string)=>void;exit:()=>void;care?:(c:{type:'pet-animal'|'play-animal';id:string})=>Promise<unknown>};
 export class InteriorScene extends Phaser.Scene {
  private bonding:{id:string;type:'pet-animal'|'play-animal';phase:'arriving'|'contact'|'saving'|'reacting';start:number;resolve:()=>void;reject:(e:Error)=>void}|null=null;private gesture!:Phaser.GameObjects.Graphics;private context!:Phaser.GameObjects.Text;private reduced=matchMedia('(prefers-reduced-motion: reduce)');
+ private breathing=new IdleBreathing();
  private room:'house'|'barn'='house';private overview=false;private player!:Phaser.Physics.Arcade.Sprite;private actor!:Phaser.GameObjects.Sprite;private art!:AvatarArt;private keys!:Record<string,Phaser.Input.Keyboard.Key>;private dir=0;private target:{x:number;y:number;run?:()=>void}|null=null;private route:{x:number;y:number}[]=[];private blocks:{x:number;y:number;width:number;height:number}[]=[];private points:RoomPoint[]=[];private barn?:ReturnType<typeof buildBarn>;private animalSignature='';
  constructor(private services:Services){super('Interior');}
- init(data:{room:'house'|'barn'}){this.bonding=null;this.room=data.room;this.overview=this.room==='barn';this.target=null;this.route=[];this.blocks=[];this.points=[];this.barn=undefined;this.animalSignature='';}
+ init(data:{room:'house'|'barn'}){this.bonding=null;this.breathing.reset();this.room=data.room;this.overview=this.room==='barn';this.target=null;this.route=[];this.blocks=[];this.points=[];this.barn=undefined;this.animalSignature='';}
  create(){
   const s=this.services;this.art=new AvatarArt(this);this.cameras.main.setBackgroundColor('#20382f');
   const g=this.add.graphics();
@@ -72,7 +73,8 @@ export class InteriorScene extends Phaser.Scene {
   }
   const bond=this.bonding;if(bond&&bond.phase!=='arriving'){vx=0;vy=0;this.target=null;this.route=[];}
   const len=Math.hypot(vx,vy);this.player.setVelocity(len?vx/Math.max(1,len)*145:0,len?vy/Math.max(1,len)*145:0);if(len>.1)this.dir=Math.abs(vx)>Math.abs(vy)?vx<0?1:2:vy<0?3:0;
-  const tool=bond?'hand':s.tool(),idle=len<=.1&&!bond&&!this.reduced.matches,base=tool==='hand'?'farmer-v2':`carry-${tool}`,key=this.art.key(`${base}${idle?'-idle':''}`,s.farm().avatar),frame=this.dir*4+(len>.1?Math.floor(time/140)%4:idlePhase(time,len>.1,!!bond,this.reduced.matches));this.actor.setTexture(key,frame).setOrigin(.5,tool==='hand'?62/64:100/112).setPosition(this.player.x,this.player.y-2).setDepth(this.player.y);
+  const breath=this.breathing.sample(time,len>.1,!!bond,this.reduced.matches);
+  const tool=bond?'hand':s.tool(),base=tool==='hand'?'farmer-v2':`carry-${tool}`,key=this.art.key(base,s.farm().avatar),frame=this.dir*4+(len>.1?Math.floor(time/140)%4:0);this.actor.setTexture(key,frame).setScale(1.08,1.08*breath).setOrigin(.5,tool==='hand'?62/64:100/112).setPosition(this.player.x,this.player.y-2).setDepth(this.player.y);
   this.barn?.update(time,s.farm(),s.now(),this.player);this.gesture.clear();
   const near=this.points.filter(p=>p.name).sort((a,b)=>Math.hypot(a.x-this.player.x,a.y-this.player.y)-Math.hypot(b.x-this.player.x,b.y-this.player.y))[0];
   this.context.setVisible(!bond&&!s.modal()&&!!near&&Math.hypot(near.x-this.player.x,near.y-this.player.y)<72);if(near)this.context.setText(`${near.name} · E / Usar`).setPosition(this.player.x,this.player.y+9);

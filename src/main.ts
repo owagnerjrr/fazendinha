@@ -1,7 +1,7 @@
 import { setupJourney } from './journey';
 import { setupLifeUI } from './life-ui';
 import { applyLife } from './life-rules';
-import {idlePhase} from './idle-art';
+import {IdleBreathing} from './idle-art';
 import { AvatarArt } from './avatar-art';
 import { InteriorScene } from './interiors';
 import { ANIMALS, DECOR, DECOR_SLOTS, type Avatar } from './content';
@@ -122,6 +122,7 @@ class FarmScene extends Phaser.Scene {
   direction: Direction = 'down'; walking = false; lastPaint = 0; lastSave = 0; stuck = 0; previous = { x: 0, y: 0 };
   ripples: Phaser.GameObjects.Rectangle[] = [];
   private entranceControl!:EntranceControl;
+  private breathing=new IdleBreathing();
   private landWorld!:LandWorld;
   occluders: Phaser.GameObjects.Image[] = [];
   vignette!: Phaser.GameObjects.Image;
@@ -332,8 +333,8 @@ class FarmScene extends Phaser.Scene {
     const usingActionSheet = !!work && (equipped === 'hoe' || equipped === 'water');
     const elapsed = work?.clock.elapsed(time) ?? 0;
     const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const idle=!moving&&!work&&!reduced;
-    const frame = moving ? Math.floor(time / 130) % 4 : idlePhase(time,moving,!!work,reduced);
+    const breath=this.breathing.sample(time,moving,!!work,reduced);
+    const frame = moving ? Math.floor(time / 130) % 4 : 0;
     const bend = work && !usingActionSheet ? Math.sin(Math.min(1, elapsed / ACTIONS[equipped].duration) * Math.PI) : 0;
     const bob = (moving ? Math.sin(time / 65) * .65 : 0) + bend * 1.5;
     if (usingActionSheet) {
@@ -341,9 +342,9 @@ class FarmScene extends Phaser.Scene {
     } else if (equipped !== 'hand') {
       // Hands, grip and equipment are a single authored sprite in every frame.
       // No mirroring/pivot guesses or detached inventory icons during movement.
-      this.actor.setTexture(this.avatarArt.key(`carry-${equipped}${idle?'-idle':''}`,farm.avatar), DIRECTION_ROW[this.direction] * 4 + frame).setOrigin(.5, 100 / 112).setScale(1.08, 1.08 * (1 - bend * .07));
+      this.actor.setTexture(this.avatarArt.key(`carry-${equipped}`,farm.avatar), DIRECTION_ROW[this.direction] * 4 + frame).setOrigin(.5, 100 / 112).setScale(1.08, 1.08 * breath * (1 - bend * .07));
     } else {
-      this.actor.setTexture(this.avatarArt.key(idle?'farmer-v2-idle':'farmer-v2',farm.avatar),DIRECTION_ROW[this.direction]*4+frame).setOrigin(.5, 62 / 64).setScale(1.08, 1.08 * (1 - bend * .07));
+      this.actor.setTexture(this.avatarArt.key('farmer-v2',farm.avatar),DIRECTION_ROW[this.direction]*4+frame).setOrigin(.5, 62 / 64).setScale(1.08, 1.08 * breath * (1 - bend * .07));
     }
     this.actor.setPosition(this.player.x, this.player.y - 2 + bob).setDepth(this.player.y);
     this.playerShadow.setPosition(this.player.x + 1, this.player.y - 3);

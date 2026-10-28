@@ -26,10 +26,13 @@ test('dog play has a shared cooldown with petting, preserves protection and pers
  const saved=restoreFarm(JSON.stringify(f)).animals.find(a=>a.id==='dog')!;assert.equal(saved.playedAt,now);assert.equal(saved.pettedAt,now+60000);
  assert.equal(f.coins,250);assert.equal(f.feed,5);assert.deepEqual(f.products,{egg:0,milk:0,goatMilk:0});
 });
-import {breathingPixels,idlePhase} from '../src/idle-art';
-test('breathing moves upper pixels only, pins both feet and stops for movement, actions and reduced motion',()=>{
- const w=48,h=64,feet=54,source=Uint8ClampedArray.from({length:w*h*4},(_,i)=>(i*13+Math.floor(i/(w*4))*7)%255),original=source.slice();
- for(const phase of [0,1,2,3]){const pixels=breathingPixels(source,w,h,feet,phase);assert.deepEqual(pixels.slice(feet*w*4),source.slice(feet*w*4));assert.equal(pixels.length,source.length);if(phase===1||phase===2)assert.deepEqual(pixels.slice(0,w*4),source.slice(w*4,w*8));else assert.deepEqual(pixels,source);}
- assert.deepEqual(source,original);assert.equal(idlePhase(700,false,false,false),1);assert.equal(idlePhase(1400,false,false,false),2);assert.equal(idlePhase(2100,false,false,false),3);
- for(const flags of [[true,false,false],[false,true,false],[false,false,true]])assert.equal(idlePhase(700,...flags as [boolean,boolean,boolean]),0);
+import {breathingScale,IdleBreathing} from '../src/idle-art';
+test('breathing smoothly inhales and exhales, starts at rest and stops immediately for walking, actions or reduced motion',()=>{
+ assert.equal(breathingScale(0),1);assert.equal(breathingScale(1500),1.026);assert.equal(breathingScale(3000),1);
+ for(let t=0;t<=3000;t+=10){assert.ok(breathingScale(t)>=1&&breathingScale(t)<=1.026);assert.ok(Math.abs(breathingScale(t+1)-breathingScale(t))<.00003);}
+ const idle=new IdleBreathing();assert.equal(idle.sample(1234,false,false,false),1);assert.equal(idle.sample(2734,false,false,false),1.026);
+ for(const flags of [[true,false,false],[false,true,false],[false,false,true]]){
+  assert.equal(idle.sample(2800,...flags as [boolean,boolean,boolean]),1);assert.equal(idle.sample(2900,false,false,false),1);assert.ok(idle.sample(3500,false,false,false)>1);
+ }
+ idle.reset();assert.equal(idle.sample(4000,false,false,false),1);
 });

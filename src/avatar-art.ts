@@ -1,5 +1,4 @@
 import Phaser from 'phaser';
-import {breathingPixels} from './idle-art';
 import { SKIN_TONES, HAIR_COLORS, SHIRT_COLORS, type Avatar } from './content';
 const spec:Record<string,{w:number;h:number}>={'farmer-v2':{w:48,h:64},'carry-hoe':{w:128,h:112},'carry-seed':{w:128,h:112},'carry-water':{w:128,h:112},'hoe-actions':{w:96,h:112},'water-actions':{w:96,h:112}};
 const rgb=(hex:string)=>[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16));
@@ -13,18 +12,6 @@ export class AvatarArt {
   const signature=JSON.stringify(avatar);
   if(signature!==this.signature){for(const key of this.keys.values()){this.scene.textures.remove(key);this.scene.textures.remove(`${key}-source`);}this.keys.clear();this.signature=signature;this.generation++;}
   if(this.keys.has(base))return this.keys.get(base)!;
-  if(base.endsWith('-idle')){
-   const sourceBase=base.slice(0,-5),sourceKey=this.key(sourceBase,avatar),{w,h}=spec[sourceBase];
-   const source=this.scene.textures.get(sourceKey).getSourceImage() as HTMLCanvasElement;
-   const canvas=document.createElement('canvas');canvas.width=w*4;canvas.height=h*4;const ctx=canvas.getContext('2d')!;ctx.imageSmoothingEnabled=false;
-   const feet=sourceBase==='farmer-v2'?h-10:h-20;
-   for(let row=0;row<4;row++)for(let phase=0;phase<4;phase++){
-    const x=phase*w,y=row*h,data=(source as HTMLCanvasElement).getContext('2d')!.getImageData(0,y,w,h);
-    data.data.set(breathingPixels(data.data,w,h,feet,phase));ctx.putImageData(data,x,y);
-   }
-   const key=`avatar-${this.instance}-${this.generation}-${base}`,texture=this.scene.textures.addCanvas(key,canvas)!;
-   this.scene.textures.addSpriteSheet('',texture,{frameWidth:w,frameHeight:h});this.keys.set(base,key);return key;
-  }
   const {w,h}=spec[base],source=this.scene.textures.get(base).getSourceImage() as HTMLImageElement;
   const canvas=document.createElement('canvas');canvas.width=w*4;canvas.height=h*4;const ctx=canvas.getContext('2d')!;ctx.imageSmoothingEnabled=false;ctx.drawImage(source,0,0);
   const skin=rgb(SKIN_TONES[avatar.skin]),hair=rgb(HAIR_COLORS[avatar.hair]),shirt=rgb(SHIRT_COLORS[avatar.shirt]);
