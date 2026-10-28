@@ -1,5 +1,14 @@
 # Caminho do projeto
 
+## Entregue na beta 0.7
+
+- [x] Caminhada em quatro direções e repouso dos cães, com passos ligados ao deslocamento externo.
+- [x] Materiais originais detalhados no celeiro, preservando escala, baias e cuidados.
+- [x] Entrada contextual por proximidade, botão Entrar, E ou clique na construção.
+- [x] Vento variável, folhas e pássaros animados; limites móveis e preferência de movimento reduzido.
+
+Escopo e limites em [AMBIENTE_0_7.md](AMBIENTE_0_7.md).
+
 ## Evolução solicitada em 27/10/2026
 
 - [x] Repetir enxada em canteiro preparado e regar canteiro vazio ou já molhado sem apagar cultivo ou reiniciar o prazo.
@@ -8,7 +17,7 @@
 - [ ] Animais individuais com nomes, cuidados, novas espécies, crescimento e reprodução limitada; comportamento real em ambientes compatíveis.
 - [x] Nomes individuais, água, carinho e indicador básico de bem-estar para galinha, vaca, cabra e cachorro existentes; produção e proteção de animais novos exigem água e alimento.
 - [x] Representar cães possuídos acompanhando o jogador no mapa externo; o servidor mantém a regra existente de proteção.
-- [ ] Criar casinha, patrulha autônoma e animações de caminhada e descanso dos cães; validar trajetos em celulares.
+- [ ] Criar casinha e patrulha autônoma dos cães; validar trajetos em celulares físicos.
 - [ ] Compra de terras exploráveis, novos canteiros e cenários conectados com persistência; a expansão atual libera apenas canteiros existentes.
 - [ ] Aprimorar ferramentas direcionais e preparar novos canteiros fora da horta; testar controles completos em PC e celular.
 

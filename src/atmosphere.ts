@@ -1,21 +1,22 @@
 import Phaser from 'phaser';
-type Bird={start:number;y:number;speed:number;phase:number};
+import {newWeather,advanceWeather,windAmount,birdPosition} from './weather-state';
+type Ambient=Phaser.GameObjects.Image|Phaser.GameObjects.Rectangle;
 export class Atmosphere {
- private birds:Bird[]=[];private last=0;private leaves:{start:number;x:number;y:number;speed:number}[]=[];private lastGust=0;private graphics:Phaser.GameObjects.Graphics;private shadows:Phaser.GameObjects.Graphics;private reduced=matchMedia('(prefers-reduced-motion: reduce)');
- constructor(private scene:Phaser.Scene, trees:Phaser.GameObjects.Image[]){
-  this.graphics=scene.add.graphics().setDepth(1800);this.shadows=scene.add.graphics().setDepth(3);
-  if(!this.reduced.matches) trees.forEach((tree,i)=>scene.tweens.add({targets:tree,angle:i%2?1.2:-1.2,duration:2100+(i*137)%1300,delay:(i*391)%1100,yoyo:true,repeat:-1,ease:'Sine.easeInOut'}));
+ private state=newWeather();private graphics:Phaser.GameObjects.Graphics;private shadows:Phaser.GameObjects.Graphics;private reduced=matchMedia('(prefers-reduced-motion: reduce)');private wasReduced:boolean|undefined;private foliage:{image:Phaser.GameObjects.Image;angle:number;phase:number}[];
+ constructor(private scene:Phaser.Scene,trees:Phaser.GameObjects.Image[],private ambient:Ambient[]=[]){
+  this.graphics=scene.add.graphics().setDepth(1800);this.shadows=scene.add.graphics().setDepth(3);this.foliage=trees.map((image,i)=>({image,angle:image.angle,phase:i*.83}));
+  scene.events.once('shutdown',()=>{for(const f of this.foliage)if(f.image.active)f.image.setAngle(f.angle);});
  }
  update(time:number){
-  this.graphics.clear();this.shadows.clear();
-  if(this.reduced.matches){this.birds=[];this.leaves=[];return;}
-  if(time-this.lastGust>17000){this.lastGust=time;const count=this.scene.scale.width<600?4:9;for(let i=0;i<count;i++)this.leaves.push({start:time+i*90,x:250+(i*97)%800,y:300+(i*53)%500,speed:0.025+(i%3)*.008});}
-  this.leaves=this.leaves.filter(l=>time-l.start<3500);for(const leaf of this.leaves){const t=time-leaf.start;if(t<0)continue;this.graphics.fillStyle(0xe2c66e,.6*(1-t/3500)).fillRect(leaf.x+t*leaf.speed,leaf.y+Math.sin(t/300)*9,3,2);}
-  if(time-this.last>10000){this.last=time;const max=this.scene.scale.width<600?1:3;for(let i=0;i<max;i++)this.birds.push({start:time+i*650,y:250+i*35,speed:0.10+i*.012,phase:i});}
-  this.birds=this.birds.filter(b=>time-b.start<18000);
-  for(const b of this.birds){const elapsed=time-b.start;if(elapsed<0)continue;const x=80+elapsed*b.speed,y=b.y+Math.sin(elapsed/1100+b.phase)*16;if(x>1510)continue;const wing=3+Math.abs(Math.sin(elapsed/130))*5;
-   this.shadows.fillStyle(0x253a29,.12).fillEllipse(x,y+75,13,4);
-   this.graphics.lineStyle(2,0x40382d,.65).lineBetween(x-8,y-wing,x,y).lineBetween(x,y,x+8,y-wing);
+  this.graphics.clear();this.shadows.clear();const reduced=this.reduced.matches;
+  if(reduced!==this.wasReduced){for(const node of this.ambient){node.setVisible(!reduced);for(const tween of this.scene.tweens.getTweensOf(node))reduced?tween.pause():tween.resume();}this.wasReduced=reduced;}
+  advanceWeather(this.state,time,this.scene.scale.width<600,reduced);const wind=windAmount(this.state,time,reduced);
+  for(const f of this.foliage)if(f.image.active)f.image.setAngle(f.angle+Math.sin(time/(1300+(f.phase%4)*110)+f.phase)*wind);
+  if(reduced)return;
+  for(const leaf of this.state.leaves){const t=time-leaf.born;if(t<0)continue;const x=leaf.x+t*leaf.speed,y=leaf.y+Math.sin(t/330)*11;this.graphics.fillStyle(t%600<300?0xc5b76a:0xe0c784,.55*(1-t/4200));this.graphics.fillRect(Math.round(x),Math.round(y),3,2);this.graphics.fillRect(Math.round(x+1),Math.round(y-1),2,1);}
+  for(const b of this.state.birds){if(time<b.born)continue;const p=birdPosition(b,time);if(p.x<20||p.x>1570)continue;
+   this.shadows.fillStyle(0x233729,.10).fillEllipse(p.x-12,p.y+76,14,4);
+   this.graphics.lineStyle(2,0x383b32,.82).lineBetween(p.x-8,p.y-p.wing,p.x-3,p.y-2).lineBetween(p.x-3,p.y-2,p.x,p.y).lineBetween(p.x,p.y,p.x+3,p.y-2).lineBetween(p.x+3,p.y-2,p.x+8,p.y-p.wing);this.graphics.fillStyle(0x45463a,.85).fillRect(Math.round(p.x-1),Math.round(p.y-2),3,4);
   }
  }
 }

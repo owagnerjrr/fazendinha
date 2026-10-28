@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import {ANIMAL_SIZE} from './barn-layout';
 
 type Hen = { sprite: Phaser.GameObjects.Sprite; shadow: Phaser.GameObjects.Ellipse; x: number; y: number; tx: number; ty: number; until: number; phase: 'walk' | 'peck' | 'idle'; right: boolean; offset: number };
 
@@ -8,8 +9,8 @@ export class ChickenFlock {
   constructor(private scene: Phaser.Scene) {
     for (let i = 0; i < 4; i++) {
       const x = 388 + i * 28, y = 804 + i % 2 * 43;
-      const shadow = scene.add.ellipse(x, y - 1, 28, 10, 0x263729, .28).setDepth(3);
-      const sprite = scene.add.sprite(x, y, 'chickens-v3', 0).setOrigin(.5, 38 / 40).setScale(1.05).setDepth(y);
+      const shadow = scene.add.ellipse(x, y - 1, 16, 6, 0x263729, .28).setDepth(3);
+      const sprite = scene.add.sprite(x, y, 'chickens-v3', 0).setOrigin(.5, 38 / 40).setDisplaySize(ANIMAL_SIZE.chicken.width,ANIMAL_SIZE.chicken.height).setDepth(y);
       scene.physics.add.existing(sprite);const body=sprite.body as Phaser.Physics.Arcade.Body;body.setSize(24,10).setOffset(8,28).setImmovable(true);
       this.hens.push({ sprite, shadow, x, y, tx: x, ty: y, until: i * 390 + 500, phase: i % 2 ? 'peck' : 'idle', right: i % 2 === 0, offset: i * 180 });
     }
@@ -31,7 +32,7 @@ export class ChickenFlock {
       for (const other of this.hens) {
         if (other === hen) continue;
         const dx = hen.x - other.x, dy = hen.y - other.y, distance = Math.hypot(dx, dy);
-        if (distance > .1 && distance < 25) { const push = (25 - distance) * dt * 2; hen.x += dx / distance * push; hen.y += dy / distance * push; }
+        if (distance > .1 && distance < 18) { const push = (18 - distance) * dt * 2; hen.x += dx / distance * push; hen.y += dy / distance * push; }
       }
       hen.x = Phaser.Math.Clamp(hen.x, 374, 478); hen.y = Phaser.Math.Clamp(hen.y, 802, 873);
       const walkFrame = Math.floor((time + hen.offset) / 160) % 4;

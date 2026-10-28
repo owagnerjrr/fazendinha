@@ -1,3 +1,4 @@
+import { penDogMotion } from './dog-motion.js';
 import type { Animal, AnimalKind } from './content.js';
 import type { Obstacle } from './pathfinding.js';
 export const ANIMAL_SIZE:Record<AnimalKind,{width:number;height:number}>={cow:{width:68,height:62},goat:{width:44,height:47},dog:{width:34,height:32},chicken:{width:21,height:23}};
@@ -14,5 +15,6 @@ export function animalPose(pen:BarnPen,index:number,time:number){
  const rows=animal.kind==='chicken'?2:1,col=index%columns,row=Math.floor(index/columns);
  const cellWidth=(pen.width-38)/columns,x=pen.x+19+cellWidth*(col+.5),y=pen.y+(rows===2?52+row*32:91);
  const phase=time/1000+index*1.9+pen.id,walk=Math.sin(phase*.7)>.25;
- return {x:x+Math.sin(phase*.85)*(walk?7:1),y:y+Math.cos(phase*.6)*2,width:size.width,height:size.height*(1+Math.sin(phase*2.3)*.012),flip:Math.cos(phase*.85)<0,blink:Math.floor((time+index*673+pen.id*191)/140)%37===0,eating:!walk&&Math.sin(phase*1.7)>.45};
+ const dog=animal.kind==='dog'?penDogMotion(time,index):null;
+ return {x:x+(dog?dog.x:Math.sin(phase*.85)*(walk?7:1)),y:y+(dog?dog.y:Math.cos(phase*.6)*2),width:size.width,height:size.height*(1+Math.sin(phase*2.3)*.012),flip:!dog&&Math.cos(phase*.85)<0,blink:Math.floor((time+index*673+pen.id*191)/140)%37===0,eating:!dog&&!walk&&Math.sin(phase*1.7)>.45,dog};
 }

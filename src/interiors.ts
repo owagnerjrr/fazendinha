@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import {barnMaterials} from './barn-materials';
 import { AvatarArt } from './avatar-art';
 import { buildBarn, type RoomPoint } from './barn-art';
 import type { Farm, Tool } from './farm';
@@ -12,12 +13,15 @@ export class InteriorScene extends Phaser.Scene {
   const s=this.services;this.art=new AvatarArt(this);this.cameras.main.setBackgroundColor('#20382f');
   const g=this.add.graphics();g.fillStyle(this.room==='house'?0x8d633d:0x746347);g.fillRect(160,210,880,610);
   for(let y=210;y<820;y+=30)for(let x=160;x<1040;x+=80){g.fillStyle(this.room==='house'?((x+y)%3?0xb28a52:0xa37a47):((x+y)%3?0x998457:0x8b764e));g.fillRect(x,y,Math.min(78,1040-x),28);g.lineStyle(1,0x5d4b35,.3);g.strokeRect(x,y,80,30);}
-  if(this.room==='barn'){
-   // Grain and narrow joints add depth without introducing new obstacles.
-   g.lineStyle(1,0x5a412b,.20);
-   for(let y=225;y<795;y+=30)for(let x=180;x<1020;x+=40){const k=(x*19+y*7)%31;g.lineBetween(x,y+k%12,x+12+(k%16),y+k%12);g.fillStyle(0xd2b785,.16);g.fillRect(x+(k%19),y+18,5,1);}
-  }
+  if(this.room==='barn'){barnMaterials(this);this.add.tileSprite(160,220,880,586,'barn-floor').setOrigin(0).setDepth(.5);}
+
   g.fillStyle(0xc3b183);g.fillRect(150,140,900,80);g.fillStyle(0x624b36);g.fillRect(150,210,900,14);g.fillRect(150,140,14,680);g.fillRect(1036,140,14,680);g.fillRect(150,806,380,14);g.fillRect(670,806,380,14);g.fillStyle(0x9b7b4e);g.fillRect(530,790,140,35);
+  if(this.room==='barn'){
+   for(const x of [170,460,740,1030])this.add.tileSprite(x,180,84,15,'barn-board').setRotation(Math.PI/2).setDepth(225);
+   this.add.tileSprite(600,213,900,15,'barn-board').setDepth(226);
+   for(const x of [325,880])if(this.textures.exists('life-window'))this.add.image(x,204,'life-window').setOrigin(.5,1).setDisplaySize(54,60).setDepth(220);
+   const light=this.add.graphics().setDepth(3);light.fillStyle(0xe2bf75,.055);light.fillTriangle(300,222,370,222,520,790);light.fillTriangle(850,222,910,222,745,790);
+  }
   const group=this.physics.add.staticGroup();
   const block=(x:number,y:number,w:number,h:number)=>{const z=this.add.zone(x+w/2,y+h/2,w,h);group.add(z);(z.body as Phaser.Physics.Arcade.StaticBody).setSize(w,h);this.blocks.push({x,y,width:w,height:h});};
   block(145,130,20,690);block(1035,130,20,690);block(150,130,900,90);block(150,807,380,18);block(670,807,380,18);
@@ -38,7 +42,7 @@ export class InteriorScene extends Phaser.Scene {
   this.actor=this.add.sprite(600,735,'farmer-down-0').setOrigin(.5,62/64).setScale(1.08);
   this.cameras.main.setBounds(0,0,1200,950);this.cameras.main.startFollow(this.player,true,.1,.1,0,30);this.resize();this.scale.on('resize',this.resize,this);
   this.keys=this.input.keyboard!.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,E,ESC') as Record<string,Phaser.Input.Keyboard.Key>;
-  this.input.keyboard!.on('keydown-E',()=>this.interact());this.input.keyboard!.on('keydown-ESC',()=>{if(!s.modal())this.leave();});
+  this.input.keyboard!.on('keydown-E',(e:KeyboardEvent)=>{if(!e.repeat)this.interact();});this.input.keyboard!.on('keydown-ESC',()=>{if(!s.modal())this.leave();});
   this.input.on('pointerdown',(p:Phaser.Input.Pointer)=>{if(s.modal())return;const point=this.cameras.main.getWorldPoint(p.x,p.y);const item=this.points.find(t=>Math.hypot((t.hitX??t.x)-point.x,(t.hitY??t.y-30)-point.y)<(t.radius??65));const target=item?{x:item.x,y:item.y,run:item.run}:{x:Phaser.Math.Clamp(point.x,185,1015),y:Phaser.Math.Clamp(point.y,240,790)};this.route=findPath(this.player,target,this.blocks);if(this.route.length)this.target=target;else s.toast('Aproxime-se pelo corredor livre.');});
   this.events.once('shutdown',()=>this.scale.off('resize',this.resize,this));
   s.toast(this.room==='house'?'Sua casa: cama, sala, TV e guarda-roupa. Toque para explorar.':'Explore o celeiro. Aproxime-se de um animal ou do suporte de ferramentas.');

@@ -1,6 +1,8 @@
 # Fazendinha WJ
 
-Versão 0.6.0 — Chegada ao vale e celeiro reorganizado. Nome, seleção visual de personagem e conta antes da primeira fazenda; perfis existentes preservados. Detalhes em [CHEGADA_E_CELEIRO.md](docs/CHEGADA_E_CELEIRO.md). Protótipo original de um jogo de fazenda para navegador, pensado para celular e PC. O nome do cenário, **Vale do Sossego**, é provisório.
+Versão 0.7.0 — Cachorros com passos direcionais, celeiro com materiais detalhados, entradas por proximidade e ambiente com vento e pássaros. Detalhes em [AMBIENTE_0_7.md](docs/AMBIENTE_0_7.md).
+
+Chegada ao vale e celeiro reorganizado: Nome, seleção visual de personagem e conta antes da primeira fazenda; perfis existentes preservados. Detalhes em [CHEGADA_E_CELEIRO.md](docs/CHEGADA_E_CELEIRO.md). Protótipo original de um jogo de fazenda para navegador, pensado para celular e PC. O nome do cenário, **Vale do Sossego**, é provisório.
 
 A correção 0.3.1 usa sprites completos para carregar enxada, sementes e regador, com o item desenhado junto às mãos durante a caminhada.
 
@@ -46,6 +48,7 @@ npm run build
 | Trocar ferramenta | 1–4 ou barra inferior | Barra inferior |
 | Agir | E, perto do alvo, ou clique no canteiro | Usar, perto do alvo, ou toque no canteiro |
 | Trocar cultura | Botão da semente atual | Botão da semente atual |
+| Entrar nas construções | Aproximar e clicar em Entrar ou apertar E; clicar na construção para ir até a porta | Aproximar e tocar em Entrar; tocar na construção para ir até a porta |
 | Comprar sementes | Clique na venda e caminhe até ela | Toque na venda e caminhe até ela |
 | Vender produtos | Botão Celeiro | Botão Celeiro |
 
