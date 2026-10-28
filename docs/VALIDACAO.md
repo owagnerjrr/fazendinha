@@ -176,3 +176,8 @@ No endereço principal, a versão 0.8 foi conferida com o save local anterior: o
 A animação anterior alternava um único pixel a cada 700 ms. Agora usa inspiração e expiração contínuas em três segundos, com expansão vertical máxima de 2,6%, origem nos pés e corpo físico inalterado. Começa suavemente ao parar; interrompe ao andar, trabalhar ou fazer carinho e respeita movimento reduzido. Aplica-se à fazenda, casa e celeiro, com e sem equipamento. Teste verifica início, pico, retorno, continuidade e interrupção da animação. Nenhuma alteração de conta, economia ou save.
 
 `npm test`: 79 testes passaram. `npm run build`: TypeScript/Vite e cache PWA aprovados. Sem nova conferência em navegador ou aparelho físico nesta correção.
+
+
+## Casa e celeiro 0.9.2 — 28/10/2026
+
+79 testes e build aprovados. O teste de navegação inclui todos os novos móveis e os obstáculos de decoração; confirmou acesso à cama no canto, armário, TV, mesa de centro, sofá, mesa, cadeira e saída, além do alinhamento e das orientações opostas de TV e sofá. Conferência visual no navegador com InteriorScene e dados fictícios: cama e armário junto às paredes, sofá visto de costas olhando para a TV, revestimentos, tapetes, corredor de pedra do celeiro, lanternas e novos contornos dos objetos. A visão geral da casa também foi inspecionada em iframe de 390×844. Não há alteração de conta, banco, save ou produção; não foi repetido o teste de autenticação ou usado aparelho físico. Capturas em [INTERIORES_0_9_2.md](INTERIORES_0_9_2.md).

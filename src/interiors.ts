@@ -24,6 +24,7 @@ export class InteriorScene extends Phaser.Scene {
    this.add.tileSprite(600,213,900,15,'barn-board').setDepth(226);
    const wall=this.add.graphics().setDepth(224);wall.fillStyle(0x725334);wall.fillRect(164,190,872,19);wall.fillStyle(0x9d7a48);wall.fillRect(164,190,872,3);for(let x=170;x<1036;x+=28){wall.fillStyle(0x997b51);wall.fillRect(x,195,24,11);wall.fillStyle(0xb19465);wall.fillRect(x+1,195,22,1);}wall.fillStyle(0x453520,.2);wall.fillRect(164,214,872,9);
    const light=this.add.graphics().setDepth(2);for(const x of [325,880]){light.fillStyle(0xf5d58d,.055);light.fillTriangle(x-23,225,x+25,225,x+125,500);}
+   for(const x of [215,505,695,985]){this.add.image(x,210,'barn-lantern').setOrigin(.5,1).setDepth(225);const glow=this.add.graphics().setDepth(2);for(const [radius,alpha] of [[55,.035],[35,.045],[18,.05]])glow.fillStyle(0xf5c474,alpha).fillEllipse(x,220,radius*2,radius*1.3);}
    for(const x of [325,880])this.add.image(x,204,'life-window').setOrigin(.5,1).setDisplaySize(54,60).setDepth(220);
   }
   const group=this.physics.add.staticGroup();

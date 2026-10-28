@@ -14,7 +14,7 @@ export function buildBarn(scene:Phaser.Scene,farm:Farm,block:Block,animals:(id?:
  const text=(x:number,y:number,label:string,size=10)=>scene.add.text(x,y,label,{fontFamily:'monospace',fontSize:`${size}px`,color:'#f5dfad',backgroundColor:'#493c2ee8',padding:{x:7,y:4}}).setOrigin(.5).setDepth(1300);
  barnMaterials(scene);dogArt(scene);const pens=barnLayout(farm.animals);
  const board=(x:number,y:number,w:number,h:number,depth:number,vertical=false)=>{const tile=scene.add.tileSprite(x,y,vertical?h:w,vertical?w:h,'barn-board').setOrigin(.5).setDepth(depth);if(vertical)tile.setRotation(Math.PI/2);return tile;};
- const aisle=scene.add.graphics().setDepth(1);aisle.fillStyle(0x604c33,.35);aisle.fillRect(531,250,137,550);aisle.lineStyle(2,0xbca16a,.5);aisle.lineBetween(538,260,538,782);aisle.lineBetween(661,260,661,782);
+ scene.add.tileSprite(531,250,137,550,'barn-stone').setOrigin(0).setDepth(1);const aisle=scene.add.graphics().setDepth(1.1);aisle.fillStyle(0x403a2b,.12);aisle.fillRect(531,250,9,550).fillRect(659,250,9,550);aisle.lineStyle(2,0xbca16a,.5);aisle.lineBetween(538,260,538,782);aisle.lineBetween(661,260,661,782);
  // Reuse the original equipment sprite at a scale consistent with the player.
  const rackSource=scene.textures.get('life-rack').getSourceImage() as HTMLImageElement;scene.add.image(600,251,'life-rack').setOrigin(.5,1).setDisplaySize(55*rackSource.width/rackSource.height,55).setDepth(251);block(565,220,70,28);
  text(600,190,'CELEIRO DO VALE',14);points.push({name:'Equipamentos',x:600,y:291,hitX:600,hitY:233,radius:38,run:equipment});
@@ -35,6 +35,7 @@ export function buildBarn(scene:Phaser.Scene,farm:Farm,block:Block,animals:(id?:
   // Closed wooden gates face the central corridor. Their footprint is part of the pen collider.
   for(const edge of [x,x+w-6]){front.fillStyle(0x63472e);if(edge===(pen.side==='left'?x+w-6:x)){front.fillRect(edge,y,6,39);front.fillRect(edge,y+80,6,h-80);}else front.fillRect(edge,y,6,h);for(const postY of [y,y+h-13]){front.fillStyle(0x785631);front.fillRect(edge-3,postY,12,21);front.fillStyle(0xc49b5c);front.fillRect(edge-3,postY,12,4);}}
   board(x+w/2,y+h-1,w,12,y+h+11);for(const edge of [x+3,x+w-3]){if(edge===(pen.side==='left'?x+w-3:x+3)){board(edge,y+16,9,42,y+h+12,true);board(edge,y+97,9,32,y+h+12,true);}else board(edge,y+h/2,9,h+8,y+h+12,true);}
+  for(const edge of [x+3,x+w-3])for(const postY of [y+15,y+h+4])scene.add.image(edge,postY,'barn-post').setOrigin(.5,1).setDepth(y+h+12.5);
   const gateX=pen.side==='left'?x+w-10:x-2;const gate=scene.add.graphics().setDepth(y+h+13);gate.lineStyle(3,0xc09759);gate.strokeRect(gateX,y+39,12,39);gate.lineBetween(gateX,y+42,gateX+12,y+75);gates.set(pen.id,gate);
   const plaque=text(x+w/2,y-15,pen.purpose.toUpperCase(),9).setVisible(false);labels.push({pen,text:plaque});
   if(pen.animals.length){

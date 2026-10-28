@@ -1,5 +1,11 @@
 # Caminho do projeto
 
+## Acabamento 0.9.2
+
+- [x] Cama e guarda-roupa nos cantos, sala alinhada com sofá voltado para a TV e mesa de centro.
+- [x] Revestimentos e tapetes detalhados na casa; piso de pedra, lanternas, fardos redondos e objetos com volume no celeiro.
+- [x] Colisões e pontos de interação atualizados, sem alterações de save ou produção.
+
 ## Ajuste 0.9.1
 
 - [x] Respiração contínua ao parar, com ciclo de três segundos; mantém os pés e a colisão no lugar, inclusive com ferramentas. Para durante movimento e ações e respeita movimento reduzido.
