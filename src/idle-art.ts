@@ -6,6 +6,7 @@ export function breathingScale(elapsed:number){
 export class IdleBreathing{
  private since:number|null=null;
  reset(){this.since=null;}
+ frame(time:number,moving:boolean,acting:boolean,disabled:boolean){return Math.round((this.sample(time,moving,acting,disabled)-1)/.034*2);}
  sample(time:number,moving:boolean,acting:boolean,reduced:boolean){
   if(moving||acting||reduced){this.reset();return 1;}
   this.since??=time;return breathingScale(time-this.since);

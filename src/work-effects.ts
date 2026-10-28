@@ -15,6 +15,7 @@ export class WorkEffects {
     for (let i = 0; i < 3; i++) this.drops.push({ start: { x: start.x + (i - 1) * 1.2, y: start.y }, end: { x: target.x + Phaser.Math.Between(-12, 12), y: target.y + Phaser.Math.Between(-7, 7) }, born: now, duration: 165 + i * 25, arc: 3 + i, color: i === 1 ? 0xe5fbff : 0x89cddd });
   }
   update(now: number) {
+    if(!this.drops.length&&!this.splashes.length)return;
     this.graphics.clear();
     const keep: Drop[] = [];
     for (const drop of this.drops) {

@@ -1,3 +1,5 @@
+Entrega 0.11.0: noite legível, respiração em quadros de pixel art, camadas estáticas dos interiores em cache, menos trabalho por quadro, modo leve adaptativo e contador real. Pendente: validar 60 FPS sustentados em aparelhos físicos de referência.
+
 Atualização 0.10.1: respiração preservada também nas poses de sentar e dormir; amplitude mais perceptível em repouso.
 
 # Caminho do projeto

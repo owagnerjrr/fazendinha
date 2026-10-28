@@ -10,6 +10,7 @@ export type RoomPoint={kind?:string;x:number;y:number;hitX?:number;hitY?:number;
 export function buildBarn(scene:Phaser.Scene,farm:Farm,block:Block,animals:(id?:string)=>void,equipment:()=>void){
  const points:RoomPoint[]=[],actors:BarnActor[]=[],labels:{pen:BarnPen;text:Phaser.GameObjects.Text}[]=[],gates=new Map<number,Phaser.GameObjects.Graphics>();
  const returning=new Map<string,{x:number;y:number;start:number}>();
+ let gateState:number|null=null;let labelAt=0;
  let care:{id:string;type:'pet-animal'|'play-animal';start:number;from:{x:number;y:number};pen:BarnPen}|null=null;
  const text=(x:number,y:number,label:string,size=10)=>scene.add.text(x,y,label,{fontFamily:'monospace',fontSize:`${size}px`,color:'#f5dfad',backgroundColor:'#493c2ee8',padding:{x:7,y:4}}).setOrigin(.5).setDepth(1300);
  barnMaterials(scene);dogArt(scene);const pens=barnLayout(farm.animals);
@@ -57,7 +58,7 @@ export function buildBarn(scene:Phaser.Scene,farm:Farm,block:Block,animals:(id?:
   endCare(){if(care){const a=actors.find(a=>a.pen.animals[a.index].id===care!.id);if(a)returning.set(care.id,{x:a.sprite.x,y:a.sprite.y,start:scene.time.now});}care=null;},
   contact(id:string){const a=actors.find(a=>a.pen.animals[a.index].id===id);return a?{x:a.sprite.x,y:a.sprite.y}:undefined;},
   update(time:number,current:Farm,now:number,player?:{x:number;y:number}){
-  for(const pen of pens){const gate=gates.get(pen.id)!;const gateX=pen.side==='left'?pen.x+pen.width-10:pen.x-2;gate.clear().lineStyle(3,0xc09759);if(care?.pen.id===pen.id){gate.lineBetween(gateX,pen.y+39,gateX+(pen.side==='left'?-27:27),pen.y+39);}else{gate.strokeRect(gateX,pen.y+39,12,39);gate.lineBetween(gateX,pen.y+42,gateX+12,pen.y+75);}}
+  if(gateState!==(care?.pen.id??null)){gateState=care?.pen.id??null;for(const pen of pens){const gate=gates.get(pen.id)!;const gateX=pen.side==='left'?pen.x+pen.width-10:pen.x-2;gate.clear().lineStyle(3,0xc09759);if(care?.pen.id===pen.id){gate.lineBetween(gateX,pen.y+39,gateX+(pen.side==='left'?-27:27),pen.y+39);}else{gate.strokeRect(gateX,pen.y+39,12,39);gate.lineBetween(gateX,pen.y+42,gateX+12,pen.y+75);}}}
 
   for(const a of actors){const pose=animalPose(a.pen,a.index,time),kind=a.pen.animals[a.index].kind;
    if(pose.dog&&scene.textures.exists('dog-walk')&&scene.textures.exists('dog-rest'))a.sprite.setTexture(pose.dog.walking?'dog-walk-solid':'dog-rest-solid',pose.dog.walking?pose.dog.frame:(pose.dog.resting?4:0)+pose.dog.facing);
@@ -72,7 +73,7 @@ export function buildBarn(scene:Phaser.Scene,farm:Farm,block:Block,animals:(id?:
    const back=returning.get(a.pen.animals[a.index].id);if(back&&!care){const t=Math.min(1,(time-back.start)/700);pose.x=back.x+(pose.x-back.x)*t;pose.y=back.y+(pose.y-back.y)*t;if(t>=1)returning.delete(a.pen.animals[a.index].id);}
    a.sprite.setPosition(pose.x,pose.y).setDisplaySize(pose.width,pose.height).setFlipX(pose.flip).setAngle(pose.eating?(pose.flip?-4:4):0).setDepth(pose.y);a.shadow.setPosition(pose.x,pose.y-2).setDepth(pose.y-.2);
   }
-  for(const {pen,text} of labels){const ready=pen.animals.filter(a=>{const live=current.animals.find(v=>v.id===a.id);return live&&animalReady(live,now);}).length;text.setText(`${pen.purpose.toUpperCase()}${ready?' · '+ready+' PRONTO(S)':''}`).setVisible(!!player&&Math.hypot(player.x-pen.access.x,player.y-pen.access.y)<82&&!care);}
+  if(time>=labelAt){labelAt=time+150;for(const {pen,text} of labels){const ready=pen.animals.filter(a=>{const live=current.animals.find(v=>v.id===a.id);return live&&animalReady(live,now);}).length;text.setText(`${pen.purpose.toUpperCase()}${ready?' · '+ready+' PRONTO(S)':''}`).setVisible(!!player&&Math.hypot(player.x-pen.access.x,player.y-pen.access.y)<82&&!care);}}
  }};
 }
 function ensureBlink(scene:Phaser.Scene,kind:AnimalKind){

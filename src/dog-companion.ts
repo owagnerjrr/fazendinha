@@ -7,12 +7,14 @@ import type {Point,Obstacle} from './pathfinding';
 type Dog={actor:Phaser.GameObjects.Image;sprite:Phaser.Physics.Arcade.Sprite;shadow:Phaser.GameObjects.Ellipse;name:Phaser.GameObjects.Text;route:Point[];nextRoute:number;stoppedAt:number;facing:DogFacing;last:Point;distance:number;stuck:number};
 /** Owned visual companions. Feeding, water and protection stay authoritative on the server. */
 export class DogCompanions {
- private dogs=new Map<string,Dog>();
+ private dogs=new Map<string,Dog>();private obstacleCache:Obstacle[]|null=null;private obstacleCount=-1;private nextPlan=0;
+ invalidateObstacles(){this.obstacleCache=null;}
  constructor(private scene:Phaser.Scene,private player:Phaser.Physics.Arcade.Sprite,private obstacles:Phaser.Physics.Arcade.StaticGroup,private otherAnimals:Phaser.GameObjects.Sprite[]){}
  update(farm:Farm){
-  dogArt(this.scene);const owned=farm.animals.filter(a=>a.kind==='dog'),ids=new Set(owned.map(a=>a.id)),now=this.scene.time.now;
+  const owned=farm.animals.filter(a=>a.kind==='dog'),ids=new Set(owned.map(a=>a.id)),now=this.scene.time.now;
   for(const [id,dog] of this.dogs)if(!ids.has(id)){dog.sprite.destroy();dog.actor.destroy();dog.shadow.destroy();dog.name.destroy();this.dogs.delete(id);}
-  const obstacles:Obstacle[]=this.obstacles.getChildren().map(o=>{const b=(o as Phaser.GameObjects.Zone).body as Phaser.Physics.Arcade.StaticBody;return{x:b.x,y:b.y,width:b.width,height:b.height};});let planned=0;
+  if(!owned.length&&!this.dogs.size)return;dogArt(this.scene);
+  const children=this.obstacles.getChildren();if(!this.obstacleCache||this.obstacleCount!==children.length){this.obstacleCount=children.length;this.obstacleCache=children.map(o=>{const b=(o as Phaser.GameObjects.Zone).body as Phaser.Physics.Arcade.StaticBody;return{x:b.x,y:b.y,width:b.width,height:b.height};});}const obstacles=this.obstacleCache;let planned=0;
   owned.forEach((animal,index)=>{
    let dog=this.dogs.get(animal.id);
    if(!dog){
@@ -28,7 +30,7 @@ export class DogCompanions {
    if(moved>.04){dog.distance+=moved;dog.facing=dogFacing(dx,dy);dog.stoppedAt=now;dog.stuck=0;dog.actor.setTexture('dog-walk-solid',dogFrame(dog.facing,dog.distance));}
    else {dog.actor.setTexture('dog-rest-solid',(now-dog.stoppedAt>10000?4:0)+dog.facing);if(dog.route.length)dog.stuck++;}
    dog.last={x:dog.sprite.x,y:dog.sprite.y};
-   if(distance>90&&now>=dog.nextRoute&&planned<2){dog.route=dogFollowRoute(dog.sprite,this.player,index,obstacles);dog.nextRoute=now+1300+index*30;planned++;}
+   if(distance>90&&now>=dog.nextRoute&&planned<1&&now>=this.nextPlan){dog.route=dogFollowRoute(dog.sprite,this.player,index,obstacles);dog.nextRoute=now+1300+index*30;planned++;this.nextPlan=now+150;}
    if(dog.stuck>45){dog.route=[];dog.nextRoute=now+500;dog.stuck=0;}
    while(dog.route.length&&Math.hypot(dog.route[0].x-dog.sprite.x,dog.route[0].y-dog.sprite.y)<8)dog.route.shift();
    const target=dog.route[0];if(target){const vx=target.x-dog.sprite.x,vy=target.y-dog.sprite.y,len=Math.hypot(vx,vy),speed=distance>150?170:95;dog.sprite.setVelocity(vx/Math.max(1,len)*speed,vy/Math.max(1,len)*speed);}else dog.sprite.setVelocity(0);

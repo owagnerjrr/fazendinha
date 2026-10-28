@@ -1,3 +1,5 @@
+Atualização 0.11.0: iluminação mais clara, respiração com quadros próprios de pixel art, contador real de FPS e efeitos adaptativos. Escopo e limites em [docs/DESEMPENHO_0_11.md](docs/DESEMPENHO_0_11.md).
+
 Correção 0.10.1: respiração contínua em pé, sentada e deitada, com progresso preservado.
 
 # Fazendinha WJ

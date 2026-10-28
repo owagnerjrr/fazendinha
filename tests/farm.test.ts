@@ -64,6 +64,7 @@ test('save roundtrip preserves growth offline and does not mature before waterin
   assert.equal(remaining(restored.plots[0], 0), CROPS.tomato.seconds * 1000, 'clock rollback does not accelerate growth');
 });
 test('malformed, incomplete and unsupported saves safely recover', () => {
-  for (const raw of [null, 'broken', '{}', 'null', '{"version":2}', '[]']) assert.deepEqual(restoreFarm(raw), makeFarm());
-  for (const corrupt of [ (f: ReturnType<typeof makeFarm>) => { f.coins = -3; }, (f: ReturnType<typeof makeFarm>) => { f.plots[0].id = 9; }, (f: ReturnType<typeof makeFarm>) => { f.plots[0].crop = 'tomato'; }, (f: ReturnType<typeof makeFarm>) => { f.seeds.carrot = -1; } ]) { const f = makeFarm(); corrupt(f); assert.deepEqual(restoreFarm(JSON.stringify(f)), makeFarm()); }
+  const fresh=(raw:string|null)=>{const before=Date.now(),f=restoreFarm(raw),after=Date.now();assert.ok(f.calendar!.startedAt>=before&&f.calendar!.startedAt<=after);assert.deepEqual(f,makeFarm(f.calendar!.startedAt));};
+  for (const raw of [null, 'broken', '{}', 'null', '{"version":2}', '[]']) fresh(raw);
+  for (const corrupt of [ (f: ReturnType<typeof makeFarm>) => { f.coins = -3; }, (f: ReturnType<typeof makeFarm>) => { f.plots[0].id = 9; }, (f: ReturnType<typeof makeFarm>) => { f.plots[0].crop = 'tomato'; }, (f: ReturnType<typeof makeFarm>) => { f.seeds.carrot = -1; } ]) { const f = makeFarm(); corrupt(f); fresh(JSON.stringify(f)); }
 });

@@ -197,3 +197,8 @@ Nesta entrega não foi concluída uma nova sessão jogável em 390×844: a pági
 As poses de sentar e dormir reaplicavam escala fixa depois da respiração, anulando o movimento. Agora recebem a mesma inspiração/expiração usada ao ficar em pé, mantendo a origem nos pés e o corpo físico inalterado. A amplitude passou de 2,6% para 3,4%, para tornar o ciclo de três segundos mais perceptível. Andar, trabalhar, fazer carinho e a preferência de movimento reduzido continuam suspendendo a respiração; levantar usa escala neutra durante a transição. Nenhuma mudança de save, calendário, conta ou economia.
 
 82 testes e build aprovados, incluindo o teste de continuidade do ciclo, interrupção e retomada. Na cena real com dados fictícios, a instrumentação leu a escala do sprite efetivamente desenhado: em pé 1,0800–1,1096 e no sofá 1,0800–1,1148, confirmando que a pose não substitui mais a animação por escala fixa. O medidor existe apenas no fixture de QA, sem exposição de contas ou comandos no jogo. Captura em `screenshots/respiracao-sofa-0.10.1.jpg`. Sem novo teste em celular físico ou autenticação online nesta correção gráfica.
+
+
+## Iluminação e desempenho 0.11.0 — 28/10/2026
+
+85 testes e build aprovados; casa e celeiro com piso em cache, madrugada legível e quadros 0/1/2 da respiração conferidos na cena real. Jogo principal com save fictício preservou nome/250 moedas e foi inspecionado em 390×844. Contador real: cerca de 1 FPS neste navegador remoto, igual ao controle vazio sem jogo; CPU p95 da fazenda 2,1 ms. Não foi validado 60 FPS sustentado nem celular físico. Não houve nova autenticação pessoal ou mudança das regras online. Escopo, medições, limites e procedimento de teste em [DESEMPENHO_0_11.md](DESEMPENHO_0_11.md).

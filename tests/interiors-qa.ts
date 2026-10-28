@@ -19,13 +19,12 @@ game=new Phaser.Game({type:Phaser.AUTO,parent:'game',pixelArt:true,scale:{mode:P
 $('sit').onclick=()=>interior.requestHouseInteraction('sofa');$('sleep').onclick=()=>interior.requestHouseInteraction('bed');$('tv').onclick=()=>interior.requestHouseInteraction('tv');
 $('advance').onclick=()=>{farm.calendar!.offsetMinutes+=360;};$('season').onclick=()=>{farm.calendar!.offsetMinutes+=28*1440;};
 
-// Read the rendered actor, so a later pose overriding its scale is caught in browser QA.
-let breathActivity='',breathMin=Infinity,breathMax=-Infinity;
+// Observe actual idle atlas frames, including the final seated/lying pose.
+let breathActivity='',breathFrames=new Set<string|number>();
 setInterval(()=>{
- if(!game.scene.isActive('Interior'))return;
- const activity=interior.getActivity();if(activity!==breathActivity){breathActivity=activity;breathMin=Infinity;breathMax=-Infinity;}
+ if(!game.scene.isActive('Interior'))return;const activity=interior.getActivity();if(activity!==breathActivity){breathActivity=activity;breathFrames.clear();}
  const actor=interior.children.list.find(o=>o instanceof Phaser.GameObjects.Sprite&&o.visible&&o.texture.key.startsWith('avatar-')) as Phaser.GameObjects.Sprite|undefined;
- if(!actor||!['Em pé','Sentada no sofá','Dormindo na cama'].includes(activity)){$('breath-state').textContent='Respiração suspensa durante movimento/transição.';return;}
- breathMin=Math.min(breathMin,actor.scaleY);breathMax=Math.max(breathMax,actor.scaleY);
- $('breath-state').textContent=`${activity}: altura do sprite ${breathMin.toFixed(4)}–${breathMax.toFixed(4)} · ${breathMax-breathMin>.005?'respiração observada':'observando ciclo…'}`;
+ if(!actor||!['Em pé','Sentada no sofá','Dormindo na cama'].includes(activity)){$('breath-state').textContent='Respiração em pausa durante movimento/transição.';return;}
+ if(actor.texture.key.includes('-idle-'))breathFrames.add(actor.frame.name);
+ $('breath-state').textContent=`${activity}: quadros de repouso ${[...breathFrames].join(', ')} · ${breathFrames.size>1?'respiração observada':'observando ciclo…'}`;
 },100);

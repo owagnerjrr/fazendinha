@@ -4,7 +4,7 @@ import type {Farm} from './farm';
 export class LandWorld{
  private signature='';private objects:Phaser.GameObjects.GameObject[]=[];private bodies:Phaser.GameObjects.Zone[]=[];
  constructor(private scene:Phaser.Scene,private obstacles:Phaser.Physics.Arcade.StaticGroup){buildingTextures(scene);}
- update(f:Farm){const signature=JSON.stringify([f.landParcels,f.landOwned,f.buildings]);if(signature===this.signature)return;this.signature=signature;for(const o of this.objects)o.destroy();for(const z of this.bodies)z.destroy();this.objects=[];this.bodies=[];
+ update(f:Farm){const signature=JSON.stringify([f.landParcels,f.landOwned,f.buildings]);if(signature===this.signature)return false;this.signature=signature;for(const o of this.objects)o.destroy();for(const z of this.bodies)z.destroy();this.objects=[];this.bodies=[];
  for(const [id,p] of Object.entries(LAND_SITES)){
   const owned=(f.landParcels??(f.landOwned?[{site:'west'}]:[])).some(v=>v.site===id),g=this.scene.add.graphics().setDepth(.8);this.objects.push(g);g.lineStyle(1,owned?0xd4ba7f:0x99b876,owned?.75:.4);g.strokeRect(p.x-21,p.y-21,162,122);if(owned){g.fillStyle(0xab8d52,.14);g.fillRect(p.x-20,p.y-20,160,120);}
   const label=this.scene.add.text(p.x+60,p.y-37,owned?p.name:'Terreno disponível · venda',{fontFamily:'monospace',fontSize:'9px',color:'#f4e5ba',backgroundColor:'#354f35dd',padding:{x:4,y:3}}).setOrigin(.5).setDepth(3);this.objects.push(label);
@@ -12,7 +12,7 @@ export class LandWorld{
  for(const b of f.buildings??[]){const p=LAND_SITES[b.site],x=p.x+b.col*40+20,y=p.y+b.row*40+58;this.objects.push(this.scene.add.ellipse(x,y-3,76,21,0x243525,.3).setDepth(y-.3));this.objects.push(this.scene.add.image(x,y,`land-${b.kind}`).setOrigin(.5,1).setDepth(y));
   const z=this.scene.add.zone(x,y-20,66,36);this.obstacles.add(z);(z.body as Phaser.Physics.Arcade.StaticBody).setSize(66,36);this.bodies.push(z);
  }
- }
+ return true;}
  buildingAt(f:Farm,p:{x:number;y:number}){return f.buildings?.find(b=>{const s=LAND_SITES[b.site],x=s.x+b.col*40+20,y=s.y+b.row*40+58;return Math.abs(p.x-x)<42&&p.y<y+8&&p.y>y-94;});}
  access(b:NonNullable<Farm['buildings']>[number]){const s=LAND_SITES[b.site];return{x:s.x+b.col*40+20,y:s.y+b.row*40+85};}
 }

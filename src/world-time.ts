@@ -13,7 +13,7 @@ export function worldTime(calendar:Calendar|undefined,now:number){
 export function nextMorning(absolute:number){const today=Math.floor(absolute/DAY_MINUTES)*DAY_MINUTES+360;return today>absolute?today:today+DAY_MINUTES;}
 export function nightOpacity(minute:number){
  const stops=[[0,.48],[300,.45],[360,.24],[450,0],[1020,0],[1110,.23],[1230,.44],[1440,.48]];
- for(let i=1;i<stops.length;i++)if(minute<=stops[i][0]){const [a,x]=stops[i-1],[b,y]=stops[i];return x+(y-x)*(minute-a)/(b-a);}return .48;
+ for(let i=1;i<stops.length;i++)if(minute<=stops[i][0]){const [a,x]=stops[i-1],[b,y]=stops[i];return (x+(y-x)*(minute-a)/(b-a))/3;}return .48/3;
 }
 export function applyHome(f:{calendar?:Calendar;home?:HomeState},c:{action?:unknown;on?:unknown},now:number){
  const fail=(message:string)=>({ok:false,message});

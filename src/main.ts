@@ -1,3 +1,5 @@
+import {display,saveDisplay,setAutomaticLight,lightEffects,type Effects} from './display-settings';
+import {FrameBudget} from './frame-budget';
 import {TimeLighting} from './time-lighting';
 import {updateClock,AutoWake,clockText} from './time-ui';
 import { setupJourney } from './journey';
@@ -95,7 +97,7 @@ function seedPanel() {
   document.querySelectorAll<HTMLButtonElement>('[data-crop]').forEach(b => b.onclick = () => { selected = b.dataset.crop as Crop; setTool('seed'); closePanel(); });
 }
 function shop(){life.shop();}
-function help() { openPanel('Um novo começo', `<p>Bem-vindo ao Vale do Sossego. Aqui, um pedacinho de terra já é uma boa história.</p><ol class="controls-list"><li>Escolha a <b>enxada</b> e toque em um canteiro.</li><li>Selecione <b>Plantar</b> e use uma semente.</li><li>Use o <b>regador</b>. O crescimento começa agora.</li><li>Quando estiver pronta, use a <b>mão</b> para colher.</li><li>Abra o <b>celeiro</b> e venda sua colheita.</li></ol><p>No PC, ande com <b>WASD ou setas</b>. Use <b>E</b> para agir perto de um canteiro ou da venda. As teclas <b>1–4</b> trocam a ferramenta. Você também pode clicar no terreno para caminhar. No celular, use o joystick ou toque no mapa.</p><p class="quiet-note"><b>Versão de testes 0.7.0:</b> use Conta para criar sua fazenda online e continuar em outro aparelho. Sem entrar, você joga no teste local deste navegador. Minha fazenda abre seu avatar, os animais e o jardim. Entre na casa e no celeiro para explorar. Use a mão para remover pragas. A conta libera ainda níveis, energia, expansão, amigos e feira. Compras e colheitas online precisam de conexão. As plantas regadas continuam crescendo ao fechar. A arte é provisória e original do projeto.</p><button class="primary" id="start-playing">Vamos plantar</button>`); $('start-playing').onclick = closePanel; }
+function help() { openPanel('Um novo começo', `<p>Bem-vindo ao Vale do Sossego. Aqui, um pedacinho de terra já é uma boa história.</p><ol class="controls-list"><li>Escolha a <b>enxada</b> e toque em um canteiro.</li><li>Selecione <b>Plantar</b> e use uma semente.</li><li>Use o <b>regador</b>. O crescimento começa agora.</li><li>Quando estiver pronta, use a <b>mão</b> para colher.</li><li>Abra o <b>celeiro</b> e venda sua colheita.</li></ol><p>No PC, ande com <b>WASD ou setas</b>. Use <b>E</b> para agir perto de um canteiro ou da venda. As teclas <b>1–4</b> trocam a ferramenta. Você também pode clicar no terreno para caminhar. No celular, use o joystick ou toque no mapa.</p><p class="quiet-note"><b>Versão de testes 0.11.0:</b> use Conta para criar sua fazenda online e continuar em outro aparelho. Sem entrar, você joga no teste local deste navegador. Minha fazenda abre seu avatar, os animais e o jardim. Entre na casa e no celeiro para explorar. Use a mão para remover pragas. A conta libera ainda níveis, energia, expansão, amigos e feira. Compras e colheitas online precisam de conexão. As plantas regadas continuam crescendo ao fechar. A arte é provisória e original do projeto.</p><button class="primary" id="start-playing">Vamos plantar</button>`); $('start-playing').onclick = closePanel; }
 $('inventory').onclick = inventory; $('seed-choice').onclick = seedPanel; $('help').onclick = help;
 document.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach(b => b.onclick = () => setTool(b.dataset.tool as Tool));
 
@@ -220,10 +222,10 @@ class FarmScene extends Phaser.Scene {
     this.entranceControl=new EntranceControl(this,this.player,$<HTMLButtonElement>('enter-place'),e=>{this.cancelMovement();if(e.id==='shop')shop();else enterInterior(e.id);},()=>({inside,modal,working:!!this.activeWork,lockedUntil:entranceLockedUntil}));
     this.aim = this.add.ellipse(0, 0, 20, 9).setStrokeStyle(2, 0xffe7a1, .8).setDepth(4).setVisible(false);
     this.cameras.main.setBounds(0, 0, 1600, 1200); this.cameras.main.startFollow(this.player, true, .09, .09, 0, 45);
-    this.vignette = this.add.image(0, 0, 'vignette').setOrigin(0).setScrollFactor(0).setDepth(2400).setAlpha(.5);
+    this.vignette = this.add.image(0, 0, 'vignette').setOrigin(0).setScrollFactor(0).setDepth(2400).setAlpha(.1);
     const ambientDecor:(Phaser.GameObjects.Image|Phaser.GameObjects.Rectangle)[]=[...this.ripples];
     for (let i = 0; i < (this.scale.width<600?2:3); i++) {
-      const cloud = this.add.image(200 + i * 530, 300 + i * 210, 'cloud-shadow').setScale(2.7).setDepth(1500).setAlpha(.35);
+      const cloud = this.add.image(200 + i * 530, 300 + i * 210, 'cloud-shadow').setScale(2.7).setDepth(1500).setAlpha(.1);
       ambientDecor.push(cloud);
       this.tweens.add({ targets: cloud, x: cloud.x + 230, duration: 38000 + i * 7000, yoyo: true, repeat: -1 });
     }
@@ -261,7 +263,7 @@ class FarmScene extends Phaser.Scene {
   paintFields() {
     const now = Date.now() + (cloud.active ? cloud.offset : 0);
     const signature=JSON.stringify(farm.decorations);if(signature!==this.decorSignature){this.decorSprites.forEach(x=>x.destroy());this.decorSprites=[];this.decorSignature=signature;for(const d of farm.decorations){const slot=DECOR_SLOTS[d.slot],item=DECOR[d.kind];if(slot&&item)this.decorSprites.push(this.add.image(slot.x,slot.y,`life-${item.texture}`).setOrigin(.5,1).setDepth(slot.y).setScale(d.kind==='cocoaTree'?.85:.65));}}
-    this.landWorld?.update(farm);
+    if(this.landWorld?.update(farm))this.dogCompanions?.invalidateObstacles();
     for(const b of farm.buildings??[]){const site=LAND_SITES[b.site],cx=site.x+b.col*40+20,cy=site.y+b.row*40+38;if(this.player&&Math.abs(this.player.x-cx)<43&&Math.abs(this.player.y-cy)<30){this.cancelMovement();const access=this.landWorld.access(b);this.player.setPosition(access.x,access.y);}}
     for (const field of this.fields) {
       const point=plotPosition(field.id,farm);const usable=plotUsable(farm,field.id);field.soil.setVisible(!!point&&usable);if(!point||!usable){field.plant.setVisible(false);field.label.setVisible(false);continue;}field.x=point.x;field.y=point.y;field.soil.setPosition(point.x,point.y);field.plant.setPosition(point.x,point.y+11).setDepth(point.y+2);field.label.setPosition(point.x,point.y-27);
@@ -336,9 +338,8 @@ class FarmScene extends Phaser.Scene {
     const work = this.activeWork, equipped = work?.clock.tool ?? tool;
     const usingActionSheet = !!work && (equipped === 'hoe' || equipped === 'water');
     const elapsed = work?.clock.elapsed(time) ?? 0;
-    const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const breath=this.breathing.sample(time,moving,!!work,reduced);
-    const frame = moving ? Math.floor(time / 130) % 4 : 0;
+    const idle=!moving&&!work,phase=this.breathing.frame(time,moving,!!work,!display.breathing);
+    const frame = moving ? Math.floor(time / 130) % 4 : phase;
     const bend = work && !usingActionSheet ? Math.sin(Math.min(1, elapsed / ACTIONS[equipped].duration) * Math.PI) : 0;
     const bob = (moving ? Math.sin(time / 65) * .65 : 0) + bend * 1.5;
     if (usingActionSheet) {
@@ -346,9 +347,9 @@ class FarmScene extends Phaser.Scene {
     } else if (equipped !== 'hand') {
       // Hands, grip and equipment are a single authored sprite in every frame.
       // No mirroring/pivot guesses or detached inventory icons during movement.
-      this.actor.setTexture(this.avatarArt.key(`carry-${equipped}`,farm.avatar), DIRECTION_ROW[this.direction] * 4 + frame).setOrigin(.5, 100 / 112).setScale(1.08, 1.08 * breath * (1 - bend * .07));
+      this.actor.setTexture((idle?this.avatarArt.idleKey(`carry-${equipped}`,farm.avatar):this.avatarArt.key(`carry-${equipped}`,farm.avatar)), DIRECTION_ROW[this.direction] * 4 + frame).setOrigin(.5, 100 / 112).setScale(1.08, 1.08 * (1 - bend * .07));
     } else {
-      this.actor.setTexture(this.avatarArt.key('farmer-v2',farm.avatar),DIRECTION_ROW[this.direction]*4+frame).setOrigin(.5, 62 / 64).setScale(1.08, 1.08 * breath * (1 - bend * .07));
+      this.actor.setTexture((idle?this.avatarArt.idleKey('farmer-v2',farm.avatar):this.avatarArt.key('farmer-v2',farm.avatar)),DIRECTION_ROW[this.direction]*4+frame).setOrigin(.5, 62 / 64).setScale(1.08, 1.08 * (1 - bend * .07));
     }
     this.actor.setPosition(this.player.x, this.player.y - 2 + bob).setDepth(this.player.y);
     this.playerShadow.setPosition(this.player.x + 1, this.player.y - 3);
@@ -446,7 +447,13 @@ setInterval(()=>{if(!document.hidden)void cloud.refresh();},15000);
 window.addEventListener('online',()=>{if(cloud.active)void cloud.retryPending().then(()=>cloud.refresh()).catch(()=>{});});
 window.addEventListener('focus',()=>void cloud.refresh());
 syncUI();
-const game = new Phaser.Game({ type: Phaser.AUTO, parent: 'game', backgroundColor: '#92ae69', pixelArt: true, roundPixels: true, antialias: false, scale: { mode: Phaser.Scale.RESIZE, width: window.innerWidth, height: window.innerHeight }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [FarmScene], input: { activePointers: 3 }, render: { powerPreference: 'low-power' } });
+const game = new Phaser.Game({ type: Phaser.AUTO, parent: 'game', backgroundColor: '#92ae69', pixelArt: true, roundPixels: true, antialias: false, scale: { mode: Phaser.Scale.RESIZE, width: window.innerWidth, height: window.innerHeight }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [FarmScene], input: { activePointers: 3 }, fps:{target:60},render: { powerPreference: 'high-performance' } });
+const frameBudget=new FrameBudget();let frameStart=0;
+game.events.on('prestep',()=>{frameStart=performance.now();});
+document.addEventListener('visibilitychange',()=>frameBudget.reset());
+game.events.on('postrender',()=>{if(frameBudget.tick(performance.now(),!document.hidden&&!booting,performance.now()-frameStart)){setAutomaticLight(frameBudget.light);$('frame-rate').textContent=`${frameBudget.fps<10?frameBudget.fps.toFixed(1):Math.round(frameBudget.fps)} FPS · ${lightEffects()?'Leve':'Completo'}`;const reading=document.getElementById('performance-reading');if(reading)reading.textContent=`${frameBudget.fps<10?frameBudget.fps.toFixed(1):Math.round(frameBudget.fps)} FPS medidos · quadro p95 ${frameBudget.p95.toFixed(1)} ms · CPU p95 ${frameBudget.cpu95.toFixed(1)} ms.`;}});
+$('frame-rate').onclick=()=>{openPanel('Desempenho e animação',`<p id="performance-reading">${frameBudget.fps<10?frameBudget.fps.toFixed(1):Math.round(frameBudget.fps)} FPS medidos · quadro p95 ${frameBudget.p95.toFixed(1)} ms · CPU p95 ${frameBudget.cpu95.toFixed(1)} ms.</p><p>A meta é 60 FPS (16,7 ms por quadro). O resultado depende do aparelho e do navegador.</p><label>Efeitos do cenário <select id="effects-setting"><option value="auto">Automático</option><option value="full">Completos</option><option value="light">Leves</option></select></label><p>O modo leve reduz efeitos decorativos e mantém personagem, ferramentas e regras da fazenda.</p><label><input id="breathing-setting" type="checkbox" ${display.breathing?'checked':''}/> Respiração da personagem</label><p class="quiet-note">Noite mais clara em todos os modos. A respiração usa quadros de pixel art, sem mudar colisões.</p>`);
+ const effects=$<HTMLSelectElement>('effects-setting');effects.value=display.effects;effects.onchange=()=>{display.effects=effects.value as Effects;saveDisplay();};$<HTMLInputElement>('breathing-setting').onchange=e=>{display.breathing=(e.target as HTMLInputElement).checked;saveDisplay();};};
 window.addEventListener('error', () => { $('save-status').textContent = 'Ocorreu um erro. Recarregue para continuar.'; });
 // Expose no account state or mutation hooks. The Phaser instance remains module-local.
 game.scene.add('Interior',new InteriorScene({farm:()=>farm,stick:()=>joystick,modal:()=>modal,tool:()=>tool,now:()=>Date.now()+cloud.offset,avatar:()=>life.avatar(),animals:id=>life.animals(id),equipment:()=>life.equipment(),care:lifeCommand,home:lifeCommand,toast,open:openPanel,exit:()=>{entranceLockedUntil=performance.now()+600;currentInterior=null;inside=false;$('hint').hidden=false;$('quest-card').hidden=false;setTool(tool);$('exit-interior').hidden=true;$('interior-view').hidden=true;$('world-place').textContent='VALE DO SOSSEGO';scene.cancelMovement();}}),false);

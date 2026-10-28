@@ -5,7 +5,7 @@ test('calendar advances through periods, four 28-day seasons and year wrap using
  assert.equal(at(0).text,'06:00');assert.equal(at(0).period,'Manhã');assert.equal(at(360).period,'Tarde');assert.equal(at(720).period,'Noite');assert.equal(at(1080).period,'Madrugada');assert.equal(at(1440).day,2);
  for(let i=0;i<4;i++){assert.equal(at(i*28*1440).season,SEASONS[i]);assert.equal(at(i*28*1440).dayOfSeason,1);}assert.equal(at(112*1440).year,2);assert.equal(at(112*1440).season,'Primavera');assert.equal(worldTime(calendar,0).text,'06:00');
  assert.equal(nextMorning(360),1800);assert.equal(nextMorning(1450),1800);assert.equal(nextMorning(1801),3240);
- for(let m=0;m<1440;m++)assert.ok(nightOpacity(m)>=0&&nightOpacity(m)<=.48);assert.equal(nightOpacity(720),0);assert.equal(nightOpacity(0),.48);
+ for(let m=0;m<1440;m++)assert.ok(nightOpacity(m)>=0&&nightOpacity(m)<=.16);assert.equal(nightOpacity(720),0);assert.equal(nightOpacity(0),.16);
 });
 test('TV persists, sleep requires real rest and morning never alters crop clocks, products or coins',()=>{
  const f=makeFarm(1000);f.plots[0]={id:0,tilled:true,crop:'sunflower',wateredAt:1000};const economy=JSON.stringify({coins:f.coins,plots:f.plots,seeds:f.seeds,products:f.products});

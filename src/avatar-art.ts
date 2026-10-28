@@ -1,16 +1,17 @@
 import Phaser from 'phaser';
+import {idlePixels} from './idle-pixels';
 import { SKIN_TONES, HAIR_COLORS, SHIRT_COLORS, type Avatar } from './content';
 const spec:Record<string,{w:number;h:number}>={'farmer-v2':{w:48,h:64},'carry-hoe':{w:128,h:112},'carry-seed':{w:128,h:112},'carry-water':{w:128,h:112},'hoe-actions':{w:96,h:112},'water-actions':{w:96,h:112}};
 const rgb=(hex:string)=>[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16));
 let avatarInstance=0;
 export class AvatarArt {
  private instance=++avatarInstance;
- private signature='';private keys=new Map<string,string>();private generation=0;
+ private keys=new Map<string,string>();private generation=0;private previous?:Avatar;
  constructor(private scene:Phaser.Scene){}
  destroy(){for(const key of this.keys.values())this.scene.textures.remove(key);this.keys.clear();}
  key(base:string,avatar:Avatar){
-  const signature=JSON.stringify(avatar);
-  if(signature!==this.signature){for(const key of this.keys.values()){this.scene.textures.remove(key);this.scene.textures.remove(`${key}-source`);}this.keys.clear();this.signature=signature;this.generation++;}
+  const old=this.previous;
+  if(!old||old.style!==avatar.style||old.skin!==avatar.skin||old.hair!==avatar.hair||old.shirt!==avatar.shirt){for(const key of this.keys.values()){this.scene.textures.remove(key);this.scene.textures.remove(`${key}-source`);}this.keys.clear();this.previous={...avatar};this.generation++;}
   if(this.keys.has(base))return this.keys.get(base)!;
   if(base==='pose-sit'||base==='pose-sleep'){
    const source=this.scene.textures.get(this.key('farmer-v2',avatar)).getSourceImage() as HTMLCanvasElement;
@@ -45,5 +46,17 @@ export class AvatarArt {
    }
   }
   const key=`avatar-${this.instance}-${this.generation}-${base}`;const sourceTexture=this.scene.textures.addCanvas(key,canvas)!;this.scene.textures.addSpriteSheet('',sourceTexture,{frameWidth:w,frameHeight:h});this.keys.set(base,key);return key;
+ }
+ idleKey(base:string,avatar:Avatar){
+  const sourceKey=this.key(base,avatar),cache=`idle-${base}`;if(this.keys.has(cache))return this.keys.get(cache)!;
+  const pose=base.startsWith('pose-'),{w,h}=spec[base]??{w:48,h:64},rows=pose?1:4;
+  const source=this.scene.textures.get(sourceKey).getSourceImage() as HTMLCanvasElement;
+  const cv=document.createElement('canvas');cv.width=w*4;cv.height=h*rows;const c=cv.getContext('2d')!;c.imageSmoothingEnabled=false;
+  const frame=document.createElement('canvas');frame.width=w;frame.height=h;const f=frame.getContext('2d')!;
+  const feet=pose?48:h===112?100:62,legs=feet-10,upper=legs-14;
+  for(let row=0;row<rows;row++){f.clearRect(0,0,w,h);f.drawImage(source,0,row*h,w,h,0,0,w,h);const pixels=f.getImageData(0,0,w,h);
+   for(let col=0;col<4;col++){const data=c.createImageData(w,h);data.data.set(idlePixels(pixels.data,w,h,upper,legs,col===3?1:col));c.putImageData(data,col*w,row*h);}
+  }
+  const key=`avatar-${this.instance}-${this.generation}-${cache}`,texture=this.scene.textures.addCanvas(key,cv)!;this.scene.textures.addSpriteSheet('',texture,{frameWidth:w,frameHeight:h});this.keys.set(cache,key);return key;
  }
 }

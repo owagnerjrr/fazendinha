@@ -27,3 +27,5 @@
 .interior-view{display:none;position:fixed;z-index:30;left:10px;top:200px;min-height:40px;padding:8px 12px;color:#fff5d3;background:#3b573d;border:1px solid #ba9d67;border-radius:9px;cursor:pointer}.interior-view[hidden]{display:none!important}@media(max-width:899px){.interior-view{display:block}}
 
 .enter-place{position:fixed;z-index:40;left:50%;bottom:200px;transform:translateX(-50%);border:1px solid #d5be80;border-radius:9px;background:#354f3b;color:#fff6d6;padding:10px 16px;min-height:44px;font-weight:600;box-shadow:0 3px 8px #0005}.enter-place[hidden]{display:none}@media(max-width:800px){.enter-place{bottom:250px;font-size:14px}}
+
+@media(max-width:600px){.online-bar{top:156px;left:188px;right:10px;max-width:calc(100vw - 198px)}}
