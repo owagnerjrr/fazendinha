@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import {breathingPixels} from './idle-art';
 import { SKIN_TONES, HAIR_COLORS, SHIRT_COLORS, type Avatar } from './content';
 const spec:Record<string,{w:number;h:number}>={'farmer-v2':{w:48,h:64},'carry-hoe':{w:128,h:112},'carry-seed':{w:128,h:112},'carry-water':{w:128,h:112},'hoe-actions':{w:96,h:112},'water-actions':{w:96,h:112}};
 const rgb=(hex:string)=>[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16));
@@ -17,11 +18,8 @@ export class AvatarArt {
    const canvas=document.createElement('canvas');canvas.width=w*4;canvas.height=h*4;const ctx=canvas.getContext('2d')!;ctx.imageSmoothingEnabled=false;
    const feet=sourceBase==='farmer-v2'?h-10:h-20;
    for(let row=0;row<4;row++)for(let phase=0;phase<4;phase++){
-    const x=phase*w,y=row*h,lift=phase===1||phase===2?1:0;
-    // Feet never move. Only the upper body lifts one authored pixel on inhalation.
-    ctx.drawImage(source,0,y,w,feet,x,y-lift,w,feet);
-    if(lift)ctx.drawImage(source,0,y+feet-1,w,1,x,y+feet-1,w,1);
-    ctx.drawImage(source,0,y+feet,w,h-feet,x,y+feet,w,h-feet);
+    const x=phase*w,y=row*h,data=(source as HTMLCanvasElement).getContext('2d')!.getImageData(0,y,w,h);
+    data.data.set(breathingPixels(data.data,w,h,feet,phase));ctx.putImageData(data,x,y);
    }
    const key=`avatar-${this.instance}-${this.generation}-${base}`,texture=this.scene.textures.addCanvas(key,canvas)!;
    this.scene.textures.addSpriteSheet('',texture,{frameWidth:w,frameHeight:h});this.keys.set(base,key);return key;

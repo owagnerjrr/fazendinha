@@ -1,5 +1,7 @@
 # Fazendinha WJ
 
+Versão 0.8.0 — Casa proporcional com móveis originais, cuidados animados no celeiro, respiração e ações sem avisos repetitivos. Detalhes em [INTERIORES_0_8.md](docs/INTERIORES_0_8.md).
+
 Versão 0.7.0 — Cachorros com passos direcionais, celeiro com materiais detalhados, entradas por proximidade e ambiente com vento e pássaros. Detalhes em [AMBIENTE_0_7.md](docs/AMBIENTE_0_7.md).
 
 Chegada ao vale e celeiro reorganizado: Nome, seleção visual de personagem e conta antes da primeira fazenda; perfis existentes preservados. Detalhes em [CHEGADA_E_CELEIRO.md](docs/CHEGADA_E_CELEIRO.md). Protótipo original de um jogo de fazenda para navegador, pensado para celular e PC. O nome do cenário, **Vale do Sossego**, é provisório.
