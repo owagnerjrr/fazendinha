@@ -1,11 +1,11 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import { makeFarm,restoreFarm } from '../src/farm';import {applyLife} from '../src/life-rules';
-import {HOUSE_PROPS,HOUSE_WALLS} from '../src/house-art';import {findPath} from '../src/pathfinding';
+import {HOUSE_PROPS,HOUSE_WALLS,HOUSE_DETAIL_BODIES} from '../src/house-art';import {findPath} from '../src/pathfinding';
 import {animalReady,dogProtects} from '../src/content';
 test('all furniture and the exit have reachable interaction points without passing through furniture',()=>{
- const blocks=[...HOUSE_WALLS,...HOUSE_PROPS.map(p=>p.body)];const spawn={x:600,y:660};
+ const blocks=[...HOUSE_WALLS,...HOUSE_DETAIL_BODIES,...HOUSE_PROPS.map(p=>p.body)];const spawn={x:600,y:660};
  for(const p of [...HOUSE_PROPS,{access:{x:600,y:697}}]){const path=findPath(spawn,p.access,blocks);assert.ok(path.length,JSON.stringify(p));}
- const bed=HOUSE_PROPS.find(p=>p.kind==='bed')!;assert.ok(bed.height<1.5*64);assert.ok(bed.width<64);
+ const bed=HOUSE_PROPS.find(p=>p.kind==='bed')!;assert.ok(bed.height<1.5*64);assert.ok(bed.width<80);
 });
 test('care changes wellbeing, survives reload, and cannot farm money or restart production',()=>{
  const f=makeFarm(),hen=f.animals[0],now=100000;hen.fedAt=now;hen.wateredAt=now;hen.collectedAt=now;

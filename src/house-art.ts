@@ -3,13 +3,14 @@ import { barnMaterials } from './barn-materials';
 import type { Obstacle } from './pathfinding';
 export const HOUSE_BOUNDS={x:270,y:220,width:660,height:500};
 export const HOUSE_PROPS=[
- {kind:'bed',x:365,y:382,width:56,height:84,body:{x:339,y:329,width:52,height:49},access:{x:407,y:372},name:'Cama'},
- {kind:'wardrobe',x:839,y:350,width:54,height:78,body:{x:814,y:326,width:50,height:22},access:{x:839,y:382},name:'Guarda-roupa'},
- {kind:'tv',x:648,y:325,width:48,height:55,body:{x:626,y:308,width:44,height:15},access:{x:648,y:359},name:'TV'},
- {kind:'sofa',x:790,y:525,width:94,height:58,body:{x:746,y:503,width:88,height:20},access:{x:790,y:555},name:'Sofá'},
+ {kind:'bed',x:365,y:382,width:74,height:84,body:{x:332,y:329,width:66,height:49},access:{x:365,y:418},name:'Cama'},
+ {kind:'wardrobe',x:839,y:350,width:66,height:90,body:{x:809,y:326,width:60,height:22},access:{x:839,y:382},name:'Guarda-roupa'},
+ {kind:'tv',x:648,y:325,width:64,height:76,body:{x:619,y:308,width:58,height:15},access:{x:648,y:359},name:'TV'},
+ {kind:'sofa',x:790,y:525,width:104,height:96,body:{x:746,y:503,width:88,height:20},access:{x:790,y:555},name:'Sofá'},
  {kind:'table',x:436,y:534,width:72,height:47,body:{x:403,y:509,width:66,height:22},access:{x:484,y:544},name:'Mesa'},
  {kind:'chair',x:436,y:581,width:30,height:39,body:{x:423,y:566,width:26,height:12},access:{x:478,y:580},name:'Cadeira'},
 ] as const;
+export const HOUSE_DETAIL_BODIES:Obstacle[]=[{x:423,y:350,width:34,height:22}];
 export const HOUSE_WALLS:Obstacle[]=[{x:258,y:154,width:16,height:580},{x:928,y:154,width:16,height:580},{x:270,y:154,width:660,height:70},{x:270,y:716,width:280,height:16},{x:650,y:716,width:280,height:16}];
 /** Original furniture is drawn at world-pixel resolution; no copied reference assets. */
 export function buildHouse(scene:Phaser.Scene,block:(x:number,y:number,w:number,h:number)=>void,interact:(kind:string)=>void){
@@ -31,8 +32,27 @@ export function buildHouse(scene:Phaser.Scene,block:(x:number,y:number,w:number,
  scene.add.tileSprite(270,224,660,492,'house-floor').setOrigin(0).setTint(0xffecd0).setDepth(.1);
  const trim=scene.add.graphics().setDepth(1);trim.fillStyle(0x4e3928);trim.fillRect(270,215,660,11);trim.fillRect(270,224,8,492);trim.fillRect(922,224,8,492);trim.fillRect(270,708,280,10);trim.fillRect(650,708,280,10);trim.fillStyle(0xba945a);trim.fillRect(278,217,644,2);trim.fillRect(550,708,100,18);trim.fillStyle(0xd3b77e);trim.fillRect(555,711,90,2);
  for(const x of [365,840])scene.add.image(x,211,'life-window').setOrigin(.5,1).setDisplaySize(47,57).setDepth(221);
+ houseDetails(scene,block);
  const rug=scene.add.graphics().setDepth(2);rug.fillStyle(0x374c3d);rug.fillRect(707,432,167,142);rug.fillStyle(0x8c9b70);rug.fillRect(710,435,161,136);rug.fillStyle(0x5f785b);rug.fillRect(714,439,153,128);rug.lineStyle(1,0xa5ad7b,.8);rug.strokeRect(718,443,145,120);for(let x=715;x<870;x+=5){rug.fillStyle(0xc8bb89,.65);rug.fillRect(x,431,2,3);rug.fillRect(x,574,2,3);}
- const points=HOUSE_PROPS.map(p=>{scene.add.image(p.x,p.y,`house-${p.kind}`).setOrigin(.5,1).setDepth(p.y);block(p.body.x,p.body.y,p.body.width,p.body.height);return {...p.access,hitX:p.x,hitY:p.y-p.height/2,radius:Math.max(18,p.width*.45),name:p.name,run:()=>interact(p.kind)};});
+ const points=HOUSE_PROPS.map(p=>{const rich=['bed','sofa','wardrobe','tv'].includes(p.kind);scene.add.ellipse(p.x+2,p.y-3,p.width*.95,12,0x30291e,.24).setDepth(p.y-.2);scene.add.image(p.x,p.y,rich?`life-${p.kind}`:`house-${p.kind}`).setOrigin(.5,1).setDisplaySize(p.width,p.height).setDepth(p.y);block(p.body.x,p.body.y,p.body.width,p.body.height);return {...p.access,hitX:p.x,hitY:p.y-p.height/2,radius:Math.max(18,p.width*.45),name:p.name,run:()=>interact(p.kind)};});
  scene.add.image(543,260,'life-flowerPlanter').setOrigin(.5,1).setDisplaySize(36,39).setDepth(260);
  return points;
+}
+
+/** Bedroom and living-room accents at the same pixel scale as the character. */
+function houseDetails(scene:Phaser.Scene,block:(x:number,y:number,w:number,h:number)=>void){
+ const g=scene.add.graphics().setDepth(1),r=(color:number,x:number,y:number,w:number,h:number)=>{g.fillStyle(color);g.fillRect(x,y,w,h);};
+ // Wooden wainscot and plaster relief, rather than a blank wall.
+ r(0x947044,278,187,644,28);for(let x=280;x<922;x+=25){r(0xb08b54,x,189,22,24);r(0xc4a36c,x+1,189,1,22);r(0x745336,x+21,191,1,21);}r(0xd4b77f,278,185,644,3);
+ // Woven bedroom rug and a runner connecting the rooms.
+ r(0x4c6263,307,320,179,113);r(0x879b8b,310,323,173,107);r(0x637d76,314,327,165,99);for(let x=316;x<479;x+=8){r(0xb7c0a0,x,324,3,2);r(0xb7c0a0,x,426,3,2);}for(let y=331;y<425;y+=6)for(let x=318;x<479;x+=9)r(0x748c7e,x,y,3,1);
+ r(0x9d7650,553,514,60,145);r(0xc2a071,556,517,54,139);r(0x93784f,559,520,48,133);for(let y=525;y<650;y+=8){r(0xc7ac7a,564,y,38,1);}
+ // Bedside cabinet with lamp, small book and warm pool of light.
+ const lamp=scene.add.graphics().setDepth(375);lamp.fillStyle(0x30291e,.22).fillEllipse(441,374,41,10);lamp.fillStyle(0x65462c).fillRect(423,348,34,25);lamp.fillStyle(0xc3985d).fillRect(421,345,38,6);lamp.fillStyle(0xe0bd7e).fillRect(422,345,35,1);lamp.fillStyle(0x8e643c).fillRect(426,354,27,14);lamp.fillStyle(0xd5ae61).fillRect(438,359,4,2);lamp.fillStyle(0xb49253).fillRect(437,326,4,18);lamp.fillStyle(0xeee1a3).fillTriangle(426,329,450,329,445,313);lamp.fillStyle(0xd8be78).fillRect(425,329,27,3);lamp.fillStyle(0x799484).fillRect(446,342,8,3);for(const b of HOUSE_DETAIL_BODIES)block(b.x,b.y,b.width,b.height);
+ const light=scene.add.graphics().setDepth(2);light.fillStyle(0xf3cc82,.075).fillEllipse(440,350,104,75);
+ // Framed landscape and wall shelf with books, ceramic pot and trailing plant.
+ const shelf=scene.add.graphics().setDepth(245);shelf.fillStyle(0x563a26).fillRect(480,200,73,42);shelf.fillStyle(0xc1a16a).fillRect(483,203,67,36);shelf.fillStyle(0x809e8f).fillRect(487,207,59,28);shelf.fillStyle(0xc9cf9e).fillCircle(532,215,5);shelf.fillStyle(0x527656).fillTriangle(487,234,517,213,546,234);shelf.fillStyle(0x759267).fillTriangle(503,234,531,221,546,234);
+ shelf.fillStyle(0x65462d).fillRect(704,238,72,5);shelf.fillStyle(0xc19b5c).fillRect(702,236,76,3);for(const [i,color] of [0x6f8c82,0x9c6250,0xd1b06f,0x739364].entries()){shelf.fillStyle(color).fillRect(707+i*8,219-i%2*3,6,17+i%2*3);shelf.fillStyle(0xe1c790).fillRect(708+i*8,223,4,1);}shelf.fillStyle(0xa26c43).fillRect(749,225,16,10);shelf.fillStyle(0x517846).fillEllipse(756,218,23,15);shelf.fillStyle(0x8ca367).fillRect(752,211,4,6);
+ // Window light is static and soft; it never hides sprites or interface.
+ light.fillStyle(0xe8d7a1,.045).fillTriangle(340,226,390,226,470,487);light.fillTriangle(816,226,861,226,715,411);
 }

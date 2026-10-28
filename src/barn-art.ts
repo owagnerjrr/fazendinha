@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import {dogArt} from './dog-art';
 import {barnMaterials} from './barn-materials';
 import { ANIMALS, animalReady, type AnimalKind } from './content';
 import { barnLayout,animalPose,type BarnPen } from './barn-layout';
@@ -11,7 +12,7 @@ export function buildBarn(scene:Phaser.Scene,farm:Farm,block:Block,animals:(id?:
  const returning=new Map<string,{x:number;y:number;start:number}>();
  let care:{id:string;type:'pet-animal'|'play-animal';start:number;from:{x:number;y:number};pen:BarnPen}|null=null;
  const text=(x:number,y:number,label:string,size=10)=>scene.add.text(x,y,label,{fontFamily:'monospace',fontSize:`${size}px`,color:'#f5dfad',backgroundColor:'#493c2ee8',padding:{x:7,y:4}}).setOrigin(.5).setDepth(1300);
- barnMaterials(scene);const pens=barnLayout(farm.animals);
+ barnMaterials(scene);dogArt(scene);const pens=barnLayout(farm.animals);
  const board=(x:number,y:number,w:number,h:number,depth:number,vertical=false)=>{const tile=scene.add.tileSprite(x,y,vertical?h:w,vertical?w:h,'barn-board').setOrigin(.5).setDepth(depth);if(vertical)tile.setRotation(Math.PI/2);return tile;};
  const aisle=scene.add.graphics().setDepth(1);aisle.fillStyle(0x604c33,.35);aisle.fillRect(531,250,137,550);aisle.lineStyle(2,0xbca16a,.5);aisle.lineBetween(538,260,538,782);aisle.lineBetween(661,260,661,782);
  // Reuse the original equipment sprite at a scale consistent with the player.
@@ -41,7 +42,9 @@ export function buildBarn(scene:Phaser.Scene,farm:Farm,block:Block,animals:(id?:
    pen.animals.forEach((a,index)=>{ensureBlink(scene,a.kind);const pose=animalPose(pen,index,0);const shadow=scene.add.ellipse(pose.x,pose.y-2,pose.width*.72,pose.width*.21,0x332d20,.35).setDepth(pose.y-.2);const sprite=scene.add.image(pose.x,pose.y,`life-${a.kind}`).setOrigin(.5,1).setDisplaySize(pose.width,pose.height).setDepth(pose.y);actors.push({pen,index,sprite,shadow});points.push({...pen.access,name:a.name??ANIMALS[a.kind].name,hitX:pose.x,hitY:pose.y-pose.height/2,radius:Math.max(15,pose.width*.48),run:()=>animals(a.id)});});
   }else{
    // Available pens have useful storage, never large empty placeholder labels.
-   for(let n=0;n<1+(pen.id%3);n++){const hx=x+59+n*65+(pen.id%3)*6,hy=y+83+((n+pen.id)%2)*5;scene.add.image(hx,hy,'barn-hay').setOrigin(.5,1).setDepth(hy);}
+   if(pen.id%3===0)scene.add.image(x+91,y+91,'barn-hay-pile').setOrigin(.5,1).setDepth(y+91);else for(let n=0;n<1+(pen.id%3);n++){const hx=x+59+n*65+(pen.id%3)*6,hy=y+83+((n+pen.id)%2)*5;scene.add.image(hx,hy,'barn-hay').setOrigin(.5,1).setDepth(hy);}
+   if(pen.id%3===1)scene.add.image(x+39,y+87,'barn-barrel').setOrigin(.5,1).setDepth(y+87);
+   if(pen.id%3===2)scene.add.image(x+47,y+90,'barn-bucket').setOrigin(.5,1).setDepth(y+90);
    scene.add.image(x+w-75,y+91,'barn-sack').setOrigin(.5,1).setDepth(y+91);scene.add.image(x+w-42,y+85,pen.id%2?'barn-sack':'barn-hay').setOrigin(.5,1).setScale(.85).setDepth(y+85);
 
   }
@@ -56,12 +59,12 @@ export function buildBarn(scene:Phaser.Scene,farm:Farm,block:Block,animals:(id?:
   for(const pen of pens){const gate=gates.get(pen.id)!;const gateX=pen.side==='left'?pen.x+pen.width-10:pen.x-2;gate.clear().lineStyle(3,0xc09759);if(care?.pen.id===pen.id){gate.lineBetween(gateX,pen.y+39,gateX+(pen.side==='left'?-27:27),pen.y+39);}else{gate.strokeRect(gateX,pen.y+39,12,39);gate.lineBetween(gateX,pen.y+42,gateX+12,pen.y+75);}}
 
   for(const a of actors){const pose=animalPose(a.pen,a.index,time),kind=a.pen.animals[a.index].kind;
-   if(pose.dog&&scene.textures.exists('dog-walk')&&scene.textures.exists('dog-rest'))a.sprite.setTexture(pose.dog.walking?'dog-walk':'dog-rest',pose.dog.walking?pose.dog.frame:(pose.dog.resting?4:0)+pose.dog.facing);
+   if(pose.dog&&scene.textures.exists('dog-walk')&&scene.textures.exists('dog-rest'))a.sprite.setTexture(pose.dog.walking?'dog-walk-solid':'dog-rest-solid',pose.dog.walking?pose.dog.frame:(pose.dog.resting?4:0)+pose.dog.facing);
    else a.sprite.setTexture(`life-${kind}${pose.blink?'-blink':''}`);
    if(care&&a.pen.animals[a.index].id===care.id){
     const elapsed=time-care.start,t=Math.min(1,elapsed/1000),ease=t*t*(3-2*t),edge=a.pen.side==='left'?a.pen.x+a.pen.width-22:a.pen.x+22;
     pose.x=care.from.x+(edge-care.from.x)*ease;pose.y=care.from.y+(a.pen.access.y-care.from.y)*ease;pose.flip=a.pen.side==='right';
-    if(kind==='dog'){pose.flip=false;const dx=edge-care.from.x,row=dx<0?1:2;const playing=care.type==='play-animal'&&elapsed>1100&&!matchMedia('(prefers-reduced-motion: reduce)').matches;const hop=playing?Math.sin((elapsed-1100)/300)*8:0;pose.x+=a.pen.side==='left'?-Math.abs(hop):Math.abs(hop);a.sprite.setTexture(t<1||playing?'dog-walk':'dog-rest',t<1||playing?row*4+Math.floor(elapsed/160)%4:row);}
+    if(kind==='dog'){pose.flip=false;const dx=edge-care.from.x,row=dx<0?1:2;const playing=care.type==='play-animal'&&elapsed>1100&&!matchMedia('(prefers-reduced-motion: reduce)').matches;const hop=playing?Math.sin((elapsed-1100)/300)*8:0;pose.x+=a.pen.side==='left'?-Math.abs(hop):Math.abs(hop);a.sprite.setTexture(t<1||playing?'dog-walk-solid':'dog-rest-solid',t<1||playing?row*4+Math.floor(elapsed/160)%4:row);}
     else if(t>=1){pose.height*=1+Math.sin(elapsed/180)*.025;a.sprite.setTexture(`life-${kind}`);}
     pose.eating=false;
    }else if(care){pose.x=a.sprite.x;pose.y=a.sprite.y;pose.eating=false;}

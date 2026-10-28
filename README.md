@@ -1,6 +1,8 @@
 # Fazendinha WJ
 
-Versão 0.8.0 — Casa proporcional com móveis originais, cuidados animados no celeiro, respiração e ações sem avisos repetitivos. Detalhes em [INTERIORES_0_8.md](docs/INTERIORES_0_8.md).
+A versão 0.9 melhora quarto e celeiro, aumenta a legibilidade das galinhas e corrige bordas translúcidas dos cães. Na venda, **Terrenos e obras** permite escolher três áreas do mapa, comprar até 36 espaços adicionais e construir abrigo de ferramentas ou coreto com posição salva. O terreno fixo antigo mantém seu local e suas plantações. Veja [TERRENOS_0_9.md](docs/TERRENOS_0_9.md).
+
+Versão 0.9.0 — Casa proporcional com móveis originais, cuidados animados no celeiro, respiração e ações sem avisos repetitivos. Detalhes em [INTERIORES_0_8.md](docs/INTERIORES_0_8.md).
 
 Versão 0.7.0 — Cachorros com passos direcionais, celeiro com materiais detalhados, entradas por proximidade e ambiente com vento e pássaros. Detalhes em [AMBIENTE_0_7.md](docs/AMBIENTE_0_7.md).
 

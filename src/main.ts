@@ -20,7 +20,8 @@ import {entranceAt} from './entrances';
 import {EntranceControl} from './entrance-ui';
 import { DogCompanions } from './dog-companion';
 import { Atmosphere } from './atmosphere';
-import { plotPosition } from './plots';
+import { plotPosition,plotUsable,reservedLandPoint,LAND_SITES } from './plots';
+import {LandWorld} from './land-world';
 import { LAND_SAVE_KEY,restoreLocalFarm,splitLocalFarm } from './local-farm';
 import { WorkEffects } from './work-effects';
 import nozzleAnchors from '../public/assets/v3/anchors.json';
@@ -96,7 +97,7 @@ function help() { openPanel('Um novo começo', `<p>Bem-vindo ao Vale do Sossego.
 $('inventory').onclick = inventory; $('seed-choice').onclick = seedPanel; $('help').onclick = help;
 document.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach(b => b.onclick = () => setTool(b.dataset.tool as Tool));
 
-type Destination = { x: number; y: number; field?: number; shop?: boolean; barn?: boolean; house?:boolean };
+type Destination = { x: number; y: number; field?: number; shop?: boolean; barn?: boolean; house?:boolean;building?:string };
 type Work = { clock: ActionClock; field: number; crop: Crop; ground?: Point };
 type Field = { x: number; y: number; soil: Phaser.GameObjects.Image; plant: Phaser.GameObjects.Image; label: Phaser.GameObjects.Text; id: number };
 class FarmScene extends Phaser.Scene {
@@ -121,6 +122,7 @@ class FarmScene extends Phaser.Scene {
   direction: Direction = 'down'; walking = false; lastPaint = 0; lastSave = 0; stuck = 0; previous = { x: 0, y: 0 };
   ripples: Phaser.GameObjects.Rectangle[] = [];
   private entranceControl!:EntranceControl;
+  private landWorld!:LandWorld;
   occluders: Phaser.GameObjects.Image[] = [];
   vignette!: Phaser.GameObjects.Image;
   playerShadow!: Phaser.GameObjects.Ellipse;
@@ -168,30 +170,31 @@ class FarmScene extends Phaser.Scene {
       const text = this.add.text(x, y - 27, '', { fontFamily: 'monospace', fontSize: '10px', color: '#fff6ce', backgroundColor: '#40563ddd', padding: { x: 4, y: 2 } }).setOrigin(.5).setDepth(1800);
       this.fields.push({ x, y, id, soil, plant, label: text });
     }
-    for(let id=24;id<36;id++) {const {x,y}=plotPosition(id)!;
+    for(let id=24;id<60;id++) {const {x,y}=plotPosition(id,farm)??{x:0,y:0};
       const soil=this.add.image(x,y,'plot-raw').setDepth(1);
       const plant=this.add.image(x,y+11,'carrot-0').setOrigin(.5,1).setDepth(y+2).setVisible(false);
       const text=this.add.text(x,y-27,'',{fontFamily:'monospace',fontSize:'10px',color:'#fff6ce',backgroundColor:'#40563ddd',padding:{x:4,y:2}}).setOrigin(.5).setDepth(1800);
       this.fields.push({x,y,id,soil,plant,label:text});
     }
-    label(290,510,'TERRENO ADICIONAL');
+    this.landWorld=new LandWorld(this,this.obstacles);this.landWorld.update(farm);
     // Mixed woodland, original tiles and a clear playable center.
     const rand = Phaser.Math.RandomDataGenerator ? new Phaser.Math.RandomDataGenerator(['wj-vale']) : null;
     for (let y = 110; y <= 1110; y += 68) for (let x = 95; x < 1300; x += 64) {
       if (x > 220 && x < 1190 && y > 215 && y < 1000) continue;
       if (x > 680 && x < 820 && y > 930) continue;
       const px = x + (rand?.between(-16, 16) ?? 0), py = y + (rand?.between(-12, 12) ?? 0);
+      if(reservedLandPoint(px,py))continue;
       const key = (x + y) % 3 === 0 ? 'pine' : `tree${(x + y) % 3}`;
       shadow(px + 10, py - 4, 88, 23);
       this.occluders.push(this.add.image(px, py, key).setOrigin(.5, 1).setScale(rand!.realInRange(1.12, 1.4)).setDepth(py));
       block(px, py - 9, 18, 20);
     }
-    for (const [i, [x, y]] of [[190, 840], [330, 790], [535, 860], [940, 940], [1150, 540], [530, 280], [877, 260]].entries()) { shadow(x + 9, y - 2, 95, 24); this.occluders.push(this.add.image(x, y, `tree${i % 3}`).setOrigin(.5, 1).setScale(1.2).setDepth(y)); block(x, y - 9, 18, 20); }
+    for (const [i, [x, y]] of [[190, 840], [330, 790], [535, 860], [940, 940], [1150, 540], [530, 280], [877, 260]].entries()) { if(reservedLandPoint(x,y))continue;shadow(x + 9, y - 2, 95, 24); this.occluders.push(this.add.image(x, y, `tree${i % 3}`).setOrigin(.5, 1).setScale(1.2).setDepth(y)); block(x, y - 9, 18, 20); }
     for (let i = 0; i < 6; i++) { const x = 350 + i * 48; this.add.image(x, 762, 'fence').setOrigin(.5, 1).setDepth(762); block(x, 755, 46, 9); }
     for (let i = 0; i < 4; i++) { this.add.image(350 + i * 48, 889, 'fence').setOrigin(.5, 1).setDepth(889); block(350 + i * 48, 882, 46, 9); }
     this.flock = new ChickenFlock(this);
     const windPlants:Phaser.GameObjects.Image[] = this.fields.map(f=>f.plant);
-    for (let i = 0; i < 27; i++) { const x = rand!.between(250, 1190), y = rand!.between(280, 980); if (x > 580 && x < 900 && y < 620 || Math.abs(y - 640) < 50 || Math.abs(x - 750) < 50 || (x>200 && x<385 && y>500 && y<665)) continue; const foliage=this.add.image(x, y, i % 3 ? 'bush' : 'rock').setOrigin(.5, 1).setDepth(y);if(i%3)windPlants.push(foliage); }
+    for (let i = 0; i < 27; i++) { const x = rand!.between(250, 1190), y = rand!.between(280, 980); if (reservedLandPoint(x,y) || x > 580 && x < 900 && y < 620 || Math.abs(y - 640) < 50 || Math.abs(x - 750) < 50 || (x>200 && x<385 && y>500 && y<665)) continue; const foliage=this.add.image(x, y, i % 3 ? 'bush' : 'rock').setOrigin(.5, 1).setDepth(y);if(i%3)windPlants.push(foliage); }
     // River bank is solid, with one crossing at the bridge.
     block(1280, 420, 28, 760); block(1280, 1020, 28, 280);
     for (let i = 0; i < 40; i++) {
@@ -234,8 +237,9 @@ class FarmScene extends Phaser.Scene {
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       if (modal) return;
       const p = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
+      const building=this.landWorld.buildingAt(farm,p);if(building){this.navigate({...this.landWorld.access(building),building:building.id});return;}
       const field = this.fields.find(f => Math.abs(f.x - p.x) < 20 && Math.abs(f.y - p.y) < 20);
-      if (field) { if(field.id>=24&&!farm.landOwned){life.land();return;} this.navigate({ x: field.x + (field.id>=24?-40:42), y: field.y + 10, field: field.id }); return; }
+      if (field) { if(!plotUsable(farm,field.id))return; const blocks=this.obstacles.getChildren().map(o=>{const b=(o as Phaser.GameObjects.Zone).body as Phaser.Physics.Arcade.StaticBody;return{x:b.x,y:b.y,width:b.width,height:b.height};});const approach=[[42,10],[-42,10],[0,45],[0,-45]].map(([dx,dy])=>({x:field.x+dx,y:field.y+dy,field:field.id})).find(p=>findPath(this.player,p,blocks).length);if(approach)this.navigate(approach);else toast('Não há passagem livre até esse canteiro.');return; }
       const entrance=entranceAt(p);if(entrance){this.navigate({x:entrance.x,y:entrance.y,[entrance.id]:true});return;}
       if (tool === 'water' && Math.hypot(p.x-this.player.x,p.y-this.player.y) <= 65) { this.waterGround(p); return; }
       this.navigate({ x: Phaser.Math.Clamp(p.x, 105, 1480), y: Phaser.Math.Clamp(p.y, 190, 1070) });
@@ -252,7 +256,10 @@ class FarmScene extends Phaser.Scene {
   paintFields() {
     const now = Date.now() + (cloud.active ? cloud.offset : 0);
     const signature=JSON.stringify(farm.decorations);if(signature!==this.decorSignature){this.decorSprites.forEach(x=>x.destroy());this.decorSprites=[];this.decorSignature=signature;for(const d of farm.decorations){const slot=DECOR_SLOTS[d.slot],item=DECOR[d.kind];if(slot&&item)this.decorSprites.push(this.add.image(slot.x,slot.y,`life-${item.texture}`).setOrigin(.5,1).setDepth(slot.y).setScale(d.kind==='cocoaTree'?.85:.65));}}
+    this.landWorld?.update(farm);
+    for(const b of farm.buildings??[]){const site=LAND_SITES[b.site],cx=site.x+b.col*40+20,cy=site.y+b.row*40+38;if(this.player&&Math.abs(this.player.x-cx)<43&&Math.abs(this.player.y-cy)<30){this.cancelMovement();const access=this.landWorld.access(b);this.player.setPosition(access.x,access.y);}}
     for (const field of this.fields) {
+      const point=plotPosition(field.id,farm);const usable=plotUsable(farm,field.id);field.soil.setVisible(!!point&&usable);if(!point||!usable){field.plant.setVisible(false);field.label.setVisible(false);continue;}field.x=point.x;field.y=point.y;field.soil.setPosition(point.x,point.y);field.plant.setPosition(point.x,point.y+11).setDepth(point.y+2);field.label.setPosition(point.x,point.y-27);
       const plot = farm.plots[field.id];
       if ((field.id>=24&&(!farm.landOwned||!plot))||(cloud.active && field.id<24 && field.id >= (farm as OnlineFarm).unlockedPlots)) { field.soil.setTexture('plot-raw').setAlpha(.35);field.plant.setVisible(false);field.label.setText('×').setVisible(true);continue; }
       field.soil.setAlpha(1);
@@ -277,7 +284,7 @@ class FarmScene extends Phaser.Scene {
   }
   useField(id: number) {
     if (this.activeWork || onlineLoading || cloud.busy) return;
-    if(id>=24&&(!farm.landOwned||!farm.plots[id])){if(!localSaveBlocked)life.land();else toast('Terreno salvo indisponível.');return;}
+    if(id>=24&&!plotUsable(farm,id)){if(!localSaveBlocked)life.land();else toast('Terreno salvo indisponível.');return;}
     if (Math.hypot(this.player.x-this.fields[id].x,this.player.y-this.fields[id].y)>70) {toast('Aproxime-se do canteiro.');return;}
     this.focusedField = id;
     const check = cloud.active ? applyCommand(structuredClone(farm) as OnlineFarm,{type:'work',plot:id,tool,crop:selected},Date.now()+cloud.offset) : act(structuredClone(farm), id, tool, selected);
@@ -352,7 +359,7 @@ class FarmScene extends Phaser.Scene {
   interactNearest() {
     if (modal || this.activeWork || performance.now()<entranceLockedUntil) return;
     if(this.enterNearbyPlace())return;
-    const available = cloud.active ? this.fields.filter(f=>f.id<24?f.id<(farm as OnlineFarm).unlockedPlots:!!farm.landOwned) : this.fields.filter(f=>f.id<24||!!farm.landOwned);
+    const available = cloud.active ? this.fields.filter(f=>plotUsable(farm,f.id)&&(f.id>=24||f.id<(farm as OnlineFarm).unlockedPlots)) : this.fields.filter(f=>plotUsable(farm,f.id));
     const target = choosePlot(farm, available, this.player, tool, selected, this.focusedField, Date.now() + cloud.offset);
     if (target !== null) this.useField(target);
     else if(tool==='water') { const offsets={up:[0,-40],down:[0,40],left:[-40,0],right:[40,0]};const [dx,dy]=offsets[this.direction];this.waterGround({x:this.player.x+dx,y:this.player.y+dy}); }
@@ -372,7 +379,7 @@ class FarmScene extends Phaser.Scene {
       if(distance<8&&this.route.length>1){this.route.shift();return;}
       if (distance < 8) {
         this.destination = null;
-        if (target.field !== undefined) this.useField(target.field); else if (target.shop) shop(); else if (target.barn) enterInterior('barn');else if(target.house)enterInterior('house');
+        if (target.field !== undefined) this.useField(target.field); else if (target.shop) shop(); else if (target.barn) enterInterior('barn');else if(target.house)enterInterior('house');else if(target.building){const b=farm.buildings?.find(b=>b.id===target.building);if(b?.kind==='shed')life.equipment();else if(b)openPanel('Coreto do jardim','<p>Seu cantinho para descansar e aproveitar a fazenda.</p>');}
       } else { vx = dx / distance; vy = dy / distance; }
       if (Math.hypot(this.player.x - this.previous.x, this.player.y - this.previous.y) < .15) this.stuck += delta; else this.stuck = 0;
       if (this.stuck > 700) { this.destination = null; this.stuck = 0; this.route=[];toast('O caminho ficou bloqueado. Toque em outro ponto.'); }

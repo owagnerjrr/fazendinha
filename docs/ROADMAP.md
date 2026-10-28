@@ -1,5 +1,15 @@
 # Caminho do projeto
 
+## Entregue na beta 0.9
+
+- [x] Quarto com móveis detalhados originais, tapetes, cabeceira, abajur e decoração de parede; celeiro com armazenamento variado.
+- [x] Galinhas mais legíveis e cão com atlas opaco e corpo físico independente do quadro visual.
+- [x] Compra na venda com escolha entre três áreas livres, preservando o terreno anterior.
+- [x] Abrigo de ferramentas e coreto em uma posição escolhida numa grade, com validação de ocupação e salvamento online.
+- [ ] Posicionamento livre fora dessas áreas, mudança/demolição de construções, mais tipos de edifícios e interiores próprios.
+
+Detalhes em [TERRENOS_0_9.md](TERRENOS_0_9.md).
+
 ## Entregue na beta 0.8
 
 - [x] Casa com móveis originais proporcionais, mesa e cadeira, piso de madeira e circulação validada.

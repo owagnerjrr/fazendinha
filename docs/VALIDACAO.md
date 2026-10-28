@@ -164,3 +164,8 @@ Publicado em produção no commit `93c68ac37761f52fef0e68a2dc2a04f27a4c983d`, de
 No endereço principal, a versão 0.8 foi conferida com o save local anterior: o saldo de 70 moedas, os dois animais e quatro rações continuaram presentes. Casa, retorno à fazenda, rega no chão sem toast de sucesso, interface móvel real 390×844 e controles de zoom foram conferidos. Sem erros de console observados; consulta de logs error/fatal do deploy nos dez minutos após a publicação não retornou registros. O cache PWA anterior exigiu fechar e reabrir as abas para ativar a nova versão, sem limpar dados do site.
 
 ![Casa no jogo publicado](screenshots/casa-publicada-0.8.png)
+
+
+## Terrenos e interiores 0.9 — 28/10/2026
+
+79 testes e build aprovados. Conferência com componentes reais e dados fictícios: quarto e celeiro, galinhas proporcionais, cão com atlas opaco, compra na clareira do norte, seleção da posição do abrigo, bloqueio de nova construção na área ocupada e recarga com 1 terreno, 1 construção e saldo de 2500 moedas preservados. A verificação online usa `scripts/smoke-land.mjs`; resultado será registrado após a publicação. Não houve teste em celular físico. Escopo em [TERRENOS_0_9.md](TERRENOS_0_9.md).

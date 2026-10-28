@@ -21,6 +21,8 @@ export class InteriorScene extends Phaser.Scene {
    g.fillStyle(0xc3b183);g.fillRect(150,140,900,80);g.fillStyle(0x624b36);g.fillRect(150,210,900,14);g.fillRect(150,140,14,680);g.fillRect(1036,140,14,680);g.fillRect(150,806,380,14);g.fillRect(670,806,380,14);g.fillStyle(0x9b7b4e);g.fillRect(530,790,140,35);
    for(const x of [170,460,740,1030])this.add.tileSprite(x,180,84,15,'barn-board').setRotation(Math.PI/2).setDepth(225);
    this.add.tileSprite(600,213,900,15,'barn-board').setDepth(226);
+   const wall=this.add.graphics().setDepth(224);wall.fillStyle(0x725334);wall.fillRect(164,190,872,19);wall.fillStyle(0x9d7a48);wall.fillRect(164,190,872,3);for(let x=170;x<1036;x+=28){wall.fillStyle(0x997b51);wall.fillRect(x,195,24,11);wall.fillStyle(0xb19465);wall.fillRect(x+1,195,22,1);}wall.fillStyle(0x453520,.2);wall.fillRect(164,214,872,9);
+   const light=this.add.graphics().setDepth(2);for(const x of [325,880]){light.fillStyle(0xf5d58d,.055);light.fillTriangle(x-23,225,x+25,225,x+125,500);}
    for(const x of [325,880])this.add.image(x,204,'life-window').setOrigin(.5,1).setDisplaySize(54,60).setDepth(220);
   }
   const group=this.physics.add.staticGroup();

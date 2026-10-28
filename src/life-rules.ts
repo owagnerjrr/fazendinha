@@ -1,18 +1,27 @@
 import { ANIMALS, DECOR, DECOR_SLOTS, animalReady, animalHydrated, validAvatar, type AnimalKind, type DecorationKind } from './content.js';
-import { LAND_PRICE, ORIGINAL_PLOTS, EXTRA_PLOTS } from './plots.js';
+import { LAND_PRICE, ORIGINAL_PLOTS, EXTRA_PLOTS, LAND_SITES, BUILDINGS, parcels, buildProblem, type LandSite, type BuildingKind } from './plots.js';
 import type { Farm } from './farm.js';
-export const LIFE_COMMANDS=['avatar','buy-land','buy-animal','buy-feed','feed-animal','water-animal','pet-animal','play-animal','rename-animal','start-incubation','hatch-chick','mature-chick','collect-animal','buy-decor','move-decor','raids-setting'] as const;
+export const LIFE_COMMANDS=['avatar','buy-land','build-land','buy-animal','buy-feed','feed-animal','water-animal','pet-animal','play-animal','rename-animal','start-incubation','hatch-chick','mature-chick','collect-animal','buy-decor','move-decor','raids-setting'] as const;
 export function applyLife(f:Farm,c:any,now:number):{ok:boolean;message:string} {
  const fail=(message:string)=>({ok:false,message});
  if(c.type==='avatar'){if(!validAvatar(c.avatar))return fail('Escolha um avatar válido.');f.avatar={...c.avatar};return {ok:true,message:'Seu avatar foi atualizado!'};}
  if(c.type==='raids-setting'){if(typeof c.enabled!=='boolean')return fail('Opção inválida.');f.socialRaids=c.enabled;return {ok:true,message:c.enabled?'Brincadeira de roubo ativada com amigos participantes.':'Sua fazenda está fora da brincadeira de roubo.'};}
  if(c.type==='buy-land'){
-  if(f.landOwned)return fail('Este terreno já pertence à sua fazenda.');
+  const site=(c.site??'west') as LandSite;if(!Object.hasOwn(LAND_SITES,site))return fail('Escolha um terreno válido.');
+  const owned=parcels(f);if(owned.some(p=>p.site===site))return fail('Este terreno já pertence à sua fazenda.');
   const online=f as Farm & {unlockedPlots?:number};if(online.unlockedPlots!==undefined&&online.unlockedPlots<24)return fail('Libere os 24 canteiros da horta inicial antes de comprar este terreno.');
   if(f.coins<LAND_PRICE)return fail(`Você precisa de ${LAND_PRICE} moedas para comprar o terreno.`);
-  if(f.plots.length!==ORIGINAL_PLOTS)return fail('Não foi possível conferir seus canteiros.');
-  f.coins-=LAND_PRICE;f.landOwned=true;for(let i=0;i<EXTRA_PLOTS;i++)f.plots.push({id:ORIGINAL_PLOTS+i,tilled:false,crop:null,wateredAt:null});
-  return {ok:true,message:'Terreno adquirido! Você ganhou 12 novos canteiros.'};
+  if(f.plots.length!==ORIGINAL_PLOTS+owned.length*EXTRA_PLOTS)return fail('Não foi possível conferir seus canteiros.');
+  const startId=f.plots.length;f.coins-=LAND_PRICE;f.landOwned=true;f.landParcels=[...owned,{site,startId}];
+  for(let i=0;i<EXTRA_PLOTS;i++)f.plots.push({id:startId+i,tilled:false,crop:null,wateredAt:null});
+  return {ok:true,message:'Terreno adquirido no local escolhido! 12 espaços para plantar ou construir.'};
+ }
+ if(c.type==='build-land'){
+  if(!Object.hasOwn(BUILDINGS,c.kind)||!Object.hasOwn(LAND_SITES,c.site))return fail('Construção ou terreno inválido.');
+  const kind=c.kind as BuildingKind,site=c.site as LandSite,error=buildProblem(f,kind,site,c.col,c.row);if(error)return fail(error);
+  if(f.coins<BUILDINGS[kind].price)return fail('Moedas insuficientes para construir.');
+  f.coins-=BUILDINGS[kind].price;f.buildings??=[];f.buildings.push({id:`building-${site}`,kind,site,col:c.col,row:c.row});
+  return {ok:true,message:`${BUILDINGS[kind].name} construído! Os demais espaços continuam disponíveis para plantar.`};
  }
  if(c.type==='buy-animal'){
   if(!Object.hasOwn(ANIMALS,c.kind))return fail('Animal inválido.');const kind=c.kind as AnimalKind,item=ANIMALS[kind];

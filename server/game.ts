@@ -1,4 +1,4 @@
-import { plotPosition } from '../src/plots.js';
+import { plotPosition,plotUsable } from '../src/plots.js';
 import { requiresNewClient, CLIENT_UPDATE_MESSAGE } from '../src/client-compat.js';
 import { initializeProfile } from '../src/profile.js';
 import { LIFE_COMMANDS } from '../src/life-rules.js';
@@ -67,7 +67,7 @@ export async function mutate(user: string, body: any, version?: string|null) {
     else if(['work','buy','sell','expand',...LIFE_COMMANDS].includes(c.type)) {
       if(c.type==='work') {
         move(row,body.position,now);
-        const point=plotPosition(c.plot);if(!point)throw new GameError('Canteiro inválido.');
+        const point=plotPosition(c.plot,row.state);if(!point)throw new GameError('Canteiro inválido.');
         const {x,y}=point;
         if(Math.hypot(row.state.player.x-x,row.state.player.y-y)>70) throw new GameError('Aproxime-se do canteiro.');
       }
@@ -102,7 +102,8 @@ async function social(db:PoolClient,user:string,row:any,c:any,now:number) {
     }
     const allowed=await db.query('SELECT 1 FROM friendships WHERE accepted AND ((sender=$1 AND recipient=$2) OR (sender=$2 AND recipient=$1))',[user,target.user_id]);
     if(!allowed.rowCount) throw new GameError('Aceitem a amizade antes de ajudar.',403);
-    if(!Number.isInteger(c.plot)||c.plot<0||c.plot>=target.state.unlockedPlots) throw new GameError('Canteiro inválido.');
+    if(!Number.isInteger(c.plot)||c.plot<0||(c.plot<24?c.plot>=target.state.unlockedPlots:!plotUsable(target.state,c.plot))) throw new GameError('Canteiro inválido.');
+    if(!plotUsable(target.state,c.plot))throw new GameError('Este espaço não está disponível para cultivo.');
     const plot=target.state.plots[c.plot];
     const day=new Date(now).toISOString().slice(0,10);
     if(c.type==='steal'){
