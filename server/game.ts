@@ -16,6 +16,8 @@ export async function ensureFarm(id: string, name: string) {
   const account=await pool.query('SELECT name FROM neon_auth."user" WHERE id=$1 AND banned IS NOT TRUE',[id]);
   if(!account.rowCount) throw new GameError('Conta não encontrada.',401);
   await pool.query('INSERT INTO farms(user_id,name,state) VALUES($1,$2,$3) ON CONFLICT DO NOTHING',[id,String(account.rows[0].name || name).slice(0,40),newOnlineFarm(Date.now())]);
+  // Add only the missing calendar. Existing state and revision remain intact; simultaneous openings serialize this row update.
+  await pool.query("UPDATE farms SET state=jsonb_set(state,'{calendar}',jsonb_build_object('startedAt',floor(extract(epoch FROM now())*1000),'offsetMinutes',0)) WHERE user_id=$1 AND NOT (state ? 'calendar')",[id]);
 }
 async function getFarm(db: PoolClient, id: string) { const { rows } = await db.query('SELECT * FROM farms WHERE user_id=$1 FOR UPDATE',[id]); if (!rows[0]) throw new GameError('Fazenda não encontrada.',404); upgradeFarm(rows[0].state);return rows[0]; }
 export async function snapshot(id: string) {

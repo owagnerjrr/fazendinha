@@ -9,7 +9,7 @@ async function handle(request:Request) {
     const url=new URL(request.url);
     // Cached clients from before the new species cannot render their animal kinds safely.
     // Refuse their requests before mutating data and ask them to update the app.
-    if(request.headers.get('X-Farm-Version')!=='3'){
+    if(request.headers.get('X-Farm-Version')!=='4'){
       const existing=await snapshot(user.id);
       if(requiresNewClient(existing.farm,request.headers.get('X-Farm-Version')))return json({error:CLIENT_UPDATE_MESSAGE},409);
     }

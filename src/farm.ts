@@ -1,3 +1,4 @@
+import {LEGACY_CLOCK_START,type Calendar,type HomeState} from './world-time.js';
 import { plotUsable, type LandParcel, type LandBuilding } from './plots.js';
 import { ANIMALS, DEFAULT_AVATAR, validAvatar, type Avatar, type Animal, type AnimalProduct, type Decoration } from './content.js';
 export const CROPS = {
@@ -12,10 +13,10 @@ export const CROPS = {
 export type Crop = keyof typeof CROPS;
 export type Tool = 'hand' | 'hoe' | 'seed' | 'water';
 export type Plot = { id: number; tilled: boolean; crop: Crop | null; wateredAt: number | null; pestAt?:number|null; stolen?:number };
-export type Farm = { version: 1; profileComplete?:boolean; playerName?:string; landOwned?:boolean; landParcels?:LandParcel[]; buildings?:LandBuilding[]; coins: number; seeds: Record<Crop, number>; inventory: Record<Crop, number>; plots: Plot[]; harvests: number; questClaimed: boolean; player: { x: number; y: number }; avatar:Avatar; animals:Animal[]; products:Record<AnimalProduct,number>; feed:number; decorations:Decoration[]; socialRaids:boolean; raidProtectionUntil:number; visitLog:{name:string;action:string;at:number}[] };
+export type Farm = { version: 1; calendar?:Calendar;home?:HomeState; profileComplete?:boolean; playerName?:string; landOwned?:boolean; landParcels?:LandParcel[]; buildings?:LandBuilding[]; coins: number; seeds: Record<Crop, number>; inventory: Record<Crop, number>; plots: Plot[]; harvests: number; questClaimed: boolean; player: { x: number; y: number }; avatar:Avatar; animals:Animal[]; products:Record<AnimalProduct,number>; feed:number; decorations:Decoration[]; socialRaids:boolean; raidProtectionUntil:number; visitLog:{name:string;action:string;at:number}[] };
 const crops = Object.keys(CROPS) as Crop[];
 export const SAVE_KEY = 'wj-fazendinha-v1';
-export const makeFarm = (): Farm => ({ version: 1, landParcels:[],buildings:[],coins: 250, seeds: Object.fromEntries(crops.map(c=>[c,8])) as Record<Crop,number>, inventory: Object.fromEntries(crops.map(c=>[c,0])) as Record<Crop,number>, plots: Array.from({ length: 24 }, (_, id) => ({ id, tilled: false, crop: null, wateredAt: null })), harvests: 0, questClaimed: false, player: { x: 710, y: 650 }, avatar:{...DEFAULT_AVATAR}, animals:[{id:'starter-hen',kind:'chicken',fedAt:null,collectedAt:0}], products:{egg:0,milk:0,goatMilk:0},feed:5,decorations:[],socialRaids:false,raidProtectionUntil:0,visitLog:[] });
+export const makeFarm = (now=Date.now()): Farm => ({ version: 1, calendar:{startedAt:now,offsetMinutes:0}, landParcels:[],buildings:[],coins: 250, seeds: Object.fromEntries(crops.map(c=>[c,8])) as Record<Crop,number>, inventory: Object.fromEntries(crops.map(c=>[c,0])) as Record<Crop,number>, plots: Array.from({ length: 24 }, (_, id) => ({ id, tilled: false, crop: null, wateredAt: null })), harvests: 0, questClaimed: false, player: { x: 710, y: 650 }, avatar:{...DEFAULT_AVATAR}, animals:[{id:'starter-hen',kind:'chicken',fedAt:null,collectedAt:0}], products:{egg:0,milk:0,goatMilk:0},feed:5,decorations:[],socialRaids:false,raidProtectionUntil:0,visitLog:[] });
 export function hasPests(plot:Plot,now=Date.now()) {return !!plot.crop&&plot.pestAt!=null&&now>=plot.pestAt;}
 export function remaining(plot: Plot, now = Date.now()) {
   if (!plot.crop || plot.wateredAt === null) return null;
@@ -87,6 +88,7 @@ export function restoreFarm(raw: string | null): Farm {
 }
 
 export function upgradeFarm<T extends Farm>(data:T):T {
+ data.calendar??={startedAt:LEGACY_CLOCK_START,offsetMinutes:0};
  data.landParcels??=data.landOwned?[{site:'west',startId:24}]:[];data.buildings??=[];
  data.avatar=validAvatar(data.avatar)?data.avatar:{...DEFAULT_AVATAR};data.animals??=[{id:'starter-hen',kind:'chicken',fedAt:null,collectedAt:0}];data.products??={egg:0,milk:0,goatMilk:0};data.feed??=5;data.decorations??=[];data.socialRaids??=false;data.raidProtectionUntil??=0;data.visitLog??=[];for(const c of crops){data.seeds[c]??=0;data.inventory[c]??=0;}return data;
 }

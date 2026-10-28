@@ -1,3 +1,5 @@
+import {TimeLighting} from './time-lighting';
+import {updateClock,AutoWake,clockText} from './time-ui';
 import { setupJourney } from './journey';
 import { setupLifeUI } from './life-ui';
 import { applyLife } from './life-rules';
@@ -113,6 +115,7 @@ class FarmScene extends Phaser.Scene {
   flock!: ChickenFlock;
   private dogCompanions!: DogCompanions;
   private atmosphere!: Atmosphere;
+  private timeLighting!:TimeLighting;
   avatarArt!:AvatarArt;
   previewArt!:AvatarArt;
   private decorSprites:Phaser.GameObjects.Image[]=[];
@@ -230,6 +233,7 @@ class FarmScene extends Phaser.Scene {
       this.tweens.add({ targets: pollen, x: pollen.x + 35, y: pollen.y - 32, alpha: .1, duration: 4200 + i * 130, yoyo: true, repeat: -1, delay: i * 140 });
     }
     this.atmosphere = new Atmosphere(this,[...this.occluders,...windPlants],ambientDecor);
+    this.timeLighting=new TimeLighting(this);
     this.resize();
     this.scale.on('resize', this.resize, this);
     this.keys = this.input.keyboard!.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,E,ONE,TWO,THREE,FOUR') as Record<string, Phaser.Input.Keyboard.Key>;
@@ -368,6 +372,8 @@ class FarmScene extends Phaser.Scene {
   }
   update(time: number, delta: number) {
     if (!this.player) return;
+    this.timeLighting.update(farm.calendar,Date.now()+cloud.offset);
+    if(farm.home?.sleep&&!inside&&!modal){enterInterior('house');return;}
     this.entranceControl.update();
     this.flock.update(time, delta); this.dogCompanions.update(farm); this.atmosphere.update(time); this.workEffects.update(time);
     if (this.activeWork) { this.updateWork(time); this.player.setVelocity(0); this.renderAvatar(time, false); return; }
@@ -420,6 +426,7 @@ async function lifeCommand(c:any){
  if(!result.ok)throw new Error(result.message||'Moedas insuficientes.');save();syncUI();scene?.paintFields();return result;
 }
 function enterInterior(room:'house'|'barn'){
+ if(farm.home?.sleep&&room!=='house'){toast('Aguarde a personagem acordar.');return;}
  if(performance.now()<entranceLockedUntil||(inside&&currentInterior===room))return;entranceLockedUntil=performance.now()+600;
  if(inside)game.scene.stop('Interior');else{scene.finishCurrentWork();scene.cancelMovement();game.scene.sleep('Farm');}
  currentInterior=room;
@@ -442,8 +449,14 @@ syncUI();
 const game = new Phaser.Game({ type: Phaser.AUTO, parent: 'game', backgroundColor: '#92ae69', pixelArt: true, roundPixels: true, antialias: false, scale: { mode: Phaser.Scale.RESIZE, width: window.innerWidth, height: window.innerHeight }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [FarmScene], input: { activePointers: 3 }, render: { powerPreference: 'low-power' } });
 window.addEventListener('error', () => { $('save-status').textContent = 'Ocorreu um erro. Recarregue para continuar.'; });
 // Expose no account state or mutation hooks. The Phaser instance remains module-local.
-game.scene.add('Interior',new InteriorScene({farm:()=>farm,stick:()=>joystick,modal:()=>modal,tool:()=>tool,now:()=>Date.now()+cloud.offset,avatar:()=>life.avatar(),animals:id=>life.animals(id),equipment:()=>life.equipment(),care:lifeCommand,toast,open:openPanel,exit:()=>{entranceLockedUntil=performance.now()+600;currentInterior=null;inside=false;$('hint').hidden=false;$('quest-card').hidden=false;setTool(tool);$('exit-interior').hidden=true;$('interior-view').hidden=true;$('world-place').textContent='VALE DO SOSSEGO';scene.cancelMovement();}}),false);
-$('exit-interior').onclick=()=>{if(inside){entranceLockedUntil=performance.now()+600;currentInterior=null;game.scene.stop('Interior');game.scene.wake('Farm');inside=false;$('hint').hidden=false;$('quest-card').hidden=false;setTool(tool);$('exit-interior').hidden=true;$('interior-view').hidden=true;$('world-place').textContent='VALE DO SOSSEGO';scene.cancelMovement();}};
+game.scene.add('Interior',new InteriorScene({farm:()=>farm,stick:()=>joystick,modal:()=>modal,tool:()=>tool,now:()=>Date.now()+cloud.offset,avatar:()=>life.avatar(),animals:id=>life.animals(id),equipment:()=>life.equipment(),care:lifeCommand,home:lifeCommand,toast,open:openPanel,exit:()=>{entranceLockedUntil=performance.now()+600;currentInterior=null;inside=false;$('hint').hidden=false;$('quest-card').hidden=false;setTool(tool);$('exit-interior').hidden=true;$('interior-view').hidden=true;$('world-place').textContent='VALE DO SOSSEGO';scene.cancelMovement();}}),false);
+$('exit-interior').onclick=()=>{if(inside)(game.scene.getScene('Interior') as InteriorScene).exitRoom();};
 void game;
 
 $('interior-view').onclick=()=>{const overview=(game.scene.getScene('Interior') as InteriorScene).toggleView();$('interior-view').textContent=overview?'Aproximar':'Ver cômodo inteiro';};
+
+const automaticWake=new AutoWake();
+setInterval(()=>{
+ const now=Date.now()+cloud.offset,t=clockText(farm,now);updateClock($('world-clock'),farm,now);$('season-label').textContent=t.season;
+ if(!booting&&!onlineLoading&&!localSaveBlocked)automaticWake.update(farm,now,c=>lifeCommand(c).then(r=>{toast(r.message??'Bom dia!');return r;}));
+},500);

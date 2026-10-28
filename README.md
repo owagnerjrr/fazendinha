@@ -1,5 +1,7 @@
 # Fazendinha WJ
 
+Versão 0.10.0 — Personagem senta, liga a TV e dorme na cama. Relógio com períodos do dia, estações e iluminação, salvo por fazenda. Detalhes em [TEMPO_E_CASA.md](docs/TEMPO_E_CASA.md).
+
 Versão 0.9.2 — Casa reorganizada com cama e armário nos cantos e sofá de frente para a TV; novos materiais no celeiro. Veja [INTERIORES_0_9_2.md](docs/INTERIORES_0_9_2.md).
 
 Versão 0.9.1 — Respiração contínua da personagem quando parada, na fazenda e nos interiores. Melhora quarto e celeiro, aumenta a legibilidade das galinhas e corrige bordas translúcidas dos cães. Na venda, **Terrenos e obras** permite escolher três áreas do mapa, comprar até 36 espaços adicionais e construir abrigo de ferramentas ou coreto com posição salva. O terreno fixo antigo mantém seu local e suas plantações. Veja [TERRENOS_0_9.md](docs/TERRENOS_0_9.md).

@@ -1,5 +1,12 @@
 # Caminho do projeto
 
+## Vida em casa e calendário 0.10
+
+- [x] Sentar e levantar do sofá, ligar/desligar TV e dormir sob a coberta.
+- [x] Relógio, quatro períodos, estações de 28 dias e ano; iluminação por horário.
+- [x] Calendário, TV e repouso persistentes; despertar validado sem alterar cronômetros de cultivo.
+- [ ] Clima, neve e plantas específicas por estação; por enquanto as estações são calendário e ambientação.
+
 ## Acabamento 0.9.2
 
 - [x] Cama e guarda-roupa nos cantos, sala alinhada com sofá voltado para a TV e mesa de centro.

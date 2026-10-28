@@ -6,7 +6,7 @@ import { barnLayout,animalPose,type BarnPen } from './barn-layout';
 import type { Farm } from './farm';
 type Block=(x:number,y:number,w:number,h:number)=>void;
 export type BarnActor={pen:BarnPen;index:number;sprite:Phaser.GameObjects.Image;shadow:Phaser.GameObjects.Ellipse};
-export type RoomPoint={x:number;y:number;hitX?:number;hitY?:number;radius?:number;name?:string;run:()=>void};
+export type RoomPoint={kind?:string;x:number;y:number;hitX?:number;hitY?:number;radius?:number;name?:string;run:()=>void};
 export function buildBarn(scene:Phaser.Scene,farm:Farm,block:Block,animals:(id?:string)=>void,equipment:()=>void){
  const points:RoomPoint[]=[],actors:BarnActor[]=[],labels:{pen:BarnPen;text:Phaser.GameObjects.Text}[]=[],gates=new Map<number,Phaser.GameObjects.Graphics>();
  const returning=new Map<string,{x:number;y:number;start:number}>();
