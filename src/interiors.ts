@@ -1,5 +1,4 @@
 import {claimInteractionEvent} from './interaction-event';
-import {buildBarnShell} from './barn-design';
 import {display} from './display-settings';
 import {bakeFloor} from './static-layer';
 import {TimeLighting} from './time-lighting';
@@ -13,8 +12,9 @@ import { AvatarArt } from './avatar-art';
 import { buildBarn, type RoomPoint } from './barn-art';
 import type { Farm, Tool } from './farm';
 import { findPath } from './pathfinding';
-type Services={farm:()=>Farm;stick:()=>{x:number;y:number};modal:()=>boolean;tool:()=>Tool;now:()=>number;avatar:()=>void;animals:(id?:string)=>void;equipment:()=>void;toast:(s:string)=>void;open:(title:string,html:string)=>void;exit:()=>void;collect?:(id:string)=>Promise<unknown>;home?:(c:{type:'home';action:'tv'|'sleep'|'wake';on?:boolean})=>Promise<unknown>;care?:(c:{type:'pet-animal'|'play-animal';id:string})=>Promise<unknown>};
+type Services={farm:()=>Farm;stick:()=>{x:number;y:number};modal:()=>boolean;tool:()=>Tool;now:()=>number;avatar:()=>void;animals:(id?:string)=>void;equipment:()=>void;toast:(s:string)=>void;open:(title:string,html:string)=>void;exit:()=>void;collect?:(id:string)=>Promise<unknown>;home?:(c:{type:'home';action:'tv'|'sleep'|'wake';on?:boolean})=>Promise<unknown>;care?:(c:{type:'pet-animal'|'play-animal';id:string})=>Promise<unknown>;failed?:(error:Error,room:'house'|'barn')=>void};
 export class InteriorScene extends Phaser.Scene {
+ private failed=false;
  private bonding:{id:string;type:'pet-animal'|'play-animal';phase:'arriving'|'contact'|'saving'|'reacting';start:number;resolve:()=>void;reject:(e:Error)=>void}|null=null;private gesture!:Phaser.GameObjects.Graphics;private context!:Phaser.GameObjects.Text;private reduced=matchMedia('(prefers-reduced-motion: reduce)');
  private breathing=new IdleBreathing();
  private nextUI=0;private house?:ReturnType<typeof buildHouse>;private lighting!:TimeLighting;private homeBusy=false;
@@ -22,11 +22,20 @@ export class InteriorScene extends Phaser.Scene {
  private houseButton:HTMLButtonElement|null=null;private tvButton:HTMLButtonElement|null=null;
  private room:'house'|'barn'='house';private overview=false;private player!:Phaser.Physics.Arcade.Sprite;private actor!:Phaser.GameObjects.Sprite;private art!:AvatarArt;private keys!:Record<string,Phaser.Input.Keyboard.Key>;private dir=0;private target:{x:number;y:number;run?:()=>void}|null=null;private route:{x:number;y:number}[]=[];private blocks:{x:number;y:number;width:number;height:number}[]=[];private points:RoomPoint[]=[];private barn?:ReturnType<typeof buildBarn>;private animalSignature='';
  constructor(private services:Services){super('Interior');}
- init(data:{room:'house'|'barn'}){this.bonding=null;this.rest=null;this.homeBusy=false;this.nextUI=0;this.house=undefined;this.breathing.reset();this.room=data.room;this.overview=this.room==='barn';this.target=null;this.route=[];this.blocks=[];this.points=[];this.barn=undefined;this.animalSignature='';}
- create(){
+ init(data:{room:'house'|'barn'}){this.failed=false;this.bonding=null;this.rest=null;this.homeBusy=false;this.nextUI=0;this.house=undefined;this.breathing.reset();this.room=data.room;this.overview=this.room==='barn';this.target=null;this.route=[];this.blocks=[];this.points=[];this.barn=undefined;this.animalSignature='';}
+ create(){try{this.createRoom();}catch(error){this.failRoom(error);}}
+ private createRoom(){
   const s=this.services;this.art=new AvatarArt(this);this.cameras.main.setBackgroundColor('#20382f');
+  const g=this.add.graphics();
   if(this.room==='barn'){
-   barnMaterials(this);buildBarnShell(this);
+   barnMaterials(this);this.add.tileSprite(160,220,880,586,'barn-floor').setOrigin(0).setDepth(.5);
+   g.fillStyle(0xc3b183);g.fillRect(150,140,900,80);g.fillStyle(0x624b36);g.fillRect(150,210,900,14);g.fillRect(150,140,14,680);g.fillRect(1036,140,14,680);g.fillRect(150,806,380,14);g.fillRect(670,806,380,14);g.fillStyle(0x9b7b4e);g.fillRect(530,790,140,35);
+   for(const x of [170,460,740,1030])this.add.tileSprite(x,180,84,15,'barn-board').setRotation(Math.PI/2).setDepth(225);
+   this.add.tileSprite(600,213,900,15,'barn-board').setDepth(226);
+   const wall=this.add.graphics().setDepth(224);wall.fillStyle(0x725334);wall.fillRect(164,190,872,19);wall.fillStyle(0x9d7a48);wall.fillRect(164,190,872,3);for(let x=170;x<1036;x+=28){wall.fillStyle(0x997b51);wall.fillRect(x,195,24,11);wall.fillStyle(0xb19465);wall.fillRect(x+1,195,22,1);}wall.fillStyle(0x453520,.2);wall.fillRect(164,214,872,9);
+   const light=this.add.graphics().setDepth(2);for(const x of [325,880]){light.fillStyle(0xf5d58d,.055);light.fillTriangle(x-23,225,x+25,225,x+125,500);}
+   for(const x of [215,505,695,985]){this.add.image(x,210,'barn-lantern').setOrigin(.5,1).setDepth(225);const glow=this.add.graphics().setDepth(2);for(const [radius,alpha] of [[55,.035],[35,.045],[18,.05]])glow.fillStyle(0xf5c474,alpha).fillEllipse(x,220,radius*2,radius*1.3);}
+   for(const x of [325,880])this.add.image(x,204,'life-window').setOrigin(.5,1).setDisplaySize(54,60).setDepth(220);
   }
   const group=this.physics.add.staticGroup();
   const block=(x:number,y:number,w:number,h:number)=>{const z=this.add.zone(x+w/2,y+h/2,w,h);group.add(z);(z.body as Phaser.Physics.Arcade.StaticBody).setSize(w,h);this.blocks.push({x,y,width:w,height:h});};
@@ -104,7 +113,9 @@ export class InteriorScene extends Phaser.Scene {
   this.houseButton.textContent=near.kind==='bed'?'Deitar e dormir · E / Usar':near.kind==='sofa'?'Sentar no sofá · E / Usar':f.home?.tvOn?'Desligar TV · E / Usar':'Ligar TV · E / Usar';
  }
  private finishBond(error?:Error){const bond=this.bonding;this.bonding=null;this.barn?.endCare();this.gesture.clear();this.target=null;this.route=[];if(error)bond?.reject(error);else bond?.resolve();}
- update(time:number){if(!this.player)return;const s=this.services;this.lighting.update(s.farm().calendar,s.now());if(this.room==='house'&&s.farm().home?.sleep&&!this.rest)this.rest={kind:'sleep',start:time,from:{x:this.player.x,y:this.player.y-2}};if(this.rest?.kind==='sleep'&&!s.farm().home?.sleep)this.releaseRest();let vx=0,vy=0;
+ update(time:number){if(this.failed)return;try{this.updateRoom(time);}catch(error){this.failRoom(error);}}
+ private failRoom(error:unknown){if(this.failed)return;this.failed=true;if(this.player?.body)this.player.setVelocity(0);const detail=error instanceof Error?error:new Error(String(error));queueMicrotask(()=>{if(this.services.failed)this.services.failed(detail,this.room);else this.services.toast(`Não foi possível abrir o cômodo: ${detail.message}`);});}
+ private updateRoom(time:number){if(!this.player)return;const s=this.services;this.lighting.update(s.farm().calendar,s.now());if(this.room==='house'&&s.farm().home?.sleep&&!this.rest)this.rest={kind:'sleep',start:time,from:{x:this.player.x,y:this.player.y-2}};if(this.rest?.kind==='sleep'&&!s.farm().home?.sleep)this.releaseRest();let vx=0,vy=0;
   if(!s.modal()){const stick=s.stick();vx=Number(this.keys.D.isDown||this.keys.RIGHT.isDown)-Number(this.keys.A.isDown||this.keys.LEFT.isDown)+stick.x;vy=Number(this.keys.S.isDown||this.keys.DOWN.isDown)-Number(this.keys.W.isDown||this.keys.UP.isDown)+stick.y;
    if(this.rest&&(vx||vy))this.releaseRest();
    if(this.bonding||this.rest||this.homeBusy){vx=0;vy=0;}

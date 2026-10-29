@@ -221,3 +221,13 @@ Reproduzido no jogo principal com save fictício junto à porta: um único E ent
 O atlas dos cães foi reconstruído a partir de uma pose estável por direção, animando as patas sem trocar a silhueta entre desenhos distintos. Cada quadro tem margem transparente própria, filtro nearest e corpo opaco. A alteração é compartilhada pelo celeiro e pelo acompanhante externo. O fixture `tests/dog-qa.html` renderizou e inspecionou as 16 regiões de caminhada e 8 de repouso: quadros 48×48 e alfa somente 0/255. A textura usa uma chave nova para evitar reaproveitar o atlas anterior na sessão.
 
 95 testes aprovados, incluindo evento de interação consumido uma vez entre cenas e estabilidade/opacidade do corpo durante os passos. Build aprovado. A validação visual usou o jogo principal e dados fictícios, sem modificar contas reais, progresso ou economia. Captura: `screenshots/celeiro-corrigido-0.12.2.jpg`. Não houve novo teste em aparelho físico.
+
+## Contenção de travamento do celeiro 0.12.3 — 29/10/2026
+
+O jogador informou tela parada/vazia, diferente da janela duplicada por E corrigida em 0.12.2. O navegador local conectado não estava disponível e o travamento específico não foi reproduzido no ambiente de QA. Não há atribuição confirmada da causa. Como contenção, a apresentação do celeiro foi restaurada ao código visual da 0.12.0, preservando as necessidades/produção, instalações, identidade dos animais e a correção de caminhada dos cães.
+
+A criação e a atualização de interiores agora capturam falhas, encerram a cena parcial e recuperam a fazenda. O jogo mostra versão, cômodo e mensagem de erro, sem dados de conta, com opções para tentar novamente ou continuar na fazenda. Uma exceção não capturada no interior também reinicia o ciclo de renderização após a recuperação. Nenhuma conta, inventário, animal ou plantação é apagada ou regravada por esse mecanismo.
+
+95 testes e build aprovados. No fixture da cena real, uma falha foi induzida na criação do celeiro em duas entradas sucessivas; em ambas foi exibida a recuperação e a reabertura funcionou. A validação em dados fictícios não prova que o erro específico do aparelho do jogador foi eliminado; a recuperação e o diagnóstico permitem continuar a investigação se persistir. Não houve novo teste físico de celular ou acesso à conta do jogador.
+
+O jogo principal com save fictício também abriu o celeiro por E, voltou à fazenda e reentrou pelo botão Entrar. Captura em `screenshots/celeiro-restaurado-0.12.3.jpg`.

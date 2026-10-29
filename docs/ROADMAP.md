@@ -1,3 +1,5 @@
+0.12.3: desenho do celeiro restaurado à base 0.12.0 após relato de travamento; cuidados e caminhada corrigida mantidos. Falhas de interiores agora recuperam a fazenda e exibem detalhe para diagnóstico.
+
 Correção 0.12.2: consumo único do evento de interação entre cenas e atlas estável dos cães no interior/exterior.
 
 Entrega 0.12.1: revisão visual do celeiro, depósitos com composições próprias, cama de palha, casinha e tigelas dos cães, portões com folha texturizada e iluminação estática em cache.

@@ -1,3 +1,5 @@
+Correção 0.12.3: restauração da apresentação anterior do celeiro e recuperação de falhas durante criação/atualização de interiores, com mensagem de diagnóstico e nova tentativa sem apagar dados.
+
 Correção 0.12.2: entrada por E não repete o comando no interior; caminhada dos cães usa silhuetas estáveis, opacas e quadros com margem transparente.
 
 Atualização 0.12.1: celeiro com madeira e ferragens detalhadas, corredor de pedra, palha orgânica, depósitos variados e casinha dos cães. Contas, regras e produção preservadas.
