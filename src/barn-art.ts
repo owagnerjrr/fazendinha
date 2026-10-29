@@ -2,7 +2,7 @@ import {barnDetails,decorateBarnPen} from './barn-design';
 import {AnimalIndicators} from './animal-indicators';
 import {livestockArt} from './livestock-art';
 import Phaser from 'phaser';
-import {dogArt} from './dog-art';
+import {dogArt,DOG_WALK_TEXTURE,DOG_REST_TEXTURE} from './dog-art';
 import {barnMaterials} from './barn-materials';
 import { ANIMALS, animalReady, type AnimalKind } from './content';
 import { barnLayout,animalPose,type BarnPen } from './barn-layout';
@@ -60,12 +60,12 @@ export function buildBarn(scene:Phaser.Scene,farm:Farm,block:Block,animals:(id?:
   if(gateState!==(care?.pen.id??null)){gateState=care?.pen.id??null;for(const pen of pens){const gate=gates.get(pen.id)!;const gateX=pen.side==='left'?pen.x+pen.width-10:pen.x-2;gateLeaves.get(pen.id)?.setVisible(care?.pen.id!==pen.id);gate.clear().lineStyle(2,0xc09759,.65);if(care?.pen.id===pen.id){gate.lineBetween(gateX,pen.y+39,gateX+(pen.side==='left'?-27:27),pen.y+39);}else{gate.strokeRect(gateX,pen.y+39,12,39);gate.lineBetween(gateX,pen.y+42,gateX+12,pen.y+75);}}}
 
   for(const a of actors){const pose=animalPose(a.pen,a.index,time),kind=a.pen.animals[a.index].kind;
-   if(pose.dog&&scene.textures.exists('dog-walk')&&scene.textures.exists('dog-rest'))a.sprite.setTexture(pose.dog.walking?'dog-walk-solid':'dog-rest-solid',pose.dog.walking?pose.dog.frame:(pose.dog.resting?4:0)+pose.dog.facing);
+   if(pose.dog&&scene.textures.exists('dog-walk')&&scene.textures.exists('dog-rest'))a.sprite.setTexture(pose.dog.walking?DOG_WALK_TEXTURE:DOG_REST_TEXTURE,pose.dog.walking?pose.dog.frame:(pose.dog.resting?4:0)+pose.dog.facing);
    else if(pose.walking&&scene.textures.exists(`walk-${kind}`))a.sprite.setTexture(`walk-${kind}`,pose.frame);else a.sprite.setTexture(`life-${kind}${pose.blink?'-blink':''}`);
    if(care&&a.pen.animals[a.index].id===care.id){
     const elapsed=time-care.start,t=Math.min(1,elapsed/1000),ease=t*t*(3-2*t),edge=a.pen.side==='left'?a.pen.x+a.pen.width-22:a.pen.x+22;
     pose.x=care.from.x+(edge-care.from.x)*ease;pose.y=care.from.y+(a.pen.access.y-care.from.y)*ease;pose.flip=a.pen.side==='right';
-    if(kind==='dog'){pose.flip=false;const dx=edge-care.from.x,row=dx<0?1:2;const playing=care.type==='play-animal'&&elapsed>1100&&!matchMedia('(prefers-reduced-motion: reduce)').matches;const hop=playing?Math.sin((elapsed-1100)/300)*8:0;pose.x+=a.pen.side==='left'?-Math.abs(hop):Math.abs(hop);a.sprite.setTexture(t<1||playing?'dog-walk-solid':'dog-rest-solid',t<1||playing?row*4+Math.floor(elapsed/160)%4:row);}
+    if(kind==='dog'){pose.flip=false;const dx=edge-care.from.x,row=dx<0?1:2;const playing=care.type==='play-animal'&&elapsed>1100&&!matchMedia('(prefers-reduced-motion: reduce)').matches;const hop=playing?Math.sin((elapsed-1100)/300)*8:0;pose.x+=a.pen.side==='left'?-Math.abs(hop):Math.abs(hop);a.sprite.setTexture(t<1||playing?DOG_WALK_TEXTURE:DOG_REST_TEXTURE,t<1||playing?row*4+Math.floor(elapsed/160)%4:row);}
     else if(t>=1){pose.height*=1+Math.sin(elapsed/180)*.025;a.sprite.setTexture(`life-${kind}`);}
     pose.eating=false;
    }else if(care){pose.x=a.sprite.x;pose.y=a.sprite.y;pose.eating=false;}

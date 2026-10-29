@@ -1,3 +1,5 @@
+Correção 0.12.2: entrada por E não repete o comando no interior; caminhada dos cães usa silhuetas estáveis, opacas e quadros com margem transparente.
+
 Atualização 0.12.1: celeiro com madeira e ferragens detalhadas, corredor de pedra, palha orgânica, depósitos variados e casinha dos cães. Contas, regras e produção preservadas.
 
 Atualização 0.12.0: cuidados progressivos dos animais e plantas, doença e tratamentos, instalações externas com transferências, ovos visíveis e criação de pintinhos. Regras e limites em [docs/CRIACAO_0_12.md](docs/CRIACAO_0_12.md).

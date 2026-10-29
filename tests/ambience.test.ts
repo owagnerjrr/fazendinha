@@ -19,3 +19,8 @@ test('all buildings offer the same proximity rules and clicks route to their rea
  for(const e of ENTRANCES){assert.equal(nearestEntrance({x:e.x,y:e.y})?.id,e.id);assert.equal(entranceAt({x:(e.hit.left+e.hit.right)/2,y:(e.hit.top+e.hit.bottom)/2})?.id,e.id);assert.notEqual(nearestEntrance({x:e.x+85,y:e.y})?.id,e.id);}
  assert.equal(entranceAt({x:710,y:650}),undefined);assert.equal(entranceUnlocked(100,200,false,false,false),false);assert.equal(entranceUnlocked(200,200,false,false,false),true);for(const flags of [[true,false,false],[false,true,false],[false,false,true]])assert.equal(entranceUnlocked(300,200,...flags as [boolean,boolean,boolean]),false);
 });
+
+import {claimInteractionEvent} from '../src/interaction-event';
+import {dogWalkPixels} from '../src/dog-art';
+test('one native interaction cannot enter a room and activate its exit or animal panel',()=>{const press={key:'e'},nextPress={key:'e'};assert.equal(claimInteractionEvent(press),true);assert.equal(claimInteractionEvent(press),false);assert.equal(claimInteractionEvent(nextPress),true);assert.equal(claimInteractionEvent(nextPress),false);});
+test('stable dog gait keeps the torso identical and draws each opaque paw once',()=>{const w=12,h=16,pose=new Uint8ClampedArray(w*h*4);for(let y=2;y<15;y++)for(let x=3;x<10;x++)pose.set([170,110,50,255],(y*w+x)*4);const before=pose.slice(),upper=dogWalkPixels(pose,w,h,0).slice(0,10*w*4);for(let phase=0;phase<4;phase++){const p=dogWalkPixels(pose,w,h,phase);assert.deepEqual(p.slice(0,10*w*4),upper);assert.ok(p.every((v,i)=>i%4!==3||v===0||v===255));assert.ok(p.filter((v,i)=>i%4===3&&v===255).length<=91);}assert.deepEqual(pose,before);assert.notDeepEqual(dogWalkPixels(pose,w,h,0),dogWalkPixels(pose,w,h,1));});

@@ -1,3 +1,5 @@
+Correção 0.12.2: consumo único do evento de interação entre cenas e atlas estável dos cães no interior/exterior.
+
 Entrega 0.12.1: revisão visual do celeiro, depósitos com composições próprias, cama de palha, casinha e tigelas dos cães, portões com folha texturizada e iluminação estática em cache.
 
 Entrega 0.12.0: fome, sede, limpeza e doença; pausas na produção e tratamento; umidade e doença das plantas; galinheiros/piquetes com colocação e capacidade; ovos visíveis, choco, filhotes e crescimento; passos suaves. Próximas expansões possíveis: genética, novas espécies, estações influenciando manejo e instalações maiores.

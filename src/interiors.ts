@@ -1,3 +1,4 @@
+import {claimInteractionEvent} from './interaction-event';
 import {buildBarnShell} from './barn-design';
 import {display} from './display-settings';
 import {bakeFloor} from './static-layer';
@@ -48,7 +49,7 @@ export class InteriorScene extends Phaser.Scene {
   this.gesture=this.add.graphics();this.context=this.add.text(0,0,'',{fontFamily:'monospace',fontSize:'10px',color:'#fff1cf',backgroundColor:'#334a37e6',padding:{x:5,y:3}}).setOrigin(.5,0).setDepth(1500);
   this.cameras.main.setBounds(0,0,1200,950);this.cameras.main.startFollow(this.player,true,.1,.1,0,30);this.resize();this.scale.on('resize',this.resize,this);
   this.keys=this.input.keyboard!.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,E,ESC') as Record<string,Phaser.Input.Keyboard.Key>;
-  this.input.keyboard!.on('keydown-E',(e:KeyboardEvent)=>{if(!e.repeat)this.interact();});this.input.keyboard!.on('keydown-ESC',()=>{if(!s.modal())this.leave();});
+  this.input.keyboard!.on('keydown-E',(e:KeyboardEvent)=>{if(!e.repeat&&claimInteractionEvent(e))this.interact();});this.input.keyboard!.on('keydown-ESC',()=>{if(!s.modal())this.leave();});
   this.input.on('pointerdown',(p:Phaser.Input.Pointer)=>{if(s.modal()||this.bonding||this.homeBusy)return;if(this.rest){this.releaseRest();return;}const point=this.cameras.main.getWorldPoint(p.x,p.y);const item=this.points.find(t=>(!t.enabled||t.enabled())&&Math.hypot((t.hitX??t.x)-point.x,(t.hitY??t.y-30)-point.y)<(t.radius??65));if(item?.kind){this.requestHouseInteraction(item.kind);return;}const target=item?{x:item.x,y:item.y,run:item.run}:{x:Phaser.Math.Clamp(point.x,185,1015),y:Phaser.Math.Clamp(point.y,240,790)};this.route=findPath(this.player,target,this.blocks);if(this.route.length)this.target=target;else s.toast('Aproxime-se pelo corredor livre.');});
   this.events.once('shutdown',()=>{this.scale.off('resize',this.resize,this);this.art.destroy();if(this.houseButton)this.houseButton.hidden=true;if(this.tvButton)this.tvButton.hidden=true;this.bonding?.reject(new Error('Interação interrompida.'));this.bonding=null;});
 
