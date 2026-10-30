@@ -1,3 +1,17 @@
+## 0.25.0 — Vale renovado (implementado localmente, ainda não publicado)
+
+Visual renovado; avisos de amigos/mensagens; presença compartilhada; ajuda e roubo com regras; gatos em cinco cores; reforma da casa; progressão mais rápida e 24 canteiros livres; pacote de cinco fertilizantes/R$10 com Pix e cartão. **189 testes aprovados**, SQL local e navegador desktop/móvel conferidos. Publicação depende das migrações 010/011 e validação isolada. Detalhes, regras e limites em [VALE_RENOVADO_0_25.md](VALE_RENOVADO_0_25.md).
+
+---
+
+## Estado atual — 30/10/2026
+
+Vendas reais Orders habilitadas; Pix real validado anteriormente. Cartão/recusa/reembolso e repetição validados em sandbox. CRON_SECRET ausente em produção; reconciliação automática pendente. PR #2 ainda é rascunho, não integrado à main. **184 testes passaram nesta conferência.** Evidências, limites e continuidade em [Conferência de 30/10/2026](CONFERENCIA_2026_10_30.md).
+
+Os registros abaixo descrevem etapas históricas; afirmações antigas sobre vendas desativadas, falta de credenciais ou homologação pendente foram superadas pelo registro atual.
+
+---
+
 ## Entrega social 0.17.2 — resultado publicado
 
 127 testes de regras/regressões e build aprovados. `scripts/smoke-social.mjs` passou na URL pública com três identidades QA novas: login e isolamento; amizade pendente sem visita/chat; aceite e visita; ajuda de plantio consumindo uma semente do visitante e registrando 900000ms; mensagens nas duas direções; histórico; UUID repetido sem duplicação e UUID alterado rejeitado; terceira identidade impedida de ler/enviar; tamanho inválido; bloqueio revogando chat/visita/pedido; desbloquear sem amizade automática; recusar/cancelar/remover/refazer amizade; sair e reentrar preservando saldo, sementes, código, amizade e duas mensagens. Nenhuma conta ou save de jogador real foi alterado. Uma incompatibilidade uuid/text da identidade no SQL do chat foi encontrada pelo teste vivo e corrigida em 0.17.1; o fluxo completo passou após a correção.
@@ -467,3 +481,17 @@ A base recebida já continha a loja e o backend Mercado Pago (0.24.0). Foram rev
 **Pagamentos reais NÃO homologados nem habilitados.** Inspeção das variáveis da Vercel confirmou somente banco e autenticação; faltam `MP_ACCESS_TOKEN`, `MP_WEBHOOK_SECRET`, `MP_COLLECTOR_ID`, `MP_MODE` e configuração do ambiente de homologação. Portanto não foi possível consultar `/users/me`, confirmar a titularidade da chave Pix ou executar Pix/cartão no sandbox oficial. Os testes de contrato e de banco não substituem isso. O servidor mantém a criação de pagamentos bloqueada. Passos completos para habilitação segura em `MERCADO_PAGO_SETUP.md`.
 
 Para repetir o QA visual: iniciar Vite e executar `node scripts/qa-store-browser.mjs` com Playwright disponível. `CHROME_PATH` permite um navegador instalado; `PLAYWRIGHT_MODULE` aceita o URL de um módulo externo; `QA_OUTPUT_DIR` escolhe a pasta de capturas. O script usa somente fixtures sem contas/pagamentos.
+
+
+## Orders API — branch de homologação
+177 testes automatizados aprovados. Migração 009 aditiva aplicada somente no banco isolado `dev-store-wardrobe-024`. Checkout Pro Orders, evento `order`, validação de vínculos financeiros, QR obtido na consulta oficial e ledger agregado implementados. Produção preservada. Homologação real de pagamentos e assinatura do webhook permanecem pendentes. Detalhes e limitações em `ORDERS_HOMOLOGACAO.md`.
+
+
+### Credenciais e criação oficial de Orders em homologação
+178 testes passam. Secret carregado no deploy de testes; conta recebedora de teste validada pela API. Webhook sem assinatura retorna 401. Uma ordem oficial de cartão foi criada com sucesso, permanece pendente e não credita moedas; replay retorna o mesmo pedido. Conta de testes não lista Pix. Assinatura de notificação oficial, pagamento aprovado/recusado e reversões no provedor ainda não homologados. Detalhes em `ORDERS_HOMOLOGACAO.md`.
+
+### Diagnóstico do simulador de webhooks
+179 testes aprovados. Endpoint agora registra chegada, recusa, evento ignorado e processamento, sem gravar assinatura, token ou corpo do pagador. Requisições inválidas continuam recusadas; testes cobrem assinatura ausente, JSON inválido, divergência de recurso e ausência de segredos nos registros.
+
+### Assinatura de Orders — correção de maiúsculas
+A simulação oficial chegou e retornou 401. Revisão do SDK oficial atual confirmou que data.id deve preservar maiúsculas/minúsculas; o validador anterior convertia IDs alfanuméricos para minúsculas. Corrigido o manifesto e o tratamento de espaços nos componentes do cabeçalho, com comparação em tempo constante preservada. 180 testes passam, incluindo recusa de ID alterado e compatibilidade do formato atual do SDK. Ainda é necessária nova simulação oficial após o deploy; o segredo não foi substituído.

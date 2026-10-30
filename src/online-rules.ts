@@ -5,7 +5,7 @@ import {plotUsable} from './plots.js';
 import { applyLife, LIFE_COMMANDS } from './life-rules.js';
 import { upgradeFarm } from './farm.js';
 import { act, buySeeds, CROPS, makeFarm, type Crop, type Farm, type Tool } from './farm.js';
-export const ECONOMY = { energyMax: 80, energyStepMs: 60000, harvestXp: 10, initialPlots: 6,
+export const ECONOMY = { energyMax: 80, energyStepMs: 60000, harvestXp: 20, initialPlots: 24,
   expansions: [{ plots: 12, price: 100, level: 2 }, { plots: 18, price: 250, level: 3 }, { plots: 24, price: 500, level: 4 }],
   toolEnergy: { rod:0, hand: 1, hoe: 2, seed: 1, water: 1 } } as const;
 export type OnlineFarm = Farm & { xp: number; energy: number; energyAt: number; unlockedPlots: number };
@@ -23,7 +23,7 @@ export function applyCommand(farm: OnlineFarm, input: unknown, now: number): { o
   const blocked=progressionProblem(farm,c);if(blocked)return{ok:false,message:blocked};
   if((LIFE_COMMANDS as readonly string[]).includes(c.type)){const result=applyLife(farm,c,now);if(result.ok){if(result.caught)farm.xp+=5;if(String(c.type)==='collect-animal')farm.xp+=8;}return result;}
   if (c.type === 'work') {
-    if (!Number.isInteger(c.plot) || c.plot < 0 || (c.plot < 24 ? c.plot >= farm.unlockedPlots : !plotUsable(farm,c.plot)) || !['hand', 'hoe', 'seed', 'water'].includes(c.tool) || !Object.hasOwn(CROPS, c.crop)) return { ok: false, message: 'Canteiro bloqueado ou ferramenta inválida.' };
+    if (!Number.isInteger(c.plot) || c.plot < 0 || !plotUsable(farm,c.plot) || !['hand', 'hoe', 'seed', 'water'].includes(c.tool) || !Object.hasOwn(CROPS, c.crop)) return { ok: false, message: 'Canteiro bloqueado ou ferramenta inválida.' };
     const cost = ECONOMY.toolEnergy[c.tool];
     if (farm.energy < cost) return { ok: false, message: 'Descanse um pouco: recupera 1 energia por minuto.' };
     const result = act(farm, c.plot, c.tool, c.crop, now);

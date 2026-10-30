@@ -1,3 +1,17 @@
+## 0.25.0 — Vale renovado (implementado localmente, ainda não publicado)
+
+Visual renovado; avisos de amigos/mensagens; presença compartilhada; ajuda e roubo com regras; gatos em cinco cores; reforma da casa; progressão mais rápida e 24 canteiros livres; pacote de cinco fertilizantes/R$10 com Pix e cartão. **189 testes aprovados**, SQL local e navegador desktop/móvel conferidos. Publicação depende das migrações 010/011 e validação isolada. Detalhes, regras e limites em [VALE_RENOVADO_0_25.md](VALE_RENOVADO_0_25.md).
+
+---
+
+## Estado atual — 30/10/2026
+
+Vendas reais Orders habilitadas; Pix real validado anteriormente. Cartão/recusa/reembolso e repetição validados em sandbox. CRON_SECRET ausente em produção; reconciliação automática pendente. PR #2 ainda é rascunho, não integrado à main. **184 testes passaram nesta conferência.** Evidências, limites e continuidade em [Conferência de 30/10/2026](CONFERENCIA_2026_10_30.md).
+
+Os registros abaixo descrevem etapas históricas; afirmações antigas sobre vendas desativadas, falta de credenciais ou homologação pendente foram superadas pelo registro atual.
+
+---
+
 0.22.0 — Conta conectada antes de selecionar personagem. Retorno Google leva à escolha quando solicitado; confirmação aplica avatar também em conta existente e só libera entrada após conferir o avatar retornado pelo servidor.
 
 0.21.1 — Compressão do atlas preserva a máscara de pele opaca; preenchimento de pescoço/colo ampliado para unir cabeça e corpo. Modelos e cores existentes mantidos.
@@ -214,3 +228,8 @@ Nome, identidade definitiva e monetização continuam em aberto. Não há compro
 - Prévia de roupas animada nas quatro direções, com respeito à preferência de movimento reduzido.
 - Validação financeira recusa frações de centavo e origens de retorno malformadas.
 - Pendência externa: configurar credenciais de teste/produção do Mercado Pago, conferir recebedor, cadastrar webhook e homologar Pix/cartão antes de habilitar vendas.
+
+
+### Orders API (homologação)
+- Implementada em branch isolada: criação de orders, checkout hospedado Pix/cartão, conciliação assinada e compatibilidade com pedidos legados.
+- Pendente: assinatura real do webhook, testes oficiais e revisão antes de promover para produção.

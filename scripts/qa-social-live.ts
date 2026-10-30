@@ -1,0 +1,44 @@
+// Local PostgreSQL only. PGLITE_MODULE points to a separately installed QA runtime.
+import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';
+import {pool} from '../server/db';import {mutate} from '../server/game';import {presence,notifications,acknowledge} from '../server/social-live';import {newOnlineFarm} from '../src/online-rules';
+const {PGlite}=await import(process.env.PGLITE_MODULE??'@electric-sql/pglite');const db=new PGlite();
+for(const file of ['001-online.sql','002-life.sql','004-social-chat.sql','007_store.sql','008_store_credit.sql','009_orders_api.sql','010_social_live.sql','011_fertilizer_store.sql'])await db.exec(await readFile(new URL('../migrations/'+file,import.meta.url),'utf8'));
+const query=async(sql:string,args?:unknown[])=>{const r=await db.query(sql,args);return{...r,rowCount:/^\s*(SELECT|WITH)/i.test(sql)?r.rows.length:r.affectedRows??r.rows.length};};
+const oldQuery=pool.query,oldConnect=pool.connect;pool.query=query as any;pool.connect=(async()=>({query,release(){}})) as any;
+const visitor=newOnlineFarm(Date.now()),owner=newOnlineFarm(Date.now());visitor.socialRaids=owner.socialRaids=true;visitor.animalRaids=owner.animalRaids=true;
+owner.animals=[{id:'hen1',kind:'chicken',fedAt:null,collectedAt:0},{id:'hen2',kind:'chicken',fedAt:null,collectedAt:0},{id:'black-cat',kind:'cat',color:'black',fedAt:null,collectedAt:0}];
+await query('INSERT INTO farms(user_id,public_code,name,state) VALUES($1,$2,$3,$4),($5,$6,$7,$8),($9,$10,$11,$12)',['qa-visitor','QAVISIT001','QA Visitante',visitor,'qa-owner','QAOWNER001','QA Dono',owner,'qa-outsider','QAOTHER001','QA Outro',newOnlineFarm(Date.now())]);
+try{
+ const command=async(user:string,c:any)=>{await query("UPDATE farms SET last_action_at=now()-interval '1 second' WHERE user_id=$1",[user]);const row=(await query('SELECT revision FROM farms WHERE user_id=$1',[user])).rows[0];return mutate(user,{id:crypto.randomUUID(),revision:row.revision,command:c},'10');};
+ await command('qa-visitor',{type:'friend',code:'QAOWNER001'});assert.equal((await notifications('qa-owner')).events[0].kind,'friend_requested');
+ await assert.rejects(presence('qa-visitor',{code:'QAOWNER001',x:750,y:650,direction:0}),/permitida/);
+ await command('qa-owner',{type:'accept',code:'QAVISIT001'});
+ await presence('qa-owner',{code:'QAOWNER001',x:710,y:650,direction:0});await presence('qa-visitor',{code:'QAOWNER001',x:750,y:650,direction:0});
+ assert.equal((await presence('qa-owner',{code:'QAOWNER001',x:710,y:650,direction:0})).players[0].code,'QAVISIT001');
+ await assert.rejects(presence('qa-outsider',{code:'QAOWNER001',x:750,y:650,direction:0}),/permitida/);
+ await assert.rejects(presence('qa-visitor',{code:'QAOWNER001',x:1050,y:795,direction:0}),/rápido/);
+ await query("UPDATE farm_presence SET updated_at=now()-interval '3 seconds' WHERE user_id='qa-visitor'");
+ await presence('qa-visitor',{code:'QAOWNER001',x:634,y:434,direction:0});
+ await command('qa-visitor',{type:'animal-raids-setting',enabled:false});
+ await assert.rejects(command('qa-visitor',{type:'steal-animal',code:'QAOWNER001',animal:'black-cat'}),/separadamente/);
+ await command('qa-visitor',{type:'animal-raids-setting',enabled:true});
+ const helped=await command('qa-visitor',{type:'help',code:'QAOWNER001',plot:0,mode:'plant',crop:'carrot'});assert.equal(helped.ok,true);assert.equal(helped.farm.seeds.carrot,5);
+ const planted=(await query("SELECT state FROM farms WHERE user_id='qa-owner'")).rows[0].state;assert.equal(planted.plots[0].crop,'carrot');assert.ok((await notifications('qa-owner')).events.some((e:any)=>e.kind==='visit_help'));
+ await assert.rejects(command('qa-visitor',{type:'steal-animal',code:'QAOWNER001',animal:'black-cat'}),/celeiro/);
+ await query("UPDATE farm_presence SET updated_at=now()-interval '4 seconds' WHERE user_id='qa-visitor'");await presence('qa-visitor',{code:'QAOWNER001',x:1050,y:795,direction:0});
+ const stolen=await command('qa-visitor',{type:'steal-animal',code:'QAOWNER001',animal:'black-cat'});assert.equal(stolen.farm.animals[0].color,'black');assert.equal(stolen.farm.coins,50);
+ const after=(await query("SELECT state FROM farms WHERE user_id='qa-owner'")).rows[0].state;assert.equal(after.animals.length,2);assert.equal(after.coins,50);assert.ok(after.raidProtectionUntil>Date.now());
+ await assert.rejects(command('qa-visitor',{type:'steal-animal',code:'QAOWNER001',animal:'hen1'}),/protegida/);
+ await query("UPDATE farms SET state=jsonb_set(state,'{raidProtectionUntil}','0') WHERE user_id='qa-owner'");
+ await assert.rejects(command('qa-visitor',{type:'steal-animal',code:'QAOWNER001',animal:'hen1'}),/hoje/);
+ await query("UPDATE farms SET state=jsonb_set(state,'{animals}',jsonb_build_array(state->'animals'->0)) WHERE user_id='qa-owner'");
+ await assert.rejects(command('qa-visitor',{type:'steal-animal',code:'QAOWNER001',animal:'hen1'}),/último animal/);
+ await query("INSERT INTO market_listings(seller,crop,quantity,price) VALUES('qa-visitor','carrot',2,24)");
+ const restored=await command('qa-visitor',{type:'return-market-reservations'});assert.equal(restored.farm.inventory.carrot,2);
+ const repeated=await command('qa-visitor',{type:'return-market-reservations'});assert.equal(repeated.farm.inventory.carrot,2);
+ const pending=await notifications('qa-owner');await acknowledge('qa-outsider',{ids:pending.events.map((e:any)=>e.id)});assert.equal((await notifications('qa-owner')).events.length,pending.events.length);
+ await acknowledge('qa-owner',{ids:pending.events.map((e:any)=>e.id)});assert.equal((await notifications('qa-owner')).events.length,0);assert.ok((await notifications('qa-owner',true)).events.length>0);
+ await command('qa-owner',{type:'block',code:'QAVISIT001'});await assert.rejects(presence('qa-visitor',{code:'QAOWNER001',x:1050,y:795,direction:0}),/permitida/);
+ assert.equal((await presence('qa-owner',{code:'QAOWNER001',x:710,y:650,direction:0})).players.length,0);
+ console.log('Social SQL/API aprovado: convite/aceite, visitante visível, terceiros negados, teleporte negado, ajuda, roubo limitado e proteção, isolamento dos avisos, histórico e bloqueio imediato. Apenas fixtures locais.');
+}finally{pool.query=oldQuery;pool.connect=oldConnect;await db.close();}

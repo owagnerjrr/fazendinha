@@ -1,23 +1,32 @@
 import {createHmac,timingSafeEqual} from 'node:crypto';
-import {COIN_PACKS,type PackId} from '../src/store-catalog.js';
-export type MPConfig={token:string;secret:string;collector:string;mode:'test'|'production';origin:string};
+import {PURCHASE_PACKS as COIN_PACKS,type PackId} from '../src/store-catalog.js';
+export type MPConfig={token:string;secret:string;collector:string;mode:'test'|'production';origin:string;api?:'orders'|'legacy';application?:string};
 export class StoreError extends Error{constructor(message:string,public status=400){super(message);}}
 export function paymentConfig(env:NodeJS.ProcessEnv=process.env):MPConfig|null{
  const mode=env.MP_MODE;if(mode==='test'&&!env.MP_APP_ORIGIN)return null;if(mode==='production'&&env.MP_ACCESS_TOKEN?.startsWith('TEST-'))return null;
  if(!['test','production'].includes(mode??'')||!env.MP_ACCESS_TOKEN||!env.MP_WEBHOOK_SECRET||!/^\d+$/.test(env.MP_COLLECTOR_ID??''))return null;
  const origin=env.MP_APP_ORIGIN??'https://fazendinha-wj.vercel.app';
  try{const url=new URL(origin);if(url.protocol!=='https:'||url.origin!==origin||url.username||url.password)return null;}catch{return null;}
- return{token:env.MP_ACCESS_TOKEN,secret:env.MP_WEBHOOK_SECRET,collector:env.MP_COLLECTOR_ID!,mode:mode as MPConfig['mode'],origin};
+ return{token:env.MP_ACCESS_TOKEN,secret:env.MP_WEBHOOK_SECRET,collector:env.MP_COLLECTOR_ID!,mode:mode as MPConfig['mode'],origin,api:env.MP_API==='orders'?'orders':'legacy',application:env.MP_APPLICATION_ID};
 }
-export function salesAllowed(env:NodeJS.ProcessEnv=process.env){const c=paymentConfig(env);if(!c)return false;if(c.mode==='test')return env.VERCEL_ENV!=='production'&&env.MP_TEST_CHECKOUT_ENABLED==='true';return env.MP_SALES_ENABLED==='true'&&env.MP_SANDBOX_VALIDATED==='true'&&env.MP_FEES_ACKNOWLEDGED==='true'&&env.MP_ACCOUNT_VERIFIED==='true';}
+export function sandboxRuntime(env:NodeJS.ProcessEnv=process.env){return env.VERCEL_ENV!=='production'||!!env.MP_SANDBOX_PROJECT_ID&&env.MP_SANDBOX_PROJECT_ID===env.VERCEL_PROJECT_ID&&env.VERCEL_PROJECT_ID!=='prj_iRVw6wfsusQgc7mTmTs2FXHHBVkJ';}
+export function salesAllowed(env:NodeJS.ProcessEnv=process.env){const c=paymentConfig(env);if(!c)return false;if(c.mode==='test')return sandboxRuntime(env)&&env.MP_TEST_CHECKOUT_ENABLED==='true';return env.MP_SALES_ENABLED==='true'&&env.MP_SANDBOX_VALIDATED==='true'&&env.MP_FEES_ACKNOWLEDGED==='true'&&env.MP_ACCOUNT_VERIFIED==='true';}
 export async function mpRequest(config:MPConfig,path:string,body?:unknown,idempotency?:string,fetcher:typeof fetch=fetch){
  const r=await fetcher('https://api.mercadopago.com'+path,{method:body?'POST':'GET',headers:{Authorization:`Bearer ${config.token}`,'Content-Type':'application/json',...(idempotency?{'X-Idempotency-Key':idempotency}:{})},body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(12000),cache:'no-store'});
- const data=await r.json();if(!r.ok)throw new StoreError('O Mercado Pago não concluiu a operação. Consulte o pedido antes de tentar novamente.',502);return data;
+ const data=await r.json();if(!r.ok){
+  // Only provider codes/field names: never log request bodies, tokens or payer data.
+  const safe=(v:unknown)=>typeof v==='string'&&/^[a-zA-Z0-9_.[\]-]{1,100}$/.test(v)?v:undefined;
+  const description=(v:unknown)=>config.mode==='test'&&typeof v==='string'?v.replaceAll(config.token,'[secret]').replace(/\b(?:APP_USR|TEST)-[\w-]+/g,'[secret]').replace(/https?:\/\/[^\s]+/g,'[url]').replace(/[\w.+%-]+@[\w.-]+/g,'[email]').replace(/\b[A-Za-z0-9_-]{24,}\b/g,'[identifier]').replace(/\b\d{6,}\b/g,'[number]').slice(0,350):undefined;
+  console.error('mercado_pago_api_error',{status:r.status,path:path.split('?')[0],code:safe(data.error),errors:(Array.isArray(data.errors)?data.errors:Array.isArray(data.cause)?data.cause:[]).slice(0,8).map((e:any)=>({code:safe(String(e.code??'')),field:safe(e.field??e.param),description:description(e.message??e.description),details:description(JSON.stringify(e.details))}))});
+  throw new StoreError('O Mercado Pago não concluiu a operação. Consulte o pedido antes de tentar novamente.',502);
+ }return data;
 }
 let verified:{key:string;until:number}|undefined;
 export async function verifyCollector(config:MPConfig){const key=config.collector+':'+config.mode+':'+createHmac('sha256','cache').update(config.token).digest('hex');if(verified?.key===key&&verified.until>Date.now())return;const user=await mpRequest(config,'/users/me');if(String(user.id)!==config.collector||user.site_id!=='MLB'||(config.mode==='production'&&user.tags?.includes('test_user'))||(config.mode==='test'&&!config.token.startsWith('TEST-')&&!user.tags?.includes('test_user')))throw new StoreError('A conta recebedora ainda não foi validada.',503);verified={key,until:Date.now()+60000};}
-export function verifyWebhook(headers:Headers,url:URL,secret:string){const id=url.searchParams.get('data.id'),request=headers.get('x-request-id'),signature=headers.get('x-signature')??'';const fields=Object.fromEntries(signature.split(',').map(p=>p.trim().split('=')));if(!id||!/^[a-zA-Z0-9_-]{1,100}$/.test(id)||!request||request.length>200||!/^\d{1,20}$/.test(fields.ts??'')||! /^[a-f0-9]{64}$/i.test(fields.v1??''))return false;
- const manifest=`id:${id.toLowerCase()};request-id:${request};ts:${fields.ts};`,expected=createHmac('sha256',secret).update(manifest).digest();return timingSafeEqual(expected,Buffer.from(fields.v1,'hex'));
+export function verifyWebhook(headers:Headers,url:URL,secret:string){const id=url.searchParams.get('data.id')?.trim(),request=headers.get('x-request-id')?.trim(),signature=headers.get('x-signature')??'';const fields=Object.fromEntries(signature.split(',').map(p=>{const eq=p.indexOf('=');return eq<0?['','']:[p.slice(0,eq).trim().toLowerCase(),p.slice(eq+1).trim()];}));if(!id||!/^[a-zA-Z0-9_-]{1,100}$/.test(id)||!request||request.length>200||!/^\d{1,20}$/.test(fields.ts??'')||! /^[a-f0-9]{64}$/i.test(fields.v1??''))return false;
+ // SDK/simulator signs original IDs; automatic Orders notifications use lowercase.
+ // Both conventions require a valid HMAC bound to this resource and request.
+ const candidates=/^ORD[A-Z0-9]+$/.test(id)?[id,id.toLowerCase()]:[id],actual=Buffer.from(fields.v1,'hex');let valid=false;for(const resource of candidates){const manifest=`id:${resource};request-id:${request};ts:${fields.ts};`,expected=createHmac('sha256',secret).update(manifest).digest();valid=timingSafeEqual(expected,actual)||valid;}return valid;
 }
 export function validCPF(value:unknown){if(typeof value!=='string')return false;const s=value.replace(/\D/g,'');if(!/^\d{11}$/.test(s)||/^(\d)\1{10}$/.test(s))return false;for(const len of [9,10]){let sum=0;for(let i=0;i<len;i++)sum+=Number(s[i])*(len+1-i);const digit=(sum*10)%11%10;if(digit!==Number(s[len]))return false;}return true;}
 export function pixPayload(order:any,email:string,cpf:string){const pack=COIN_PACKS[order.package as PackId];return{transaction_amount:pack.cents/100,description:`Fazenda Feliz · ${pack.coins} moedas`,payment_method_id:'pix',external_reference:order.id,date_of_expiration:new Date(order.expires_at).toISOString(),notification_url:order.origin+'/api/mp-webhook',payer:{email,identification:{type:'CPF',number:cpf.replace(/\D/g,'')}},metadata:{order_id:order.id,package:order.package}};}

@@ -37,6 +37,15 @@
     },
     "api/mp-webhook.ts": {
       "maxDuration": 60
+    },
+    "api/mp-reconcile.ts": {
+      "maxDuration": 300
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/mp-reconcile",
+      "schedule": "0 6 * * *"
+    }
+  ]
 }

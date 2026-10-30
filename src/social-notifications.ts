@@ -1,0 +1,16 @@
+import type {CloudFarm} from './cloud';
+const labels:Record<string,string>={message:'enviou uma mensagem',friend_requested:'enviou um pedido de amizade',friend_sent:'recebeu seu pedido de amizade',friend_accepted:'agora é seu amigo',friend_removed:'teve a amizade encerrada',friend_closed:'teve um pedido de amizade encerrado',visit_help:'ajudou na sua fazenda',visit_steal:'pegou algo na sua fazenda'};
+export function socialNotifications(cloud:CloudFarm,openFriends:()=>void,openChat:(code:string)=>void){
+ const region=document.createElement('aside');region.id='social-notifications';region.setAttribute('aria-live','polite');region.setAttribute('aria-label','Notificações de amigos');document.body.append(region);
+ const bell=document.createElement('button');bell.id='social-bell';bell.textContent='♧ Avisos';bell.setAttribute('aria-label','Abrir notificações de amigos');document.body.append(bell);
+ const inbox=document.createElement('dialog');inbox.className='social-inbox';document.body.append(inbox);
+ bell.onclick=()=>{inbox.replaceChildren();const title=document.createElement('h2');title.textContent='Avisos da fazenda';const close=document.createElement('button');close.textContent='Fechar';close.onclick=()=>inbox.close();inbox.append(title,close);inbox.showModal();void cloud.request('?notifications=history').then(data=>{for(const e of data.events){const b=document.createElement('button');b.className='notification-history';b.textContent=`${e.name} ${labels[e.kind]??'atualizou sua amizade'} · ${new Date(Number(e.at)).toLocaleString('pt-BR')}`;b.onclick=()=>{inbox.close();if(e.kind==='message')openChat(e.code);else openFriends();};inbox.append(b);}if(!data.events.length){const p=document.createElement('p');p.textContent='Nenhuma notificação ainda.';inbox.append(p);}}).catch(()=>{title.textContent='Não foi possível carregar. Tente novamente.';});};
+ let busy=false,owner='',seen=new Set<string>();
+ async function poll(){bell.hidden=!cloud.active;if(busy||!cloud.active||document.hidden)return;busy=true;try{
+  if(owner!==cloud.code){owner=cloud.code;seen=new Set();region.replaceChildren();}
+  const data=await cloud.request('?notifications=1');
+  for(const e of data.events){if(seen.has(e.id))continue;seen.add(e.id);const card=document.createElement('article'),button=document.createElement('button'),dismiss=document.createElement('button');button.textContent=`${e.name} ${labels[e.kind]??'atualizou sua amizade'}.`;button.onclick=()=>{card.remove();if(e.kind==='message')openChat(e.code);else openFriends();};dismiss.textContent='×';dismiss.setAttribute('aria-label','Dispensar notificação');dismiss.onclick=()=>card.remove();card.append(button,dismiss);region.prepend(card);setTimeout(()=>card.remove(),9000);while(region.children.length>5)region.lastChild?.remove();}
+  if(data.events.length)await cloud.request('?notifications=1',{ids:data.events.map((e:any)=>e.id)});
+ }catch{/* Retry without marking unseen events as read. */}finally{busy=false;}}
+ const timer=setInterval(()=>void poll(),4000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)void poll();});return{poll,stop:()=>{clearInterval(timer);region.remove();bell.remove();inbox.remove();}};
+}

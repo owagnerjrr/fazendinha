@@ -36,5 +36,5 @@ test('supply prices and quantities are authoritative and failures leave balances
 });
 test('smooth gait remains inside outdoor fences, has continuous transitions and stops without walking in place',()=>{
  for(const kind of ['cow','goat','chicken','chick','rooster'] as const){const b={id:'x',site:'north' as const,kind:kind==='cow'||kind==='goat'?'pasture' as const:'coop' as const,col:0,row:0},box=outdoorBox(b),count=b.kind==='pasture'?2:6,size=ANIMAL_SIZE[kind];for(let i=0;i<count;i++)for(let t=0;t<44000;t+=137){const p=livestockMotion(box,i,count,size,t);assert.ok(p.x-size.width/2>=box.x);assert.ok(p.x+size.width/2<=box.x+box.width);assert.ok(p.y-size.height>=box.y);assert.ok(p.y<=box.y+box.height);const next=livestockMotion(box,i,count,size,t+1);assert.ok(Math.hypot(next.x-p.x,next.y-p.y)<.1);}}
- const box={x:0,y:0,width:335,height:110},size=ANIMAL_SIZE.cow,a=livestockMotion(box,0,1,size,25000),b=livestockMotion(box,0,1,size,28000);assert.equal(a.walking,false);assert.equal(a.x,b.x);assert.equal(a.y,b.y);
+ const box={x:0,y:0,width:335,height:110},size=ANIMAL_SIZE.cow,a=livestockMotion(box,0,1,size,28000),b=livestockMotion(box,0,1,size,31000);assert.equal(a.walking,false);assert.equal(a.x,b.x);assert.equal(a.y,b.y);
 });
