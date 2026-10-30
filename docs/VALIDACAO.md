@@ -475,3 +475,6 @@ Para repetir o QA visual: iniciar Vite e executar `node scripts/qa-store-browser
 
 ### Credenciais e criação oficial de Orders em homologação
 178 testes passam. Secret carregado no deploy de testes; conta recebedora de teste validada pela API. Webhook sem assinatura retorna 401. Uma ordem oficial de cartão foi criada com sucesso, permanece pendente e não credita moedas; replay retorna o mesmo pedido. Conta de testes não lista Pix. Assinatura de notificação oficial, pagamento aprovado/recusado e reversões no provedor ainda não homologados. Detalhes em `ORDERS_HOMOLOGACAO.md`.
+
+### Diagnóstico do simulador de webhooks
+179 testes aprovados. Endpoint agora registra chegada, recusa, evento ignorado e processamento, sem gravar assinatura, token ou corpo do pagador. Requisições inválidas continuam recusadas; testes cobrem assinatura ausente, JSON inválido, divergência de recurso e ausência de segredos nos registros.
