@@ -245,3 +245,5 @@ Nome, identidade definitiva e monetização continuam em aberto. Não há compro
 ### Orders API (homologação)
 - Implementada em branch isolada: criação de orders, checkout hospedado Pix/cartão, conciliação assinada e compatibilidade com pedidos legados.
 - Pendente: assinatura real do webhook, testes oficiais e revisão antes de promover para produção.
+
+- 0.25.2: corrigida linha pendente fora do rio, botão da ferramenta ativa na barra/celular e empunhadura da vara.
