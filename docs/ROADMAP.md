@@ -1,3 +1,5 @@
+0.14.2 — Recepção direta do toque nas duas mãos, sem depender de clique sintetizado; clique posterior não duplica interação. Interrompe movimento pendente ao agir e aproxima até entradas próximas quando fora do alcance imediato.
+
 0.14.1 — Celeiro abre com câmera próxima no celular, igual à casa. Controle de mão unificado, sem botões contextuais extras no toque; interação próxima com entradas, animais, equipamentos, construções e móveis. Progresso e economia preservados.
 
 0.14.0 — Pesca funcional com compra permanente de vara, cinco espécies, fisgada temporizada, inventário e venda; regras compartilhadas com validação de servidor, revisão e recibos existentes. Vartin atrás da venda; ponte sem árvores bloqueando a passagem. Corredor de ardósia, detalhes de interiores e caminhada de oito quadros para bovinos, caprinos e aves. Cuidados individuais com gerenciamento recolhível.

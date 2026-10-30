@@ -1,3 +1,5 @@
+Correção 0.14.2: mão aciona no contato, com proteção contra clique duplicado; aproximação automática até a porta quando estiver perto. Contas e progresso preservados.
+
 Ajuste 0.14.1: celeiro com câmera próxima no celular; use a mão principal ou toque na mão da barra para interagir com locais próximos. Botões contextuais separados ficam ocultos no celular. A vara equipada continua funcionando pela ação principal. Contas e progresso preservados.
 
 Atualização 0.14.0: materiais e decoração dos interiores, passada de oito quadros para os animais, cuidados individuais compactos, vendedor Vartin e pesca na ponte. Compre a vara por 120 moedas na aba Pesca da venda, equipe-a e recolha a linha quando a boia sinalizar a fisgada. Lambari, Piaba, Mandi, Pacu e Tilápia ficam no inventário e podem ser vendidos. Progresso anterior preservado.

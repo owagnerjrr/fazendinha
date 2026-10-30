@@ -53,3 +53,5 @@
  #enter-place,#house-action,#house-tv,#fish-action,#exit-interior{display:none!important}
  .touch-controls{display:block}
 }
+
+.touch-controls{z-index:10}#touch-action,[data-tool=hand]{touch-action:none;user-select:none;-webkit-user-select:none}
