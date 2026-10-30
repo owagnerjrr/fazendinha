@@ -52,3 +52,11 @@ test('Orders settlement uses one stable aggregate ledger key and never writes on
  try{await settleProviderOrder(proof,config);assert.ok(seen.some(s=>s.sql.includes('apply_coin_payment')&&s.args[1]==='mp-order:'+id&&s.args[2]==='approved'));const before=seen.length;await assert.rejects(settleProviderOrder({...proof,user_id:'another'},config));assert.equal(seen.length,before);}
  finally{pool.query=query;pool.connect=connect;}
 });
+
+test('open Orders with only failed attempts show rejected, while active and paid attempts retain priority',()=>{
+ const attempt={...payment,status:'failed'};
+ for(const status of ['created','action_required'])assert.equal(validateProviderOrder({...proof,status,total_paid_amount:'0.00',transactions:{payments:[attempt]}},local,config).status,'rejected');
+ assert.equal(validateProviderOrder({...proof,status:'created',total_paid_amount:'0.00',transactions:{payments:[attempt,{...payment,status:'processing'}]}},local,config).status,'pending');
+ assert.equal(validateProviderOrder({...proof,status:'processing',transactions:{payments:[attempt]}},local,config).status,'in_process');
+ assert.equal(validateProviderOrder({...proof,transactions:{payments:[attempt,{...payment,status:'processed'}]}},local,config).status,'approved');
+});

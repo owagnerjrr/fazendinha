@@ -26,6 +26,8 @@ export function validateProviderOrder(p:any,order:any,c:MPConfig){
   if(order.method==='pix'?payment.payment_method?.id!=='pix':payment.payment_method?.type!=='credit_card'||payment.payment_method?.installments!==1)throw new StoreError('Forma de pagamento diverge do pedido.',409);
   refund+=orderCents(payment.refunded_amount??'0.00');
  }
+ // An open checkout can contain failed attempts. Never override processing or paid orders.
+ if(status==='pending'&&payments.length&&payments.every((payment:any)=>payment.status==='failed'))status='rejected';
  if(p.transactions?.chargebacks?.length)status='charged_back';
  if(status==='approved'&&(orderCents(p.total_paid_amount)!==order.amount_cents||!payments.length))throw new StoreError('Order ainda não paga integralmente.',409);
  if(status==='refunded')refund=order.amount_cents;
