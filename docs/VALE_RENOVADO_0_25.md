@@ -1,3 +1,20 @@
+## Publicação confirmada — 30/10/2026
+
+A versão 0.25.0 foi publicada em https://fazendinha-wj.vercel.app. PR #2 integrado à main no commit a76b4ea163f93c86b57c85c0aa392215fcc48a38, com a mesma árvore validada em 7a1a088. Deploy funcional de produção dpl_9XnY3dMdxxsvKnQBGFzqGH3M539W: READY. Acabamento complementar: versão 0.25.0 visível no menu e indicador de avisos posicionado abaixo dos recursos, sem cobrir o botão de menu.
+
+- Migrações 010/011 aplicadas primeiro ao branch isolado dev-store-wardrobe-024 e depois à produção. Comparação transacional confirmou preservação integral das fazendas, pedidos, pagamentos e função legacy: 38 fazendas/16 pedidos no isolado antes dos novos fixtures e 34 fazendas/2 pedidos em produção.
+- Sandbox publicado no deploy dpl_FG4MPa7yuKfD6674G7s5kNC1ucLq. Três identidades QA novas verificaram convite/aceite, avisos, presença de visitante, terceiro impedido, ajuda próxima, compra de gatos, transferência limitada, reforma, mensagens sem duplicação, histórico, bloqueio e persistência após novo login. Moedas de fixture foram concedidas somente a essas novas identidades no banco de testes.
+- Mercado Pago aceitou criação de pedido sandbox f5 via cartão por R$10: deaa6f28-c58a-4109-acaa-deb5cfd7c147. Reenvio manteve o mesmo pedido, pendente, vinculado à API e com zero fertilizantes entregues. Nenhuma aprovação foi fabricada no endpoint e nenhuma cobrança/reversão real foi criada.
+- Navegador real no sandbox: duas sessões QA autenticadas, visita iniciada pela interface, navegador do dono recebendo e renderizando o visitante; zero erros de JavaScript. Sem acesso a contas pessoais.
+- Função real de entrega no Postgres remoto isolado validada com fixture dentro de savepoint: pendência, aprovação de fixture, replay, evento antigo e reembolso após consumo. Retirada única, dívida de unidades e moedas/bens preservados. O fixture foi inteiramente desfeito por rollback.
+- CRON_SECRET foi cadastrado como segredo em Production do projeto principal e incorporado ao novo deploy. Nenhuma credencial existente foi substituída ou exibida. A rotina diária continua em 06h UTC / 03h de São Paulo; sua próxima execução automática não foi observada nesta janela. Não houve execução manual autenticada em produção.
+- Produção: página HTTP 200; novos JS/CSS e gato preto disponíveis; autenticação configurada; saúde Orders ready=true e salesEnabled=true; APIs privadas recusam consultas sem sessão com 401. Consulta de logs do novo deploy sem error/fatal na janela verificada.
+- 189 testes e build aprovados. O pacote novo ainda não teve aprovação/reembolso concluídos no provedor; aprovação do ledger foi testada com fixture. Pix não está disponível na conta sandbox; o Pix real de moedas tinha sido validado anteriormente. Cartão e reembolso reais não foram testados.
+
+Os registros de implementação local abaixo são históricos. A publicação foi autorizada posteriormente pelo proprietário, sem testes destrutivos no banco de produção.
+
+---
+
 # Vale renovado — 0.25.0
 
 Implementação local em 30/10/2026, construída sobre `2f01a02` (Orders de produção) e o registro documental `7640ac0`. **Ainda não publicada e sem migrações aplicadas aos bancos remotos.** Não confundir as prévias com produção.

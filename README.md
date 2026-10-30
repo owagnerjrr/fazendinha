@@ -1,3 +1,9 @@
+**0.25.0 publicada:** visual renovado, amigos ao vivo e notificações, gatos, reforma da casa, 24 canteiros livres e pacote de fertilizantes com Pix/cartão. Contas e progresso preservados. Veja [evidências da publicação e limites de validação](docs/VALE_RENOVADO_0_25.md).
+
+---
+
+Histórico de preparação:
+
 Atualização 0.25.0 preparada localmente: melhoria visual, amigos ao vivo, notificações, gatos, reforma da casa e fertilizantes. **Ainda não publicada.** Confira [escopo e validação](docs/VALE_RENOVADO_0_25.md).
 
 Estado em 30/10/2026: produção em 2f01a02; PR #2 ainda não integrado à main. Reconciliação automática pendente de CRON_SECRET em produção. Consulte [validação](docs/VALIDACAO.md) para evidências e limites.
