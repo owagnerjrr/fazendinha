@@ -55,6 +55,9 @@ export async function settleProviderOrder(resource:any,c:MPConfig){
  const proof=validateProviderOrder(resource,order,c);
  const db=await pool.connect();try{await db.query('BEGIN');await db.query("SELECT pg_advisory_xact_lock(hashtext('fazendinha-economy-v1'))");
   const bound=await db.query('UPDATE coin_orders SET provider_order_id=$2,pix_code=COALESCE($3,pix_code),pix_qr=COALESCE($4,pix_qr) WHERE id=$1 AND (provider_order_id IS NULL OR provider_order_id=$2) RETURNING id',[order.id,resource.id,proof.qr,proof.qrImage]);if(!bound.rowCount)throw new StoreError('Order já vinculada a outro recurso.',409);
+  // Reclassify a previously imported pending attempt without changing money or provider time.
+  // Older responses and any credited/refunded payment remain protected by the ledger guard.
+  if(proof.status==='rejected')await db.query("UPDATE coin_payments SET status='rejected' WHERE order_id=$1 AND payment_id=$2 AND status='pending' AND credited_coins=0 AND refunded_cents=0 AND provider_updated_at=$3::timestamptz",[order.id,'mp-order:'+resource.id,proof.updated]);
   await db.query('SELECT public.apply_coin_payment($1,$2,$3,$4,$5,$6)',[order.id,'mp-order:'+resource.id,proof.status,order.amount_cents,proof.refund,proof.updated]);await db.query('COMMIT');
  }catch(e){await db.query('ROLLBACK');throw e;}finally{db.release();}return true;
 }
