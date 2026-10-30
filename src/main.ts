@@ -1,3 +1,4 @@
+import './payment-sandbox';
 import {outfitSleeveColor} from './outfit-art';
 import {appearanceOf} from './wardrobe';
 import {setupStoreUI} from './store-ui';

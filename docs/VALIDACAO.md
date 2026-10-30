@@ -467,3 +467,7 @@ A base recebida já continha a loja e o backend Mercado Pago (0.24.0). Foram rev
 **Pagamentos reais NÃO homologados nem habilitados.** Inspeção das variáveis da Vercel confirmou somente banco e autenticação; faltam `MP_ACCESS_TOKEN`, `MP_WEBHOOK_SECRET`, `MP_COLLECTOR_ID`, `MP_MODE` e configuração do ambiente de homologação. Portanto não foi possível consultar `/users/me`, confirmar a titularidade da chave Pix ou executar Pix/cartão no sandbox oficial. Os testes de contrato e de banco não substituem isso. O servidor mantém a criação de pagamentos bloqueada. Passos completos para habilitação segura em `MERCADO_PAGO_SETUP.md`.
 
 Para repetir o QA visual: iniciar Vite e executar `node scripts/qa-store-browser.mjs` com Playwright disponível. `CHROME_PATH` permite um navegador instalado; `PLAYWRIGHT_MODULE` aceita o URL de um módulo externo; `QA_OUTPUT_DIR` escolhe a pasta de capturas. O script usa somente fixtures sem contas/pagamentos.
+
+
+## Orders API — branch de homologação
+176 testes automatizados aprovados. Migração 009 aditiva aplicada somente no banco isolado `dev-store-wardrobe-024`. Checkout Pro Orders, evento `order`, validação de vínculos financeiros, QR obtido na consulta oficial e ledger agregado implementados. Produção preservada. Homologação real de pagamentos e assinatura do webhook permanecem pendentes. Detalhes e limitações em `ORDERS_HOMOLOGACAO.md`.

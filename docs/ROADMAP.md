@@ -214,3 +214,8 @@ Nome, identidade definitiva e monetização continuam em aberto. Não há compro
 - Prévia de roupas animada nas quatro direções, com respeito à preferência de movimento reduzido.
 - Validação financeira recusa frações de centavo e origens de retorno malformadas.
 - Pendência externa: configurar credenciais de teste/produção do Mercado Pago, conferir recebedor, cadastrar webhook e homologar Pix/cartão antes de habilitar vendas.
+
+
+### Orders API (homologação)
+- Implementada em branch isolada: criação de orders, checkout hospedado Pix/cartão, conciliação assinada e compatibilidade com pedidos legados.
+- Pendente: assinatura real do webhook, testes oficiais e revisão antes de promover para produção.
