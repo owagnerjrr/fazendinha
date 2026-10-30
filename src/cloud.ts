@@ -8,9 +8,9 @@ export type Listing = {id:string;crop:MarketItem;quantity:number;price:number;mi
 
 let client: any;
 export async function auth() { return client ??= (await import('@neondatabase/auth')).createAuthClient(`${location.origin}/api/auth`); }
-export async function googleSignIn(link=false){
+export async function googleSignIn(link=false,chooseCharacter=false){
  const status=await fetch('/api/auth-status',{cache:'no-store'});if(!status.ok||!(await status.json()).available)throw new Error('O acesso Google está indisponível agora. Tente novamente em instantes.');
- const a=await auth();localStorage.setItem('wj-cloud-session','1');const options={provider:'google',callbackURL:location.origin,errorCallbackURL:location.origin+'/?error=google-cancelled'};
+ const a=await auth();localStorage.setItem('wj-cloud-session','1');const options={provider:'google',callbackURL:location.origin+(chooseCharacter?'/?setup=character':''),errorCallbackURL:location.origin+'/?error=google-cancelled'};
  const result=link?await a.linkSocial(options):await a.signIn.social(options);if(result.error)throw new Error(result.error.message||'Não foi possível abrir o Google. Suas escolhas foram preservadas.');return result;
 }
 export class CloudFarm {

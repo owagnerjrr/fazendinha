@@ -1,3 +1,5 @@
+0.22.0 — Conta conectada antes de selecionar personagem. Retorno Google leva à escolha quando solicitado; confirmação aplica avatar também em conta existente e só libera entrada após conferir o avatar retornado pelo servidor.
+
 0.21.1 — Compressão do atlas preserva a máscara de pele opaca; preenchimento de pescoço/colo ampliado para unir cabeça e corpo. Modelos e cores existentes mantidos.
 
 0.21.0 — Sete bases de rosto/cabelo com novo acabamento baseado na personagem original; cinco modelos refeitos e dois novos (rabo de cavalo/boné). Nove opções, quatro direções e personalização preservada; original e capuz mantidos.

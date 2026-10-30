@@ -32,3 +32,12 @@ export function initializeProfile(farm:Farm,input:{name?:unknown;avatar?:unknown
  farm.playerName=name;farm.avatar={...input.avatar};farm.profileComplete=true;
  return {ok:true,message:`Bem-vindo, ${name}! Sua fazenda está salva na conta.`};
 }
+
+export function profileEntryAction(farm:Farm,draft:ProfileDraft,editRequested:boolean,editReady:boolean){
+ const initial=needsInitialProfile(farm);
+ if(!initial&&!editRequested)return 'enter';
+ if(!initial&&!editReady)return 'choose';
+ if(!normalizePlayerName(draft.name)||draft.step!==3)return 'complete';
+ return initial?'initialize':'save-avatar';
+}
+export function sameAvatar(a:Avatar,b:Avatar){return a.style===b.style&&a.skin===b.skin&&a.hair===b.hair&&a.shirt===b.shirt;}
