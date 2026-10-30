@@ -4,7 +4,7 @@ O celeiro passa a abrir com visão próxima seguindo a personagem (zoom 1,05), i
 
 A busca de interação filtra o alcance de cada alvo antes de escolher o mais próximo, evitando que um alvo inacessível impeça outra ação válida. Testes adicionais cobrem essa seleção, baias próximas/distantes, desempate, junto das regressões existentes de entradas e produção. A configuração da hospedagem executa npm test antes de npm run build, para validar a atualização mesmo quando o ambiente local está indisponível.
 
-Limite desta etapa: sem navegador e sem ambiente de execução local disponíveis; testes e compilação serão conferidos pelos logs da hospedagem. Não há nova validação visual em celular físico nesta etapa. A captura enviada pelo jogador identifica a visão geral como causa da escala reduzida.
+Validação da versão 0.14.1: 109 testes passaram, zero falhas; compilação TypeScript/Vite/PWA concluída e publicação READY confirmada na hospedagem para o commit 0eb43d6683edee63c59d4f46bc83ab69b84313fa. Limite desta etapa: navegador e ambiente de execução local indisponíveis; não houve nova validação visual nem teste em celular físico nesta etapa. A captura enviada pelo jogador identifica a visão geral como causa da escala reduzida.
 
 ## Pesca e interiores 0.14.0
 
