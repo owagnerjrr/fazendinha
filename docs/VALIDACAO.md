@@ -512,3 +512,6 @@ A simulação oficial chegou e retornou 401. Revisão do SDK oficial atual confi
 Consulte FISHING_0_25_2.md. Teste de regressão cobre linha antiga fora do rio sem bloqueio/aviso e empunhadura limitada nas quatro direções.
 
 195 testes e build aprovados. Navegador com fazenda fixture: desktop e celular verificaram linha antiga longe do rio, botão principal sem trocar para Mão e lançamento na ponte; zero erros JavaScript. Capturas conferidas. Sem telefone físico ou transações reais.
+
+## 0.25.3 — ícones sem duplicação
+Mão permanece fixa na barra de ferramentas; somente o botão circular de ação troca de ícone conforme a seleção. Cada ferramenta tem sua seleção própria.
