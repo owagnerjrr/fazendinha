@@ -1,3 +1,4 @@
+import {headAttachment,eraseNativeHead,nativeSkin,nativeHeadRegion,restoreRaisedTool} from './avatar-attachment';
 import Phaser from 'phaser';
 import {drawPortraitHead} from './avatar-head-art';
 import {drawModelFeatures} from './avatar-features';
@@ -36,6 +37,7 @@ export class AvatarArt {
    for(let y=0;y<h*.65;y++)for(let x=Math.max(0,w/2-24);x<Math.min(w,w/2+24);x++){const i=(y*w+x)*4;if(p[i+3]>180&&p[i]>145&&p[i+1]>95&&p[i]>p[i+1]*1.08&&p[i+2]<p[i+1]*.8)top=Math.min(top,y);}
    for(let y=top;y<Math.min(h,top+15);y++)for(let x=0;x<w;x++){const i=(y*w+x)*4;if(p[i+3]>180&&p[i]>145&&p[i+1]>95&&p[i]>p[i+1]*1.08&&p[i+2]<p[i+1]*.8){left=Math.min(left,x);right=Math.max(right,x);}}
    if(left<right)cx=Math.round((left+right)/2);
+   const region=nativeHeadRegion(p,w,h,{x:cx,top}),neck=headAttachment(p,w,h,region.top,region.x);
    for(let y=0;y<h;y++)for(let x=0;x<w;x++){
     const i=(y*w+x)*4;if(p[i+3]<180)continue;const r=p[i],g=p[i+1],b=p[i+2];let target:number[]|null=null,shade=1;
     if(y>top+23&&y<h-8&&Math.abs(x-cx)<23&&g>r*1.08&&g>b*1.1){target=shirt;shade=Math.max(.35,Math.min(1.3,(r+g+b)/180));}
@@ -43,22 +45,23 @@ export class AvatarArt {
     // Recolor that bounded face region together, preserving eyes and outlines.
     else if(y>top+21&&y<top+34&&Math.abs(x-(cx+(row===1?-3:row===2?3:0)))<9&&row!==3&&r>125&&g>55&&r>g*1.15&&b<g*1.1){target=skin;shade=Math.max(.72,Math.min(1.12,(r+g+b)/540));}
     // Outside the face, recolor only peach skin so boots remain brown.
-    else if(y>top+15&&y<h-13&&Math.abs(x-cx)<23&&r>200&&g>125&&g<r*.84&&b>85&&b<g*.85){target=skin;shade=Math.max(.5,Math.min(1.15,(r+g+b)/565));}
+    else if(y>=neck.y&&y<h-13&&Math.abs(x-neck.x)<23&&nativeSkin(r,g,b)){target=skin;shade=Math.max(.5,Math.min(1.15,(r+g+b)/565));}
     else if(y>top+16&&y<top+31&&Math.abs(x-cx)<20&&r>65&&r<180&&g<r*.55&&b<65){target=hair;shade=Math.max(.4,Math.min(1.1,r/125));}
     if(target){p[i]=Math.min(255,target[0]*shade);p[i+1]=Math.min(255,target[1]*shade);p[i+2]=Math.min(255,target[2]*shade);}
    }
    cleanAvatarPixels(p,w,h);ctx.putImageData(data,col*w,row*h);
-   // Every style keeps the complete native body and face; no separate head is cut in.
+   // Body pixels remain in the foreground; the replacement head fits behind the collar.
    const direction=['down','left','right','up'][row],ox=col*w,oy=row*h;
    ctx.save();ctx.beginPath();ctx.rect(ox,oy,w,h);ctx.clip();
-   ctx.save();ctx.translate(ox,oy);drawModelFeatures(ctx,avatar,row,cx,top);ctx.restore();
+   ctx.save();ctx.translate(ox,oy);drawModelFeatures(ctx,avatar,row,neck.x,neck.y-32);ctx.restore();
    if(avatar.style==='hood'){
     const face=document.createElement('canvas');face.width=22;face.height=15;face.getContext('2d')!.drawImage(canvas,ox+cx-11,oy+top+19,22,15,0,0,22,15);
     ctx.clearRect(ox+cx-25,oy+Math.max(0,top-4),50,top+30-Math.max(0,top-4));ctx.save();ctx.translate(ox+cx-20,oy+top-4);drawNightHood(ctx,direction);ctx.restore();
     if(direction!=='up'){ctx.save();ctx.beginPath();ctx.rect(ox+cx-10,oy+top+20,20,13);ctx.clip();ctx.drawImage(face,ox+cx-11,oy+top+19);ctx.restore();}
    }else if(avatar.style!=='classic'){
-    ctx.clearRect(ox+cx-25,oy,50,top+31);
-    ctx.save();ctx.translate(ox,oy);drawPortraitHead(ctx,this.scene.textures.get('portrait-heads-v9').getSourceImage() as HTMLImageElement,avatar,row,cx,top+31);ctx.restore();
+    const body=ctx.getImageData(ox,oy,w,h),foreground=body.data.slice();eraseNativeHead(body.data,w,h,region.top,region.x,neck.y,row);ctx.putImageData(body,ox,oy);
+    ctx.save();ctx.globalCompositeOperation='destination-over';ctx.translate(ox,oy);drawPortraitHead(ctx,this.scene.textures.get('portrait-heads-v9').getSourceImage() as HTMLImageElement,avatar,row,neck.x,neck.y);ctx.restore();
+    const layered=ctx.getImageData(ox,oy,w,h);restoreRaisedTool(layered.data,foreground,w,h,base,row,col,skin);ctx.putImageData(layered,ox,oy);
    }
    ctx.restore();const final=ctx.getImageData(ox,oy,w,h);cleanAvatarPixels(final.data,w,h);ctx.putImageData(final,ox,oy);
   }

@@ -197,3 +197,8 @@ Nome, identidade definitiva e monetização continuam em aberto. Não há compro
 - Implementado: início enxuto e liberações por nível para novas fazendas, preservando contas anteriores.
 - Implementado: convite pessoal, atribuição no cadastro, recompensa de 1.000 moedas após e-mail confirmado e proteção contra repetição.
 - Limite: emails diferentes da mesma pessoa não podem ser identificados com certeza; monitoramento de abuso pode evoluir.
+
+### 0.23.1
+- Corrigido encaixe cabeça/colo/ombros dos avatares alternativos em movimento.
+- Preservadas sobreposições da mão e da ferramenta; removidos fragmentos do chapéu anterior.
+- Corrigida a correspondência de cor dos braços com a pele escolhida.

@@ -428,3 +428,11 @@ Encontrados dois desvios: escolhas anônimas em memória desapareciam no redirec
 - Concorrência real no branch: três solicitações, um crédito de 1.000 e uma revisão.
 - API pública 0.23.0: início enxuto, gates, convite pendente, replay, recadastro negado, confirmação inválida rejeitada e retorno Google com convite conferidos com identidades QA. Regressão de avatar/login aprovada.
 - UI de níveis e convites e copiar convite conferidos em fixtures desktop e móvel de 390 × 844.
+
+## 0.23.1 — encaixe dos personagens em movimento
+
+Corrigida a composição das cabeças alternativas: o recorte antigo apagava ombros e a posição era calculada pelo chapéu inclinado (ou até pelo cabo de madeira de uma ferramenta). Agora o registro usa a faixa do chapéu para localizar a cabeça e o colo real do tronco para o encaixe. O pescoço já existe na arte e não recebe uma segunda extensão. O corpo fica na frente do pescoço; cabelo comprido fica atrás dos ombros. Contornos específicos preservam mão, braço e cabo no quadro da enxada levantada. Removidos fragmentos do chapéu original que apareciam nas laterais.
+
+A paleta da pele agora alcança os tons pêssego dos braços sem tingir tecido creme ou botas. A identidade de cada avatar, cadastro e progresso permanecem iguais. Sem migração de dados.
+
+155 testes e build de produção aprovados. QA com arte real: caminhada nas quatro direções e quatro quadros do modelo ondulado, quadros de enxada/regador e galeria dos nove modelos. Nenhuma conta pessoal usada no teste visual. A fixture suporta `?model=rui&sheet=1` para conferir todos os quadros juntos.
