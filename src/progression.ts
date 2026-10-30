@@ -10,7 +10,7 @@ export const UNLOCKS=[
  {level:6,label:'Girassol · terrenos · construções · cultivo nas clareiras'},
 ] as const;
 export function requiredLevel(c:any):number {
- if(c?.type==='work'&&Number.isInteger(c.plot)&&c.plot>=0&&c.plot<24)return 1;
+ if((c?.type==='work'||c?.type==='help')&&Number.isInteger(c.plot)&&c.plot>=0&&c.plot<24)return 1;
  if(c?.type==='buy'||c?.type==='work'&&c.tool==='seed'||c?.type==='help'&&c.mode==='plant')return Object.hasOwn(CROP_LEVEL,c.crop)?CROP_LEVEL[c.crop as Crop]:1;
  if(c?.type==='buy-animal')return ({chicken:3,chick:3,rooster:4,dog:4,cow:5,goat:5} as Record<string,number>)[c.kind]??1;
  if(['buy-rod','cast-line'].includes(c?.type))return 4;

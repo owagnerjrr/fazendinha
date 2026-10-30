@@ -2,7 +2,7 @@ import {livestockMotion} from './livestock-motion.js';
 import { penDogMotion } from './dog-motion.js';
 import type { Animal, AnimalKind } from './content.js';
 import type { Obstacle } from './pathfinding.js';
-export const ANIMAL_SIZE:Record<AnimalKind,{width:number;height:number}>={cat:{width:34,height:32},rooster:{width:31,height:32},chick:{width:16,height:17},cow:{width:68,height:62},goat:{width:44,height:47},dog:{width:34,height:32},chicken:{width:27,height:29}};
+export const ANIMAL_SIZE:Record<AnimalKind,{width:number;height:number}>={cat:{width:38,height:42},rooster:{width:31,height:32},chick:{width:16,height:17},cow:{width:68,height:62},goat:{width:44,height:47},dog:{width:34,height:32},chicken:{width:27,height:29}};
 const capacity:Record<AnimalKind,number>={cat:4,cow:2,goat:3,dog:4,chicken:6,rooster:6,chick:6};
 export type BarnPen=Obstacle&{id:number;side:'left'|'right';animals:Animal[];kind?:AnimalKind;purpose:string;access:{x:number;y:number}};
 export function barnLayout(animals:Animal[]):BarnPen[]{

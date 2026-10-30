@@ -15,8 +15,7 @@ export function tillGround(f:Farm,p:{x:number;y:number},now:number){
  if(!groundAllowed(f,p))return{ok:false,message:'Escolha terra livre, longe de caminhos, árvores e construções.'};
  if(Math.hypot(f.player.x-p.x,f.player.y-p.y)>70)return{ok:false,message:'Aproxime-se da terra.'};
  if((f.customPlots?.length??0)>=80)return{ok:false,message:'Limite de 80 canteiros livres atingido.'};
- const online=f as Farm&{energy?:number};if(online.energy!=null&&online.energy<2)return{ok:false,message:'Energia insuficiente.'};
  const plot:Plot={id:60+(f.customPlots?.length??0),position:{...p},tilled:true,tilledAt:soilTime(f,now),crop:null,wateredAt:null};
- (f.customPlots??=[]).push(plot);if(online.energy!=null)online.energy-=2;
+ (f.customPlots??=[]).push(plot);
  return{ok:true,message:'Terra preparada.'};
 }

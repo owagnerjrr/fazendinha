@@ -1,3 +1,5 @@
+**0.25.1:** ferramentas sem energia obrigatória, gatos raster, carinho desde o primeiro animal e visitas com ações explícitas. Consulte [validação e migração 012](docs/CARE_0_25_1.md).
+
 **0.25.0 publicada:** visual renovado, amigos ao vivo e notificações, gatos, reforma da casa, 24 canteiros livres e pacote de fertilizantes com Pix/cartão. Contas e progresso preservados. Veja [evidências da publicação e limites de validação](docs/VALE_RENOVADO_0_25.md).
 
 ---

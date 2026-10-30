@@ -103,7 +103,7 @@ function syncUI() {
   $('day-label').textContent=cloud.active?cloud.name:(farm.playerName||'Um novo começo');
   $('online-bar').hidden = false;
   $('progression').hidden=!cloud.active;$('community').hidden=!cloud.active;
-  if (cloud.active) { const f=farm as OnlineFarm; $('progression').textContent = `Nível ${levelOf(f.xp)} · Energia ${f.energy}/${ECONOMY.energyMax}`; }
+  if (cloud.active) { const f=farm as OnlineFarm; $('progression').textContent = `Nível ${levelOf(f.xp)}`; }
   if(equippedTool==='rod'&&!farm.fishing?.rod)equippedTool='water';
   document.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach(b=>{b.hidden=!['hand','hoe','seed',equippedTool].includes(b.dataset.tool!);});
   $('seed-choice').hidden=tool!=='seed';
@@ -494,7 +494,7 @@ class FarmScene extends Phaser.Scene {
     for (const tree of this.occluders) { const hidden = Math.abs(this.player.x - tree.x) < 60 && this.player.y < tree.y && this.player.y > tree.y - tree.displayHeight + 20; tree.setAlpha(hidden ? .42 : 1); }
     const pointer = this.input.activePointer, world = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
     const hover = this.fields.find(f => Math.abs(f.x - world.x) < 20 && Math.abs(f.y - world.y) < 20);
-    this.select.setVisible(!!hover); if (hover) this.select.setPosition(hover.x, hover.y);
+    this.select.setVisible(false);
     if (time - this.lastPaint > 500) { this.paintFields(); this.lastPaint = time; }
     if (time - this.lastSave > 5000) { if (cloud.active) { const p={x:this.player.x,y:this.player.y};if(!cloud.busy&&Math.hypot(p.x-farm.player.x,p.y-farm.player.y)>20)void cloud.command({type:'position'},p).catch(()=>{}); } else {farm.player={x:this.player.x,y:this.player.y};save();} this.lastSave=time; }
   }
@@ -543,7 +543,7 @@ function enterInterior(room:'house'|'barn'){
  inside=true;$('hint').hidden=true;$('enter-place').hidden=true;$('hint').textContent='Toque no cômodo para andar. Use E ou Usar perto dos objetos.';$('exit-interior').hidden=false;$('interior-view').hidden=false;$('interior-view').textContent='Ver cômodo inteiro';$('world-place').textContent=room==='house'?'SUA CASA':'SEU CELEIRO';game.scene.start('Interior',{room});
 }
 async function bondAnimal(id:string,type:'pet-animal'|'play-animal'){
- closePanel();const animal=farm.animals.find(a=>a.id===id);if(animal?.housing&&animal.housing!=='barn'){if(inside)(game.scene.getScene('Interior') as InteriorScene).exitRoom();if(inside)throw new Error('Aguarde a personagem acordar.');const b=farm.buildings?.find(b=>b.id===animal.housing);if(!b)throw new Error('Instalação não encontrada.');scene.navigate({...scene.buildingAccess(b),run:()=>{void lifeCommand({type,id}).then(()=>{scene.careHeart(id);toast(type==='play-animal'?'Brincadeira realizada.':'Carinho realizado.');}).catch(e=>toast(e.message));}});return;}if(performance.now()<entranceLockedUntil)throw new Error('Aguarde a entrada no cômodo terminar.');const interior=game.scene.getScene('Interior') as InteriorScene;
+ closePanel();const animal=farm.animals.find(a=>a.id===id);if(animal?.housing&&animal.housing!=='barn'){if(inside)(game.scene.getScene('Interior') as InteriorScene).exitRoom();if(inside)throw new Error('Aguarde a personagem acordar.');const b=farm.buildings?.find(b=>b.id===animal.housing);if(!b)throw new Error('Instalação não encontrada.');scene.navigate({...scene.buildingAccess(b),run:()=>{void lifeCommand({type,id}).then(()=>{scene.careHeart(id);toast(type==='play-animal'?'Brincadeira realizada.':'Carinho realizado.');}).catch(e=>toast(e.message));}});return;}if(performance.now()<entranceLockedUntil)await new Promise(resolve=>setTimeout(resolve,entranceLockedUntil-performance.now()+10));const interior=game.scene.getScene('Interior') as InteriorScene;
  if(!inside||interior.getRoom()!=='barn'){
   const created=new Promise<void>(resolve=>interior.events.once('create',()=>resolve()));enterInterior('barn');await created;
  }
@@ -579,7 +579,7 @@ setInterval(()=>{
 
 function startVisit(code:string,data:VisitData){if(farm.home?.sleep){toast('Aguarde a personagem acordar.');return;}if(inside){game.scene.stop('Interior');finishInteriorExit();}scene.finishCurrentWork();scene.cancelMovement();game.scene.sleep('Farm');visiting=true;document.body.classList.add('visiting');$('exit-interior').hidden=false;$('world-place').textContent=`Fazenda de ${data.name}`;const label=document.createElement('aside');label.id='visit-banner';const text=document.createElement('span');text.textContent=`Fazenda de ${data.name}`;const chat=document.createElement('button');chat.textContent='Conversar';chat.onclick=()=>void onlineUI.chat(code);const animals=document.createElement('button');animals.textContent='Animais';animals.onclick=()=>{(game.scene.getScene('Visit') as VisitScene).animalsMenu();};label.append(text,chat,animals);document.body.append(label);game.scene.start('Visit',data);}
 function finishVisit(){visiting=false;document.body.classList.remove('visiting');document.getElementById('visit-banner')?.remove();$('exit-interior').hidden=true;$('world-place').textContent='VALE DO SOSSEGO';game.scene.wake('Farm');scene.cancelMovement();}
-game.scene.add('Visit',new VisitScene({own:()=>farm,tool:()=>tool,seed:()=>selected,stick:()=>joystick,modal:()=>modal,fetch:code=>cloud.request(`?visit=${code}`),command:c=>cloud.command(c),open:openPanel,close:closePanel,toast,exit:finishVisit,chat:code=>void onlineUI.chat(code)}),false);
+game.scene.add('Visit',new VisitScene({own:()=>farm,tool:()=>tool,seed:()=>selected,stick:()=>joystick,modal:()=>modal,fetch:code=>cloud.request(`?visit=${code}`),presence:(code,pose)=>cloud.request('?presence=1',{code,...pose}),command:c=>cloud.command(c),open:openPanel,close:closePanel,toast,exit:finishVisit,chat:code=>void onlineUI.chat(code)}),false);
 
 const homeDesigner=homeDesignUI({farm:()=>farm,open:openPanel,command:lifeCommand,toast,fertilizers:()=>void storeUI.open('fertilizer')});
 document.addEventListener('click',e=>{const el=(e.target as Element).closest('[data-home-design],[data-fertilizer-menu]');if(el?.hasAttribute('data-home-design'))homeDesigner.open();if(el?.hasAttribute('data-fertilizer-menu'))homeDesigner.fertilizer();});

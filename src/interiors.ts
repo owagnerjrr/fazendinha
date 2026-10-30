@@ -1,3 +1,4 @@
+import {petStroke} from './pet-motion';
 import {houseOffset} from './home-design';
 import {outfitSleeveColor} from './outfit-art';
 import {appearanceOf} from './wardrobe';
@@ -67,7 +68,9 @@ export class InteriorScene extends Phaser.Scene {
  toggleView(){this.overview=!this.overview;this.resize();return this.overview;}
 
  getRoom(){return this.room;}
- bond(id:string,type:'pet-animal'|'play-animal'):Promise<void>{
+ async bond(id:string,type:'pet-animal'|'play-animal'):Promise<void>{
+  const signature=JSON.stringify(this.services.farm().animals.map(a=>[a.id,a.kind,a.housing]));
+  if(this.room==='barn'&&this.animalSignature!==signature){const created=new Promise<void>(resolve=>this.events.once('create',resolve));this.scene.restart({room:'barn'});await created;}
   if(this.bonding)return Promise.reject(new Error('Aguarde a interação atual.'));
   const access=this.barn?.access(id);if(!access||!this.services.farm().animals.some(a=>a.id===id))return Promise.reject(new Error('Animal não encontrado no celeiro.'));
   const route=findPath(this.player,access,this.blocks);if(!route.length)return Promise.reject(new Error('Não há passagem livre até o animal.'));
@@ -129,15 +132,17 @@ export class InteriorScene extends Phaser.Scene {
   this.restFrame(time,phase);this.house?.updateHome(s.farm().home,time,this.rest?.kind==='sleep',this.reduced.matches);if(time>=this.nextUI){this.updateHouseControls();this.nextUI=time+100;}
   this.barn?.update(time,s.farm(),s.now(),this.player);this.gesture.clear();
   if(bond){
-   if(bond.phase==='contact'&&time-bond.start>=1100){
+   if(bond.phase==='contact'&&time-bond.start>=3000){
     const access=this.barn?.access(bond.id);if(!access||Math.hypot(this.player.x-access.x,this.player.y-access.y)>20){this.finishBond(new Error('Fora de alcance.'));return;}
     bond.phase='saving';void (s.care?.({type:bond.type,id:bond.id})??Promise.reject(new Error('Cuidados indisponíveis.'))).then(()=>{if(this.bonding===bond){bond.phase='reacting';bond.start=this.time.now;}}).catch(e=>{if(this.bonding===bond)this.finishBond(e);});
    }
    if(bond.phase==='contact'||bond.phase==='reacting'){
-    const elapsed=time-bond.start,side=this.dir===1?-1:1,wave=this.reduced.matches?0:Math.round(Math.sin(elapsed/140)*2),skin=parseInt(SKIN_TONES[s.farm().avatar.skin].slice(1),16),shirt=parseInt(outfitSleeveColor(appearanceOf(s.farm())).slice(1),16);
-    const animal=this.barn?.contact(bond.id);if(animal&&Math.hypot(animal.x-this.player.x,animal.y-this.player.y)<80){const hx=animal.x+(this.dir===1?9:-9),hy=animal.y-25+wave,shoulder={x:this.player.x+side*8,y:this.player.y-29},elbow={x:shoulder.x+(hx-shoulder.x)*.5,y:shoulder.y+4};this.gesture.setDepth(Math.max(this.player.y,animal.y)+2).lineStyle(7,0x392c22).lineBetween(shoulder.x,shoulder.y,elbow.x,elbow.y).lineBetween(elbow.x,elbow.y,hx,hy).lineStyle(5,shirt).lineBetween(shoulder.x,shoulder.y,elbow.x,elbow.y).lineStyle(4,skin).lineBetween(elbow.x,elbow.y,hx,hy).fillStyle(skin).fillRoundedRect(hx-4,hy-3,8,5,2);}
-    const pet=this.barn?.contact(bond.id);if(pet&&bond.type==='play-animal'){this.gesture.fillStyle(0xcaae63).fillCircle(pet.x-side*12,pet.y-6,3);}
-    if(bond.phase==='reacting'&&elapsed>2100)this.finishBond();
+    const elapsed=time-bond.start,side=this.dir===1?-1:1,pet=this.barn?.contact(bond.id),skin=parseInt(SKIN_TONES[s.farm().avatar.skin].slice(1),16),shirt=parseInt(outfitSleeveColor(appearanceOf(s.farm())).slice(1),16);
+    if(pet){const pose=petStroke(this.player,{x:pet.headX,y:pet.headY},side,bond.phase==='contact'?elapsed:3000,this.reduced.matches),g=this.gesture;g.setDepth(Math.max(this.player.y,pet.y)+2);
+     if(pose.visible&&bond.phase==='contact'){const {shoulder:a,elbow:b,hand:h}=pose;g.lineStyle(6,0x49382a).lineBetween(a.x,a.y,b.x,b.y).lineBetween(b.x,b.y,h.x,h.y).lineStyle(4,shirt).lineBetween(a.x,a.y,b.x,b.y).lineStyle(3,skin).lineBetween(b.x,b.y,h.x,h.y).fillStyle(skin).fillRect(Math.round(h.x)-2,Math.round(h.y)-1,5,3);}
+     if(bond.phase==='reacting'){const x=Math.round(pet.headX),y=Math.round(pet.headY-13-Math.min(10,elapsed/100));g.fillStyle(0xd79a9c,Math.max(0,1-elapsed/1300)).fillRect(x-4,y,3,3).fillRect(x+1,y,3,3).fillRect(x-3,y+2,6,3).fillRect(x-1,y+5,2,2);}
+    }
+    if(bond.phase==='reacting'&&elapsed>1100)this.finishBond();
    }
    if(time-bond.start>15000&&bond.phase==='arriving')this.finishBond(new Error('O caminho até o animal ficou bloqueado.'));
   }
