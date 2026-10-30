@@ -344,3 +344,10 @@ O jogo principal com save fictício também abriu o celeiro por E, voltou à faz
 130 testes e build TypeScript/Vite/PWA aprovados. Testes de roteamento cobrem primeira visita, sessão ativa com perfil completo ou incompleto, rascunho de perfil, retorno local e sessão online expirada. A sessão é consultada antes da decisão de mostrar a abertura, mesmo sem o marcador antigo do navegador. Nenhuma migração de economia ou dados.
 
 Inspeção visual no viewport 390×844: intro responsiva, Google/Gmail e alternativas disponíveis. Continuação da fazenda QA local preservou 500 moedas e inventário 7; recarregar abriu o jogo diretamente. Captura: screenshots/intro-0.18.jpg. O login pessoal Google/consentimento não foi repetido nesta alteração de interface; a integração existente foi preservada. Sem teste em celular físico.
+
+
+## Digitação 0.18.1 — 30/10/2026
+
+Causa confirmada no código Phaser 3.90: captura global chama preventDefault para teclas de movimento/interação mesmo com o modal aberto. Eventos keydown, keyup e keypress originados em input/textarea/select/contenteditable agora param no documento, antes do listener global do jogo, sem impedir edição nativa. Atalhos fora dos formulários permanecem iguais.
+
+130 testes e build aprovados. No jogo real de QA, a digitação sequencial de Wagner Junior wasd e 123 preencheu o campo de nome até seu limite de 24 caracteres, preservando letras e espaços anteriormente capturados. Nenhum nome foi salvo nem houve alteração de conta/progresso.

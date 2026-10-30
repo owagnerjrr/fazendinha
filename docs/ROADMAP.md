@@ -1,3 +1,5 @@
+0.18.1 — Campos de nome, e-mail, chat e demais formulários isolam o teclado dos atalhos globais do jogo; digitação nativa preservada.
+
 0.18.0 — Introdução responsiva Fazenda Feliz, entrada Google/Gmail/e-mail, retomada de perfil e reconhecimento da sessão antes de abrir o jogo. Continuação local preservada e segunda entrada direta.
 
 0.17.2 — Verificação online concluída com três contas QA, correção de identidade UUID/text na autorização e IDs de mensagem compatíveis com a prévia HTTP. Chat persistente e isolado, gestão de pedidos/bloqueios e visita no mapa.
