@@ -39,7 +39,7 @@ export function setupJourney(s:Services){
   }
  }
  function welcome(message=''){
-  root.hidden=false;root.classList.add('welcome-screen');document.body.classList.add('journey-open');s.block(true);root.innerHTML=welcomeHTML();bindAccountControls();
+  root.hidden=false;root.classList.add('welcome-screen');document.body.classList.add('journey-open');s.block(true);root.innerHTML=welcomeHTML(!!draft.name);bindAccountControls();
   root.querySelector<HTMLButtonElement>('#welcome-profile')!.onclick=()=>{draft.step=draft.name?2:1;persist();show();};
   if(message)feedback(message);
  }

@@ -1,3 +1,5 @@
+0.19.3 — Abertura sempre aparece sem sessão ativa, mesmo com rascunho ou save local antigo. Continuar meu cadastro retoma nome/personagem; contas conectadas continuam entrando direto.
+
 0.19.2 — Rosto escuro com sombras recoloridas junto à pele. Seleção visual sem legendas/campo Estilo, quatro tons de pele e cabelo sem acobreado; índices antigos preservados ao abrir a edição.
 
 0.19.1 — Substituída a montagem por cabeças separadas pela preservação do sprite completo. Recoloração de pele mais restrita, sem atingir botas; estilos com escala consistente, limpeza de fragmentos, clipping por quadro e capuz noturno redesenhado em torno do rosto original.

@@ -377,3 +377,8 @@ A revisão anterior ainda deformava a composição. A nova versão preserva o co
 O rosto original tem sombras laranja/marrons que escapavam à regra de recoloração de realces claros. A região delimitada do rosto agora recolore esses meios-tons com a mesma paleta de pele e contraste moderado, preservando olhos/contornos. Inspeção visual em quatro direções conferiu rostos escuros sem manchas alaranjadas anteriores.
 
 Cadastro e guarda-roupa têm seleção por imagem, sem legendas ou seletor Estilo. Tons visíveis: Claro, Moreno, Castanho e Negro. Acobreado removido do cabelo. IDs numéricos de saves antigos não são deslocados: seleções legadas são mantidas ocultas até a pessoa escolher outra cor, sem alteração automática da conta. Presets novos usam apenas as opções visíveis. 134 testes e build aprovados, incluindo opções permitidas e preservação de índices antigos. Sem migração ou novo login pessoal.
+
+
+## Retorno à abertura 0.19.3 — 30/10/2026
+
+Removido o desvio automático para personagem por haver rascunho e o desvio local antigo para a fazenda sem sessão ativa. Sem sessão, o ponto de entrada é sempre a abertura; o botão Continuar meu cadastro retoma as escolhas. Conta conectada com perfil completo continua entrando direto; perfil incompleto conectado mantém sua conclusão. Nome/personagem salvos e fazendas não são apagados. 134 testes e build aprovados; regressão cobre rascunho e saves antigos sem sessão.
