@@ -1,3 +1,11 @@
+## Interface 0.13.0 — menos informação permanente
+
+A tela de jogo mantém relógio/calendário, moedas, menu e ferramentas compactas com inventário. Identidade da fazenda, missão inicial, conta, cuidados, progressão, amigos, instalação, ajuda, desempenho e estado do salvamento foram reunidos no menu lateral, usando os mesmos controles e funções existentes. A missão concluída deixa de aparecer. O seletor de sementes só fica visível com Plantar selecionado. Dicas genéricas, assinatura e versão não ficam sobre o cenário.
+
+Os nomes fixos das construções foram retirados do mapa; o botão de entrada continua identificando a construção próxima. Só o canteiro com informação mais próximo da personagem, até 78 unidades, exibe aviso. Terrenos mostram nome/contorno de disponibilidade perto da personagem, até 125 unidades. Texturas de plantas doentes/ressecadas e indicadores dos animais permanecem; o painel Cuidados conserva a visão completa. Não houve mudança de regras, dados salvos, autenticação ou banco.
+
+Validação no jogo real com fazenda fictícia local: tela principal, menu, abertura de Cuidados e retorno, seleção de Plantar com aparecimento de sementes, tela de Desempenho pelo menu e avisos da horta por proximidade. Layout desktop de 1363×936 e iframe com viewport real de 390×844 para CSS e controles móveis; neste último, barra com sementes tem 339 px, dentro dos 390 px, e relógio e moedas/menu não se sobrepõem. Isso não substitui teste em celular físico. 101 testes de regressão aprovados e build TypeScript/Vite/PWA concluído. Conferido fechamento com Esc e retorno do foco ao menu. Captura em `screenshots/interface-0.13.0.jpg`. Sem novo teste de autenticação Google nesta etapa.
+
 ## Correção 0.12.6 — patas na caminhada horizontal
 
 O passo anterior levantava faixas de patas em apenas 1 pixel da textura 48×48, quase imperceptível após a redução para o tamanho do cachorro no jogo. Nas vistas esquerda/direita, os quatro passos agora deslocam as patas para frente/trás em até 3 pixels e levantam alternadamente as patas dianteiras/traseiras em até 3 pixels. O tronco permanece fixo. A transformação substitui a área das patas por amostragem inversa, sem sobrepor o desenho anterior; mantém as texturas isoladas e alfa 0/255 da correção anterior. O acompanhante externo troca de passo a cada 8 pixels percorridos, evitando cadência rápida demais.

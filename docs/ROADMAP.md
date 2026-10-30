@@ -1,3 +1,5 @@
+0.13.0 — Simplificação da interface principal: menu lateral com opções existentes, barra de ferramentas compacta e avisos por proximidade. Contas, progresso, regras e ações de jogo preservados.
+
 0.12.6 — Corrigida a passada horizontal do cachorro: patas dianteiras/traseiras alternadas, amplitude visível na escala do jogo e cadência externa por distância.
 
 0.12.5 — Texturas individuais do cachorro e transição entre caminhada/repouso estabilizada. Sem alterações de contas ou regras da criação. Validação e limites em VALIDACAO.md.

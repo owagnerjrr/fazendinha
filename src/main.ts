@@ -20,6 +20,7 @@ import { findPath, type Point } from './pathfinding';
 import { setupInstall } from './pwa';
 import './style.css';
 import './theme.css';
+import './clean-hud.css';
 import { createArt } from './art';
 import { ACTIONS, ActionClock, actionFrame, DIRECTION_ROW, isPouring, type Direction } from './action-timing';
 import { ChickenFlock } from './chickens';
@@ -56,6 +57,13 @@ let currentInterior:'house'|'barn'|null=null;
 let portraitSignature='';
 function previewAvatar(a:Avatar){if(!scene?.previewArt)return '';const key=scene.previewArt.key('farmer-v2',a),image=scene.textures.get(key).getSourceImage() as HTMLCanvasElement;const c=document.createElement('canvas');c.width=48;c.height=64;c.getContext('2d')!.drawImage(image,0,0,48,64,0,0,48,64);return c.toDataURL();}
 const dialog = $<HTMLDialogElement>('panel');
+const menu = $<HTMLDialogElement>('game-menu');
+function closeMenu(){menu.close();$('menu-toggle').setAttribute('aria-expanded','false');}
+$('menu-toggle').onclick=()=>{if(menu.open){closeMenu();return;}scene?.cancelMovement();modal=true;joystick={x:0,y:0};$('joystick-knob').style.transform='';document.body.classList.add('modal-open');menu.showModal();$('menu-toggle').setAttribute('aria-expanded','true');};
+$('close-menu').onclick=closeMenu;
+menu.addEventListener('close',()=>{modal=dialog.open||document.body.classList.contains('journey-open');document.body.classList.toggle('modal-open',dialog.open);$('menu-toggle').setAttribute('aria-expanded','false');});
+menu.addEventListener('click',e=>{if((e.target as HTMLElement).closest('[data-menu-actions] button'))closeMenu();},true);
+menu.addEventListener('click',e=>{if(e.target===menu){const r=menu.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)closeMenu();}});
 let activePanel: 'shop' | 'other' = 'other';
 function toast(message: string) { $('toast').textContent = message; $('toast').classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => $('toast').classList.remove('show'), 4200); }
 function save() {
@@ -70,6 +78,8 @@ function syncUI() {
   $('online-bar').hidden = false;
   $('progression').hidden=!cloud.active;$('community').hidden=!cloud.active;
   if (cloud.active) { const f=farm as OnlineFarm; $('progression').textContent = `Nível ${levelOf(f.xp)} · Energia ${f.energy}/${ECONOMY.energyMax}`; }
+  $('seed-choice').hidden=tool!=='seed';
+  $('quest-card').hidden=farm.questClaimed;
   $('coins').textContent = farm.coins.toLocaleString('pt-BR');
   $('seed-name').textContent = CROPS[selected].name; $('seed-icon').innerHTML = `<img src="${cropImage(selected)}" alt="" />`;
   $('seed-count').textContent = `${farm.seeds[selected]} sementes`;
@@ -101,7 +111,7 @@ function seedPanel() {
   document.querySelectorAll<HTMLButtonElement>('[data-crop]').forEach(b => b.onclick = () => { selected = b.dataset.crop as Crop; setTool('seed'); closePanel(); });
 }
 function shop(){life.shop();}
-function help() { openPanel('Um novo começo', `<p>Bem-vindo ao Vale do Sossego. Aqui, um pedacinho de terra já é uma boa história.</p><ol class="controls-list"><li>Escolha a <b>enxada</b> e toque em um canteiro.</li><li>Selecione <b>Plantar</b> e use uma semente.</li><li>Use o <b>regador</b>. O crescimento começa agora.</li><li>Quando estiver pronta, use a <b>mão</b> para colher.</li><li>Abra o <b>celeiro</b> e venda sua colheita.</li></ol><p>No PC, ande com <b>WASD ou setas</b>. Use <b>E</b> para agir perto de um canteiro ou da venda. As teclas <b>1–4</b> trocam a ferramenta. Você também pode clicar no terreno para caminhar. No celular, use o joystick ou toque no mapa.</p><p class="quiet-note"><b>Versão de testes 0.12.6:</b> use Conta para criar sua fazenda online e continuar em outro aparelho. Sem entrar, você joga no teste local deste navegador. Minha fazenda abre seu avatar, os animais e o jardim. Entre na casa e no celeiro para explorar. Use a mão para remover pragas. A conta libera ainda níveis, energia, expansão, amigos e feira. Compras e colheitas online precisam de conexão. As plantas regadas continuam crescendo ao fechar. A arte é provisória e original do projeto.</p><button class="primary" id="start-playing">Vamos plantar</button>`); $('start-playing').onclick = closePanel; }
+function help() { openPanel('Um novo começo', `<p>Bem-vindo ao Vale do Sossego. Aqui, um pedacinho de terra já é uma boa história.</p><ol class="controls-list"><li>Escolha a <b>enxada</b> e toque em um canteiro.</li><li>Selecione <b>Plantar</b> e use uma semente.</li><li>Use o <b>regador</b>. O crescimento começa agora.</li><li>Quando estiver pronta, use a <b>mão</b> para colher.</li><li>Abra o <b>celeiro</b> e venda sua colheita.</li></ol><p>No PC, ande com <b>WASD ou setas</b>. Use <b>E</b> para agir perto de um canteiro ou da venda. As teclas <b>1–4</b> trocam a ferramenta. Você também pode clicar no terreno para caminhar. No celular, use o joystick ou toque no mapa.</p><p class="quiet-note"><b>Versão de testes 0.13.0:</b> use Conta para criar sua fazenda online e continuar em outro aparelho. Sem entrar, você joga no teste local deste navegador. Minha fazenda abre seu avatar, os animais e o jardim. Entre na casa e no celeiro para explorar. Use a mão para remover pragas. A conta libera ainda níveis, energia, expansão, amigos e feira. Compras e colheitas online precisam de conexão. As plantas regadas continuam crescendo ao fechar. A arte é provisória e original do projeto.</p><button class="primary" id="start-playing">Vamos plantar</button>`); $('start-playing').onclick = closePanel; }
 $('inventory').onclick = inventory; $('seed-choice').onclick = seedPanel; $('help').onclick = help;
 document.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach(b => b.onclick = () => setTool(b.dataset.tool as Tool));
 
@@ -171,8 +181,6 @@ class FarmScene extends Phaser.Scene {
     this.add.image(493, 545, 'well').setOrigin(.5, 1).setScale(1.1).setDepth(545); block(493, 530, 44, 25);
     shadow(1120, 995, 150, 32);
     this.add.image(1120, 1000, 'mill').setOrigin(.5, 1).setScale(1.15).setDepth(995); block(1120, 973, 87, 48);
-    const label = (x: number, y: number, text: string) => this.add.text(x, y, text, { fontFamily: 'monospace', fontSize: '10px', color: '#f6da8c', backgroundColor: '#302f29cc', padding: { x: 9, y: 4 } }).setOrigin(.5).setDepth(1900);
-    label(408,260,'SUA CASA');label(1030, 240, 'A VENDA'); label(1050, 820, 'CELEIRO');
     for (let row = 0; row < 4; row++) for (let col = 0; col < 6; col++) {
       const x = 634 + col * 40, y = 434 + row * 40, id = row * 6 + col;
       const soil = this.add.image(x, y, 'plot-raw').setDepth(1);
@@ -273,11 +281,11 @@ class FarmScene extends Phaser.Scene {
     for (const field of this.fields) {
       const point=plotPosition(field.id,farm);const usable=plotUsable(farm,field.id);field.soil.setVisible(!!point&&usable);if(!point||!usable){field.plant.setVisible(false);field.label.setVisible(false);continue;}field.x=point.x;field.y=point.y;field.soil.setPosition(point.x,point.y);field.plant.setPosition(point.x,point.y+11).setDepth(point.y+2);field.label.setPosition(point.x,point.y-27);
       const plot = farm.plots[field.id];
-      if ((field.id>=24&&(!farm.landOwned||!plot))||(cloud.active && field.id<24 && field.id >= (farm as OnlineFarm).unlockedPlots)) { field.soil.setTexture('plot-raw').setAlpha(.35);field.plant.setVisible(false);field.label.setText('×').setVisible(true);continue; }
+      if ((field.id>=24&&(!farm.landOwned||!plot))||(cloud.active && field.id<24 && field.id >= (farm as OnlineFarm).unlockedPlots)) { field.soil.setTexture('plot-raw').setAlpha(.35);field.plant.setVisible(false);field.label.setText('Bloqueado').setVisible(false);continue; }
       field.soil.setAlpha(1);
       field.soil.setTexture(plot.wateredAt !== null ? 'plot-wet' : plot.tilled ? 'plot-tilled' : 'plot-raw');
       field.plant.setVisible(!!plot.crop);
-      if (!plot.crop) { field.label.setVisible(false); continue; }
+      if (!plot.crop) { field.label.setText('').setVisible(false); continue; }
       const left = remaining(plot, now), progress = left === null ? 0 : 1 - left / (CROPS[plot.crop].seconds * 1000);
       const stage = left === 0 ? 3 : progress < .3 ? 0 : progress < .7 ? 1 : 2;
       field.plant.setTexture(`${plot.crop}-${stage}`);
@@ -285,6 +293,14 @@ class FarmScene extends Phaser.Scene {
       if (left === null) field.label.setText('REGAR');
       const needs=plantNeeds(plot,now);field.plant.setTint(needs.sick?0xaaa08b:needs.dry?0xbcb36e:0xffffff);if(hasPests(plot,now))field.label.setText('PRAGAS').setVisible(true);if(needs.dry)field.label.setText('REGAR').setVisible(true);if(needs.sick)field.label.setText('TRATAR').setVisible(true);
     }
+    this.contextLabels();
+  }
+  private nextContext=0;
+  private contextLabels(){
+    if(!this.player)return;let closest:typeof this.fields[number]|undefined,best=78;
+    for(const f of this.fields){f.label.setVisible(false);if(!f.soil.visible||!f.label.text)continue;const distance=Math.hypot(this.player.x-f.x,this.player.y-f.y);if(distance<best){best=distance;closest=f;}}
+    closest?.label.setVisible(!modal&&!inside);
+    this.landWorld?.hints(this.player,!modal&&!inside);
   }
   navigate(target: Destination) {
     this.stuck = 0;
@@ -386,6 +402,7 @@ class FarmScene extends Phaser.Scene {
     this.timeLighting.update(farm.calendar,Date.now()+cloud.offset);
     if(farm.home?.sleep&&!inside&&!modal){enterInterior('house');return;}
     this.entranceControl.update();
+    if(time>=this.nextContext){this.nextContext=time+100;this.contextLabels();}
     this.outdoor.update(time);this.flock.update(time, delta); this.dogCompanions.update(farm); this.atmosphere.update(time); this.workEffects.update(time);
     if (this.activeWork) { this.updateWork(time); this.player.setVelocity(0); this.renderAvatar(time, false); return; }
     if (modal) { this.player.setVelocity(0); this.renderAvatar(time, false); return; }
@@ -436,11 +453,11 @@ async function lifeCommand(c:any){
  const result=c.type==='buy'?{ok:buySeeds(farm,c.crop),message:'+5 sementes guardadas!'}:applyLife(farm,c,Date.now());
  if(!result.ok)throw new Error(result.message||'Moedas insuficientes.');save();syncUI();scene?.paintFields();return result;
 }
-function finishInteriorExit(){entranceLockedUntil=performance.now()+600;currentInterior=null;inside=false;$('hint').hidden=false;$('quest-card').hidden=false;setTool(tool);$('exit-interior').hidden=true;$('interior-view').hidden=true;$('world-place').textContent='VALE DO SOSSEGO';scene.cancelMovement();}
+function finishInteriorExit(){entranceLockedUntil=performance.now()+600;currentInterior=null;inside=false;$('hint').hidden=false;setTool(tool);$('exit-interior').hidden=true;$('interior-view').hidden=true;$('world-place').textContent='VALE DO SOSSEGO';scene.cancelMovement();}
 function recoverInterior(error:Error,room:'house'|'barn'){
  game.scene.stop('Interior');game.scene.wake('Farm');finishInteriorExit();
  openPanel('Não foi possível abrir o cômodo',`<p>A fazenda foi recuperada e seu progresso foi mantido.</p><p>Detalhe da falha:</p><pre id="room-error-detail" style="white-space:pre-wrap;overflow-wrap:anywhere"></pre><button class="primary" id="retry-room">Tentar entrar novamente</button><button class="secondary" id="continue-farm">Continuar na fazenda</button>`);
- $('room-error-detail').textContent=`v0.12.6 · ${room==='barn'?'Celeiro':'Casa'} · ${error.name}: ${error.message}`;
+ $('room-error-detail').textContent=`v0.13.0 · ${room==='barn'?'Celeiro':'Casa'} · ${error.name}: ${error.message}`;
  $('retry-room').onclick=()=>{closePanel();entranceLockedUntil=0;enterInterior(room);};$('continue-farm').onclick=closePanel;
 }
 function enterInterior(room:'house'|'barn'){
@@ -448,7 +465,7 @@ function enterInterior(room:'house'|'barn'){
  if(performance.now()<entranceLockedUntil||(inside&&currentInterior===room))return;entranceLockedUntil=performance.now()+600;
  if(inside)game.scene.stop('Interior');else{scene.finishCurrentWork();scene.cancelMovement();game.scene.sleep('Farm');}
  currentInterior=room;
- inside=true;$('hint').hidden=true;$('enter-place').hidden=true;$('quest-card').hidden=true;$('hint').textContent='Toque no cômodo para andar. Use E ou Usar perto dos objetos.';$('exit-interior').hidden=false;$('interior-view').hidden=false;$('interior-view').textContent=room==='barn'?'Aproximar':'Ver cômodo inteiro';$('world-place').textContent=room==='house'?'SUA CASA':'SEU CELEIRO';game.scene.start('Interior',{room});
+ inside=true;$('hint').hidden=true;$('enter-place').hidden=true;$('hint').textContent='Toque no cômodo para andar. Use E ou Usar perto dos objetos.';$('exit-interior').hidden=false;$('interior-view').hidden=false;$('interior-view').textContent=room==='barn'?'Aproximar':'Ver cômodo inteiro';$('world-place').textContent=room==='house'?'SUA CASA':'SEU CELEIRO';game.scene.start('Interior',{room});
 }
 async function bondAnimal(id:string,type:'pet-animal'|'play-animal'){
  closePanel();const animal=farm.animals.find(a=>a.id===id);if(animal?.housing&&animal.housing!=='barn'){if(inside)(game.scene.getScene('Interior') as InteriorScene).exitRoom();if(inside)throw new Error('Aguarde a personagem acordar.');const b=farm.buildings?.find(b=>b.id===animal.housing);if(!b)throw new Error('Instalação não encontrada.');scene.navigate({...scene.buildingAccess(b),run:()=>{void lifeCommand({type,id}).then(()=>{scene.careHeart(id);toast(type==='play-animal'?'Brincadeira realizada.':'Carinho realizado.');}).catch(e=>toast(e.message));}});return;}if(performance.now()<entranceLockedUntil)throw new Error('Aguarde a entrada no cômodo terminar.');const interior=game.scene.getScene('Interior') as InteriorScene;
@@ -468,7 +485,7 @@ const game = new Phaser.Game({ type: Phaser.AUTO, parent: 'game', backgroundColo
 const frameBudget=new FrameBudget();let frameStart=0;
 game.events.on('prestep',()=>{frameStart=performance.now();});
 document.addEventListener('visibilitychange',()=>frameBudget.reset());
-game.events.on('postrender',()=>{if(frameBudget.tick(performance.now(),!document.hidden&&!booting,performance.now()-frameStart)){setAutomaticLight(frameBudget.light);$('frame-rate').textContent=`${frameBudget.fps<10?frameBudget.fps.toFixed(1):Math.round(frameBudget.fps)} FPS · ${lightEffects()?'Leve':'Completo'}`;const reading=document.getElementById('performance-reading');if(reading)reading.textContent=`${frameBudget.fps<10?frameBudget.fps.toFixed(1):Math.round(frameBudget.fps)} FPS medidos · quadro p95 ${frameBudget.p95.toFixed(1)} ms · CPU p95 ${frameBudget.cpu95.toFixed(1)} ms.`;}});
+game.events.on('postrender',()=>{if(frameBudget.tick(performance.now(),!document.hidden&&!booting,performance.now()-frameStart)){setAutomaticLight(frameBudget.light);const reading=document.getElementById('performance-reading');if(reading)reading.textContent=`${frameBudget.fps<10?frameBudget.fps.toFixed(1):Math.round(frameBudget.fps)} FPS medidos · quadro p95 ${frameBudget.p95.toFixed(1)} ms · CPU p95 ${frameBudget.cpu95.toFixed(1)} ms.`;}});
 $('frame-rate').onclick=()=>{openPanel('Desempenho e animação',`<p id="performance-reading">${frameBudget.fps<10?frameBudget.fps.toFixed(1):Math.round(frameBudget.fps)} FPS medidos · quadro p95 ${frameBudget.p95.toFixed(1)} ms · CPU p95 ${frameBudget.cpu95.toFixed(1)} ms.</p><p>A meta é 60 FPS (16,7 ms por quadro). O resultado depende do aparelho e do navegador.</p><label>Efeitos do cenário <select id="effects-setting"><option value="auto">Automático</option><option value="full">Completos</option><option value="light">Leves</option></select></label><p>O modo leve reduz efeitos decorativos e mantém personagem, ferramentas e regras da fazenda.</p><label><input id="breathing-setting" type="checkbox" ${display.breathing?'checked':''}/> Respiração da personagem</label><p class="quiet-note">Noite mais clara em todos os modos. A respiração usa quadros de pixel art, sem mudar colisões.</p>`);
  const effects=$<HTMLSelectElement>('effects-setting');effects.value=display.effects;effects.onchange=()=>{display.effects=effects.value as Effects;saveDisplay();};$<HTMLInputElement>('breathing-setting').onchange=e=>{display.breathing=(e.target as HTMLInputElement).checked;saveDisplay();};};
 window.addEventListener('error', event => { $('save-status').textContent = 'Ocorreu um erro. Recarregue para continuar.';if(inside){const room=currentInterior??'barn',error=event.error instanceof Error?event.error:new Error(event.message);queueMicrotask(()=>{recoverInterior(error,room);game.loop.wake();});} });

@@ -1,3 +1,5 @@
+Atualização 0.13.0: interface enxuta com relógio, moedas e ferramentas. Conta, cuidados, missão, desempenho e demais opções ficam no menu ☰. Sementes aparecem ao plantar; avisos do mapa são contextuais.
+
 Correção 0.12.6: passos horizontais do cachorro com passada e levantamento de patas mais visíveis, mantendo o tronco estável e os quadros isolados.
 
 Correção 0.12.5: o cachorro usa 24 texturas individuais opacas, alinhadas ao chão. O acompanhante mantém a silhueta em pé durante pausas breves da física e só senta após 1,2 segundo parado, evitando alternância de poses durante a caminhada.
