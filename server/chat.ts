@@ -3,7 +3,7 @@ import type {PoolClient} from 'pg';
 async function friend(db:Pick<PoolClient,'query'>,user:string,code:string){
  if(!FRIEND_CODE.test(code))throw new GameError('Código inválido.');
  const r=await db.query(`SELECT f.user_id,f.name,f.public_code AS code FROM farms f WHERE f.public_code=$2 AND f.user_id<>$1
- AND EXISTS(SELECT 1 FROM neon_auth."user" u WHERE u.id=$1 AND u.banned IS NOT TRUE)
+ AND EXISTS(SELECT 1 FROM neon_auth."user" u WHERE u.id::text=$1 AND u.banned IS NOT TRUE)
  AND EXISTS(SELECT 1 FROM friendships r WHERE r.accepted AND ((r.sender=$1 AND r.recipient=f.user_id) OR (r.recipient=$1 AND r.sender=f.user_id)))
  AND NOT EXISTS(SELECT 1 FROM social_blocks b WHERE (b.owner=$1 AND b.blocked=f.user_id) OR (b.owner=f.user_id AND b.blocked=$1))`,[user,code]);
  if(!r.rows[0])throw new GameError('O chat está disponível somente entre amigos aceitos.',403);return r.rows[0];
