@@ -403,3 +403,10 @@ Os estilos crop/short receberam corte curto visível sem chapéu, detalhes de so
 135 testes e build aprovados. Atlas transparente com 28 cabeças (sete modelos × quatro direções) composto no corpo nativo, com cortes/âncoras explícitos e cache. Teste cobre nove modelos distintos, validade de perfil, quatro vistas por modelo, limites da imagem e largura de quadro. Original e capuz preservados; modelos masculinos/femininos redesenhados e rabo de cavalo/boné adicionados. Seleção segue sem legendas.
 
 Fixture real de AvatarArt inspecionado: vistas frontal/laterais/costas e uso da enxada. Recoloração de pele, alinhamento do pescoço, extensão de tranças/rabo de cavalo e encaixe no corpo conferidos. A API usa os estilos adicionais de forma aditiva, sem alterar dados existentes. Sem login pessoal ou teste físico de celular nesta atualização. Arte, prompt e preparação em CHARACTERS_0_21.md.
+
+
+## Preenchimento de pele 0.21.1 — 30/10/2026
+
+A quantização RGBA anterior eliminava alguns pixels opacos: comparação com o original confirmou três pixels perdidos em uma região de rosto e dois em outra. O atlas agora quantiza somente RGB e reserva um índice exclusivo para transparência, reaplicando a silhueta opaca original. A comparação integral da máscara confirmou zero pixels opacos perdidos. O preenchimento de ligação entre cabeça, pescoço e colo também foi ampliado sem redesenhar os modelos.
+
+136 testes e build aprovados; teste do PNG impede transparência parcial nas entradas de cor/pele. Inspeção na cena real de QA conferiu os modelos em quatro direções, mantendo as animações existentes. Contas e progresso não foram alterados.

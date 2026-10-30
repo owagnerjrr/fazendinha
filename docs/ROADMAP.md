@@ -1,3 +1,5 @@
+0.21.1 — Compressão do atlas preserva a máscara de pele opaca; preenchimento de pescoço/colo ampliado para unir cabeça e corpo. Modelos e cores existentes mantidos.
+
 0.21.0 — Sete bases de rosto/cabelo com novo acabamento baseado na personagem original; cinco modelos refeitos e dois novos (rabo de cavalo/boné). Nove opções, quatro direções e personalização preservada; original e capuz mantidos.
 
 0.20.0 — Modelos masculinos diferenciados por cabelo curto sem chapéu, olhos compactos/sobrancelhas e camisa de corte reto. Modelos femininos mantêm coques/tranças/capuz e traços originais. Seleção por imagem sem legendas.

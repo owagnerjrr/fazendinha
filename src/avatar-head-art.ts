@@ -18,5 +18,5 @@ export function drawPortraitHead(ctx:CanvasRenderingContext2D,atlas:CanvasImageS
   cleanAvatarPixels(p,w,h);c.putImageData(im,0,0);
   head={canvas,x:Math.round((box.neckX-box.x)*w/box.w),y:Math.round((box.neckY-box.y)*h/box.h)};cache.set(id,head);
  }
- ctx.fillStyle=SKIN_TONES[avatar.skin];ctx.fillRect(cx-3,neckY-2,6,5);ctx.drawImage(head.canvas,Math.round(cx-head.x),Math.round(neckY-head.y));return true;
+ ctx.fillStyle=SKIN_TONES[avatar.skin];ctx.fillRect(cx-3,neckY,6,5);ctx.fillRect(cx-4,neckY+3,8,2);ctx.drawImage(head.canvas,Math.round(cx-head.x),Math.round(neckY+2-head.y));return true;
 }
