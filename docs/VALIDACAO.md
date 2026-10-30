@@ -1,3 +1,11 @@
+## Estado atual — 30/10/2026
+
+Vendas reais Orders habilitadas; Pix real validado anteriormente. Cartão/recusa/reembolso e repetição validados em sandbox. CRON_SECRET ausente em produção; reconciliação automática pendente. PR #2 ainda é rascunho, não integrado à main. **184 testes passaram nesta conferência.** Evidências, limites e continuidade em [Conferência de 30/10/2026](CONFERENCIA_2026_10_30.md).
+
+Os registros abaixo descrevem etapas históricas; afirmações antigas sobre vendas desativadas, falta de credenciais ou homologação pendente foram superadas pelo registro atual.
+
+---
+
 ## Entrega social 0.17.2 — resultado publicado
 
 127 testes de regras/regressões e build aprovados. `scripts/smoke-social.mjs` passou na URL pública com três identidades QA novas: login e isolamento; amizade pendente sem visita/chat; aceite e visita; ajuda de plantio consumindo uma semente do visitante e registrando 900000ms; mensagens nas duas direções; histórico; UUID repetido sem duplicação e UUID alterado rejeitado; terceira identidade impedida de ler/enviar; tamanho inválido; bloqueio revogando chat/visita/pedido; desbloquear sem amizade automática; recusar/cancelar/remover/refazer amizade; sair e reentrar preservando saldo, sementes, código, amizade e duas mensagens. Nenhuma conta ou save de jogador real foi alterado. Uma incompatibilidade uuid/text da identidade no SQL do chat foi encontrada pelo teste vivo e corrigida em 0.17.1; o fluxo completo passou após a correção.

@@ -1,4 +1,6 @@
-Atualização 0.24.1: cabeça estabilizada também no personagem original e no capuz durante a caminhada para cima, inclusive carregando ferramentas. Loja com prévias animadas das roupas nas quatro direções. Pacotes de moedas e integração Mercado Pago existentes revisados; **vendas reais continuam desativadas por falta de credenciais e homologação oficial**. Consulte [configuração dos pagamentos](docs/MERCADO_PAGO_SETUP.md) e [validação](docs/VALIDACAO.md).
+Estado em 30/10/2026: produção em 2f01a02; PR #2 ainda não integrado à main. Reconciliação automática pendente de CRON_SECRET em produção. Consulte [validação](docs/VALIDACAO.md) para evidências e limites.
+
+Atualização 0.24.1: cabeça estabilizada também no personagem original e no capuz durante a caminhada para cima, inclusive carregando ferramentas. Loja com prévias animadas das roupas nas quatro direções. Pacotes de moedas e integração Mercado Pago existentes revisados; **vendas reais habilitadas via Orders; Pix real validado, cartão/reembolso validados em sandbox**. Consulte [configuração dos pagamentos](docs/MERCADO_PAGO_SETUP.md) e [validação](docs/VALIDACAO.md).
 
 Atualização 0.21.0: nove personagens com rostos e cabelos redesenhados no padrão da personagem original. Dois novos modelos: rabo de cavalo e boné; seleção visual sem legendas, com cores livres e animações preservadas. Arte e prompt em docs/CHARACTERS_0_21.md.
 
