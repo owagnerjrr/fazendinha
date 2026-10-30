@@ -351,3 +351,8 @@ Inspeção visual no viewport 390×844: intro responsiva, Google/Gmail e alterna
 Causa confirmada no código Phaser 3.90: captura global chama preventDefault para teclas de movimento/interação mesmo com o modal aberto. Eventos keydown, keyup e keypress originados em input/textarea/select/contenteditable agora param no documento, antes do listener global do jogo, sem impedir edição nativa. Atalhos fora dos formulários permanecem iguais.
 
 130 testes e build aprovados. No jogo real de QA, a digitação sequencial de Wagner Junior wasd e 123 preencheu o campo de nome até seu limite de 24 caracteres, preservando letras e espaços anteriormente capturados. Nenhum nome foi salvo nem houve alteração de conta/progresso.
+
+
+## Opções de entrada 0.18.2 — 30/10/2026
+
+Removidos botão de continuação local e seu manipulador da abertura, sem excluir saves ou alterar autenticação e retomada de sessão. Teste da marcação atualizado para verificar ausência do botão. 130 testes e build aprovados.

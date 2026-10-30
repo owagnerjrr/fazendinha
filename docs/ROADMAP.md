@@ -1,3 +1,5 @@
+0.18.2 — Removida a opção “Continuar fazenda deste aparelho” da abertura. Dados existentes preservados.
+
 0.18.1 — Campos de nome, e-mail, chat e demais formulários isolam o teclado dos atalhos globais do jogo; digitação nativa preservada.
 
 0.18.0 — Introdução responsiva Fazenda Feliz, entrada Google/Gmail/e-mail, retomada de perfil e reconhecimento da sessão antes de abrir o jogo. Continuação local preservada e segunda entrada direta.

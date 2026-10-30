@@ -6,7 +6,7 @@ import { CHARACTER_PRESETS,PROFILE_DRAFT_KEY,readProfileDraft,normalizePlayerNam
 type Services={cloud:CloudFarm;farm:()=>Farm;preview:(avatar:Avatar)=>string;block:(active:boolean)=>void;entered:()=>void;toast:(s:string)=>void};
 const esc=(s:string)=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
 export function setupJourney(s:Services){
- const root=document.getElementById('journey')!;let draft:ProfileDraft;let busy=false,finishing=false;let localAvailable=false;
+ const root=document.getElementById('journey')!;let draft:ProfileDraft;let busy=false,finishing=false;
  try{draft=readProfileDraft(localStorage.getItem(PROFILE_DRAFT_KEY));}catch{draft=readProfileDraft(null);}
  function persist(){try{localStorage.setItem(PROFILE_DRAFT_KEY,JSON.stringify(draft));}catch{throw new Error('Permita o armazenamento deste site para guardar suas escolhas durante o login.');}}
  function feedback(message:string){const el=document.getElementById('journey-feedback');if(el)el.textContent=message;}
@@ -38,9 +38,8 @@ export function setupJourney(s:Services){
   }
  }
  function welcome(message=''){
-  root.hidden=false;root.classList.add('welcome-screen');document.body.classList.add('journey-open');s.block(true);root.innerHTML=welcomeHTML(localAvailable);bindAccountControls();
+  root.hidden=false;root.classList.add('welcome-screen');document.body.classList.add('journey-open');s.block(true);root.innerHTML=welcomeHTML();bindAccountControls();
   root.querySelector<HTMLButtonElement>('#welcome-profile')!.onclick=()=>{draft.step=draft.name?2:1;persist();show();};
-  const local=root.querySelector<HTMLButtonElement>('#welcome-local');if(local)local.onclick=enter;
   if(message)feedback(message);
  }
  async function acceptAccount(){
@@ -55,7 +54,6 @@ export function setupJourney(s:Services){
  }
  s.cloud.onConnected=acceptAccount;
  return {show,acceptAccount,async start(hasLocalFarm:boolean){
-  localAvailable=hasLocalFarm;
   const marker=!!localStorage.getItem('wj-cloud-session')||new URLSearchParams(location.search).has('neon_auth_session_verifier');
   root.hidden=false;document.body.classList.add('journey-open');s.block(true);root.innerHTML='<main class="journey-card welcome-loading"><span>🌱</span><h1>Abrindo as porteiras…</h1><p>Preparando seu cantinho no campo.</p></main>';
   try{if(await s.cloud.connect())return;}catch{/* Keep saved choices and account progress intact. */}
