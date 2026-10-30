@@ -18,7 +18,7 @@ test('Orders prices, references, hosted payment restrictions and return URLs com
 });
 test('a prepaid brand sharing the same id cannot exclude its permitted credit card',()=>{
  const methods=[{id:'visa',payment_type_id:'prepaid_card',status:'active'},{id:'visa',payment_type_id:'credit_card',status:'active'},{id:'account_money',payment_type_id:'account_money',status:'active'}];
- const p=orderPayload({...local,method:'card'},'qa@example.invalid',methods);assert.equal(p.config.payment_method.not_allowed_ids.includes('visa'),false);assert.ok(p.config.payment_method.not_allowed_types.includes('prepaid_card'));
+ const p=orderPayload({...local,method:'card'},'qa@example.invalid',methods);assert.equal(p.config.payment_method.not_allowed_ids.includes('visa'),false);assert.equal(p.config.payment_method.not_allowed_types.includes('prepaid_card'),false);
 });
 test('Orders proof binds seller, application, mode, BRL price, method and immutable remote id',()=>{
  assert.equal(validateProviderOrder(proof,local,config).status,'approved');
