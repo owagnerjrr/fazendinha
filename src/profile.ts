@@ -9,7 +9,9 @@ export const CHARACTER_PRESETS:{id:string;description:string;avatar:Avatar}[]=[
  {id:'leo',description:'Menino · cabelo curto',avatar:{style:'short',skin:0,hair:1,shirt:3}},
  {id:'ana',description:'Menina · chapéu de palha',avatar:{...DEFAULT_AVATAR}},
  {id:'night',description:'Capuz noturno · preto e rosa',avatar:{style:'hood',skin:0,hair:0,shirt:6}},
- {id:'rui',description:'Menino · cabelo curto',avatar:{style:'crop',skin:2,hair:1,shirt:5}},
+ {id:'rui',description:'Menino · cabelo ondulado',avatar:{style:'wavy',skin:2,hair:1,shirt:5}},
+ {id:'ponytail',description:'Rabo de cavalo',avatar:{style:'ponytail',skin:2,hair:1,shirt:0}},
+ {id:'cap',description:'Boné',avatar:{style:'cap',skin:0,hair:1,shirt:1}},
 ];
 export function normalizePlayerName(value:unknown):string|null {
  if(typeof value!=='string'||/[\u0000-\u001f\u007f]/.test(value))return null;

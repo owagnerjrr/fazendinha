@@ -1,3 +1,5 @@
+Atualização 0.21.0: nove personagens com rostos e cabelos redesenhados no padrão da personagem original. Dois novos modelos: rabo de cavalo e boné; seleção visual sem legendas, com cores livres e animações preservadas. Arte e prompt em docs/CHARACTERS_0_21.md.
+
 Correção 0.19.1: avatares usam corpo e rosto completos do sprite original, estilos aplicados na mesma escala, bordas opacas e limpeza de fragmentos isolados. Capuz noturno redesenhado com rosto expressivo, curvas e coração rosa.
 
 Atualização 0.19.0: seleção de personagens sem nomes predefinidos, composição de sprites corrigida, capuz noturno com orelhas pontudas e detalhes rosa, e roupa preta. O nome escolhido no cadastro permanece como identidade do jogador; contas e progresso preservados.

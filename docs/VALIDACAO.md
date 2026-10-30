@@ -396,3 +396,10 @@ Nome, personagem e etapa de cadastro não são mais gravados em localStorage. Ra
 Os estilos crop/short receberam corte curto visível sem chapéu, detalhes de sobrancelhas/olhos compactos e gola de camisa reta. Corpo e rosto nativos permanecem como base; as demais opções mantêm os traços anteriores, incluindo coques, tranças e capuz. A personalização de pele/cabelo/roupa continua disponível, sem adicionar legendas ou nomes à seleção. IDs de modelos e campos de saves não mudaram.
 
 134 testes e build aprovados. Fixture real de AvatarArt conferiu frente, lados e costas; remoção completa da aba do chapéu e união do cabelo à nuca foram revisadas. A decoração continua limitada à célula do quadro. Sem mudanças de cadastro, economia ou contas.
+
+
+## Arte de personagens 0.21.0 — 30/10/2026
+
+135 testes e build aprovados. Atlas transparente com 28 cabeças (sete modelos × quatro direções) composto no corpo nativo, com cortes/âncoras explícitos e cache. Teste cobre nove modelos distintos, validade de perfil, quatro vistas por modelo, limites da imagem e largura de quadro. Original e capuz preservados; modelos masculinos/femininos redesenhados e rabo de cavalo/boné adicionados. Seleção segue sem legendas.
+
+Fixture real de AvatarArt inspecionado: vistas frontal/laterais/costas e uso da enxada. Recoloração de pele, alinhamento do pescoço, extensão de tranças/rabo de cavalo e encaixe no corpo conferidos. A API usa os estilos adicionais de forma aditiva, sem alterar dados existentes. Sem login pessoal ou teste físico de celular nesta atualização. Arte, prompt e preparação em CHARACTERS_0_21.md.

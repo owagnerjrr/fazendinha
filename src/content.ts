@@ -2,9 +2,9 @@ import {ANIMAL_CARE,animalNeeds,productionAt} from './animal-needs.js';
 export const SKIN_TONES=['#f3c99a','#dca06b','#bb794b','#925431','#683b29','#452a24'] as const;
 export const HAIR_COLORS=['#241c1b','#503426','#88502e','#c28b46','#6b5278'] as const;
 export const SHIRT_COLORS=['#4d8461','#476e9b','#a55257','#b58b40','#70568a','#dfc8a1','#25232f'] as const;
-export type Avatar={style:'classic'|'crop'|'puffs'|'short'|'braids'|'hood';skin:number;hair:number;shirt:number};
+export type Avatar={style:'classic'|'crop'|'puffs'|'short'|'braids'|'hood'|'wavy'|'ponytail'|'cap';skin:number;hair:number;shirt:number};
 export const DEFAULT_AVATAR:Avatar={style:'classic',skin:0,hair:1,shirt:0};
-export const AVATAR_STYLES={classic:'Original com chapéu',crop:'Crespo curto',puffs:'Afro com dois coques',short:'Liso curto',braids:'Tranças',hood:'Capuz noturno'} as const;
+export const AVATAR_STYLES={classic:'Original com chapéu',crop:'Crespo curto',puffs:'Afro com dois coques',short:'Liso curto',braids:'Tranças',hood:'Capuz noturno',wavy:'Ondulado curto',ponytail:'Rabo de cavalo',cap:'Boné'} as const;
 export const ANIMALS={
  rooster:{name:'Galo',icon:'🐓',price:130,product:null,productName:'Reprodução',sellPrice:0,seconds:0},
  chick:{name:'Pintinho',icon:'🐤',price:45,product:null,productName:'Crescimento',sellPrice:0,seconds:0},

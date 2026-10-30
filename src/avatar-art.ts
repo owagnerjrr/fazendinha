@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import {drawPortraitHead} from './avatar-head-art';
 import {drawModelFeatures} from './avatar-features';
 import {cleanAvatarPixels} from './avatar-pixels';
 import {drawNightHood} from './hood-art';
@@ -55,13 +56,9 @@ export class AvatarArt {
     const face=document.createElement('canvas');face.width=22;face.height=15;face.getContext('2d')!.drawImage(canvas,ox+cx-11,oy+top+19,22,15,0,0,22,15);
     ctx.clearRect(ox+cx-25,oy+Math.max(0,top-4),50,top+30-Math.max(0,top-4));ctx.save();ctx.translate(ox+cx-20,oy+top-4);drawNightHood(ctx,direction);ctx.restore();
     if(direction!=='up'){ctx.save();ctx.beginPath();ctx.rect(ox+cx-10,oy+top+20,20,13);ctx.clip();ctx.drawImage(face,ox+cx-11,oy+top+19);ctx.restore();}
-   }else if(avatar.style==='puffs'||avatar.style==='braids'){
-    const baseHair=HAIR_COLORS[avatar.hair];ctx.fillStyle=baseHair;
-    const sides=direction==='left'?[1]:direction==='right'?[-1]:[-1,1];
-    for(const side of sides){const profile=direction==='left'||direction==='right';const x=ox+cx+side*(profile?7:10)-2,y=oy+top+21;
-     if(avatar.style==='puffs'){ctx.fillRect(x,y,5,7);ctx.fillRect(x-1,y+2,7,3);ctx.fillStyle='#bd9d6a';ctx.fillRect(x+2,y,3,1);ctx.fillStyle=baseHair;}
-     else{for(let n=0;n<4;n++)ctx.fillRect(x+(n%2),y+n*3,4,4);ctx.fillStyle='#bd9d6a';ctx.fillRect(x+1,y+11,3,2);ctx.fillStyle=baseHair;}
-    }
+   }else if(avatar.style!=='classic'){
+    ctx.clearRect(ox+cx-25,oy,50,top+31);
+    ctx.save();ctx.translate(ox,oy);drawPortraitHead(ctx,this.scene.textures.get('portrait-heads-v9').getSourceImage() as HTMLImageElement,avatar,row,cx,top+31);ctx.restore();
    }
    ctx.restore();const final=ctx.getImageData(ox,oy,w,h);cleanAvatarPixels(final.data,w,h);ctx.putImageData(final,ox,oy);
   }

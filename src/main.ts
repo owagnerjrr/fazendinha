@@ -181,6 +181,7 @@ class FarmScene extends Phaser.Scene {
     }
     for(const key of ['bed','tv','sofa','window','wardrobe','rack','cow','goat','dog','chicken','strawberry','tulip','sunflower','corn','cocoaTree','flowerPlanter'])this.load.image(`life-${key}`,`/assets/v5/${key}.png`);
     for(const key of ['rooster','chick'])this.load.image(`life-${key}`,`/assets/v8/${key}.png`);
+    this.load.image('portrait-heads-v9','/assets/v9/heads.png');
     this.load.image('farmer-v2', '/assets/v2/farmer.png');
     this.load.spritesheet('dog-walk','/assets/v7/dog-walk.png',{frameWidth:48,frameHeight:48});
     this.load.spritesheet('dog-rest','/assets/v7/dog-rest.png',{frameWidth:48,frameHeight:48});
@@ -513,7 +514,7 @@ function finishInteriorExit(){entranceLockedUntil=performance.now()+600;currentI
 function recoverInterior(error:Error,room:'house'|'barn'){
  game.scene.stop('Interior');game.scene.wake('Farm');finishInteriorExit();
  openPanel('Não foi possível abrir o cômodo',`<p>A fazenda foi recuperada e seu progresso foi mantido.</p><p>Detalhe da falha:</p><pre id="room-error-detail" style="white-space:pre-wrap;overflow-wrap:anywhere"></pre><button class="primary" id="retry-room">Tentar entrar novamente</button><button class="secondary" id="continue-farm">Continuar na fazenda</button>`);
- $('room-error-detail').textContent=`v0.20.0 · ${room==='barn'?'Celeiro':'Casa'} · ${error.name}: ${error.message}`;
+ $('room-error-detail').textContent=`v0.21.0 · ${room==='barn'?'Celeiro':'Casa'} · ${error.name}: ${error.message}`;
  $('retry-room').onclick=()=>{closePanel();entranceLockedUntil=0;enterInterior(room);};$('continue-farm').onclick=closePanel;
 }
 function enterInterior(room:'house'|'barn'){
