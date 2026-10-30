@@ -6,7 +6,7 @@ import { ANIMALS, DECOR, DECOR_SLOTS, animalReady, animalHydrated, validAvatar, 
 import { LAND_PRICE, ORIGINAL_PLOTS, EXTRA_PLOTS, LAND_SITES, BUILDINGS, parcels, buildProblem, type LandSite, type BuildingKind } from './plots.js';
 import type { Farm } from './farm.js';
 export const LIFE_COMMANDS=[...FISHING_COMMANDS,...HUSBANDRY_COMMANDS,'home','avatar','buy-land','build-land','buy-animal','buy-feed','feed-animal','water-animal','pet-animal','play-animal','rename-animal','start-incubation','hatch-chick','mature-chick','collect-animal','buy-decor','move-decor','raids-setting'] as const;
-export function applyLife(f:Farm,c:any,now:number):{ok:boolean;message:string} {
+export function applyLife(f:Farm,c:any,now:number):{ok:boolean;message:string;caught?:import('./fishing.js').Fish} {
  if((FISHING_COMMANDS as readonly string[]).includes(c.type))return applyFishing(f,c,now);
  const fail=(message:string)=>({ok:false,message});
  if(f.careVersion&&(HUSBANDRY_COMMANDS as readonly string[]).includes(c.type))return applyHusbandry(f,c,now);

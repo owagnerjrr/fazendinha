@@ -9,6 +9,7 @@ const authUrl = (import.meta as any).env.VITE_NEON_AUTH_URL as string | undefine
 let client: any;
 export async function auth() { if (!authUrl) throw new Error('Conta online indisponível neste ambiente.'); return client ??= (await import('@neondatabase/auth')).createAuthClient(`${location.origin}/api/auth`); }
 export class CloudFarm {
+  salePosition:()=>Farm['player']|undefined=()=>undefined;
   active=false; busy=false; revision=0; code=''; name=''; offset=0;
   private accessToken='';
   private pendingCount=0;
@@ -19,7 +20,7 @@ export class CloudFarm {
   async request(path='',body?:unknown) {
     const a=await auth(), token=sessionToken(await a.token()); if(!token) throw new Error('Sua sessão expirou. Entre novamente.');
     this.accessToken=token;
-    const r=await fetch(`/api/game${path}`,{method:body?'POST':'GET',headers:{'X-Farm-Version':'6',Authorization:`Bearer ${token}`,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,cache:'no-store',signal:AbortSignal.timeout(15000)});
+    const r=await fetch(`/api/game${path}`,{method:body?'POST':'GET',headers:{'X-Farm-Version':'7',Authorization:`Bearer ${token}`,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,cache:'no-store',signal:AbortSignal.timeout(15000)});
     const result=await r.json(); if(!r.ok) { const error=new Error(result.error??'Falha ao sincronizar.') as Error & {status:number}; error.status=r.status; throw error; } return result;
   }
   accept(snapshot:Snapshot,initial=false) { if(!initial&&snapshot.revision<this.revision) return; this.revision=snapshot.revision; this.offset=snapshot.now-Date.now(); this.code=snapshot.code??this.code; this.name=snapshot.name??this.name; this.onSnapshot(snapshot,initial); this.onStatus('Progresso online sincronizado'); }
@@ -34,6 +35,7 @@ export class CloudFarm {
     catch(error) { if((error as any).status&& (error as any).status<500) {sessionStorage.removeItem('wj-pending-action');this.accept(await this.request());return null;} else throw error; }
   }
   command(command:unknown,position?:Farm['player']):Promise<Snapshot> {
+    if((command as {type?:string})?.type==='list'){position??=this.salePosition();if(!position)return Promise.reject(new Error('Vá até a venda para anunciar produtos na feira.'));}
     this.pendingCount++;this.busy=true;
     const task=this.queue.then(async()=>{
       this.busy=true; this.onStatus('Sincronizando…');
@@ -56,7 +58,7 @@ export class CloudFarm {
     const body={id:crypto.randomUUID(),revision:this.revision,command:{type:'position'},position};
     sessionStorage.setItem('wj-pending-action',JSON.stringify({code:this.code,body}));
     // Persist a receipt first: a new page can safely confirm the same request after closing this one.
-    void fetch('/api/game',{method:'POST',headers:{'X-Farm-Version':'6',Authorization:`Bearer ${this.accessToken}`,'Content-Type':'application/json'},body:JSON.stringify(body),keepalive:true}).then(async response=>{
+    void fetch('/api/game',{method:'POST',headers:{'X-Farm-Version':'7',Authorization:`Bearer ${this.accessToken}`,'Content-Type':'application/json'},body:JSON.stringify(body),keepalive:true}).then(async response=>{
       if(!response.ok)return;
       const result=await response.json();
       const pending=sessionStorage.getItem('wj-pending-action');

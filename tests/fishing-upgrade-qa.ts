@@ -1,0 +1,8 @@
+/// <reference types="vite/client" />
+import {makeFarm,SAVE_KEY,type Farm} from '../src/farm';import {newFishing,FISH_SPOT} from '../src/fishing';import {VENDOR} from '../src/vendor-sales';import {splitLocalFarm,LAND_SAVE_KEY} from '../src/local-farm';import {PROFILE_DRAFT_KEY} from '../src/profile';
+for(const button of Array.from(document.querySelectorAll<HTMLButtonElement>('[data-place]')))button.onclick=()=>{
+ if(!import.meta.env.DEV||!['terminal.local','localhost','127.0.0.1'].includes(location.hostname)||localStorage.getItem('wj-cloud-session'))throw Error('Somente QA local sem conta.');
+ const previous=localStorage.getItem(SAVE_KEY);if(previous&&!String((JSON.parse(previous) as Farm).playerName??'').startsWith('QA')){document.getElementById('result')!.textContent='Fazenda existente preservada.';return;}
+ const f=makeFarm();f.playerName='QA Pesca';f.profileComplete=true;f.coins=500;f.player=button.dataset.place==='vendor'?{x:VENDOR.x,y:VENDOR.y+15}:button.dataset.place==='water'?{x:1480,y:846}:{...FISH_SPOT};f.inventory.carrot=3;f.products.egg=2;f.fishing=newFishing();f.fishing.rod=true;f.fishing.fish.mandi=2;
+ const saved=splitLocalFarm(f);localStorage.setItem(SAVE_KEY,saved.core);if(saved.land)localStorage.setItem(LAND_SAVE_KEY,saved.land);else localStorage.removeItem(LAND_SAVE_KEY);localStorage.removeItem(PROFILE_DRAFT_KEY);location.href='/tests/mobile-preview.html';
+};

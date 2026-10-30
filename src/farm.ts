@@ -1,3 +1,4 @@
+import {safeRiverPosition} from './river-boundary.js';
 import {restoreFishing,sellFish,type FishingState} from './fishing.js';
 import {completeCare} from './care-migration.js';
 import {grownMs,plantNeeds,settlePlant,PLANT_CARE} from './plant-care.js';
@@ -94,7 +95,7 @@ export function restoreFarm(raw: string | null): Farm {
 }
 
 export function upgradeFarm<T extends Farm>(data:T):T {
- restoreFishing(data);data.calendar??={startedAt:LEGACY_CLOCK_START,offsetMinutes:0};
+ data.player=safeRiverPosition(data.player);restoreFishing(data);data.calendar??={startedAt:LEGACY_CLOCK_START,offsetMinutes:0};
  data.landParcels??=data.landOwned?[{site:'west',startId:24}]:[];data.buildings??=[];
  data.avatar=validAvatar(data.avatar)?data.avatar:{...DEFAULT_AVATAR};data.animals??=[{id:'starter-hen',kind:'chicken',fedAt:null,collectedAt:0}];data.products??={egg:0,milk:0,goatMilk:0};data.feed??=5;data.decorations??=[];data.socialRaids??=false;data.raidProtectionUntil??=0;data.visitLog??=[];for(const c of crops){data.seeds[c]??=0;data.inventory[c]??=0;}completeCare(data,CROPS);return data;
 }

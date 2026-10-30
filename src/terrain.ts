@@ -60,6 +60,8 @@ export function createTerrain(scene: Phaser.Scene) {
   }
   for (const y of [401, 441]) { r('#443c2d', 603, y, 116, 3); r('#bb965d', 603, y - 1, 116, 2); }
   for (const x of [604, 640, 677, 715]) for (const y of [397, 438]) { r('#57432c', x, y, 4, 10); r('#d0aa6c', x, y - 1, 3, 8); }
+  // End railing closes the dock above the water.
+  r('#57432c',715,402,3,40);r('#c6a36e',715,402,1,40);
   // Rocks and little flowers break up the repeated grass.
   for (let i = 0; i < 550; i++) {
     const x = rand() * 620, y = rand() * 590;

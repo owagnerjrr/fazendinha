@@ -1,3 +1,5 @@
+Atualização 0.15.0: limites da ponte e do rio; vara e linha animadas, peixe saltando e sendo apresentado com nome e cor por espécie; venda somente no Vartin, pela aba Vender, com quantidade de produtos e sementes. A mão permanece fixa e a barra mostra apenas um equipamento por vez; troque pela mochila. Progresso preservado.
+
 Correção 0.14.2: mão aciona no contato, com proteção contra clique duplicado; aproximação automática até a porta quando estiver perto. Contas e progresso preservados.
 
 Ajuste 0.14.1: celeiro com câmera próxima no celular; use a mão principal ou toque na mão da barra para interagir com locais próximos. Botões contextuais separados ficam ocultos no celular. A vara equipada continua funcionando pela ação principal. Contas e progresso preservados.

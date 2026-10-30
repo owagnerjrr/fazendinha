@@ -1,3 +1,5 @@
+0.15.0 — Ponte e margens com colisões e limite compartilhado com servidor; recuperação de posições antigas sobre a água. Pesca com lançamento, recolhimento, salto e apresentação do peixe na mão, nomes e cinco cores/formas próprias. Venda e anúncio de produtos junto ao Vartin; aba Vender com quantidades de colheitas, sementes, produtos animais e peixes. Barra com mão fixa, um equipamento substituível e mochila.
+
 0.14.2 — Recepção direta do toque nas duas mãos, sem depender de clique sintetizado; clique posterior não duplica interação. Interrompe movimento pendente ao agir e aproxima até entradas próximas quando fora do alcance imediato.
 
 0.14.1 — Celeiro abre com câmera próxima no celular, igual à casa. Controle de mão unificado, sem botões contextuais extras no toque; interação próxima com entradas, animais, equipamentos, construções e móveis. Progresso e economia preservados.

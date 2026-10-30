@@ -1,7 +1,8 @@
+import {applyVendorSale} from './vendor-sales.js';
 import {plotUsable} from './plots.js';
 import { applyLife, LIFE_COMMANDS } from './life-rules.js';
 import { upgradeFarm } from './farm.js';
-import { act, buySeeds, CROPS, makeFarm, sellAll, type Crop, type Farm, type Tool } from './farm.js';
+import { act, buySeeds, CROPS, makeFarm, type Crop, type Farm, type Tool } from './farm.js';
 export const ECONOMY = { energyMax: 80, energyStepMs: 60000, harvestXp: 10, initialPlots: 12,
   expansions: [{ plots: 18, price: 200, level: 2 }, { plots: 24, price: 500, level: 3 }],
   toolEnergy: { rod:0, hand: 1, hoe: 2, seed: 1, water: 1 } } as const;
@@ -14,7 +15,7 @@ export function replenish(farm: OnlineFarm, now: number) {
   farm.energy = Math.min(ECONOMY.energyMax, farm.energy + units);
   farm.energyAt = farm.energy === ECONOMY.energyMax ? now : farm.energyAt + units * ECONOMY.energyStepMs;
 }
-export function applyCommand(farm: OnlineFarm, input: unknown, now: number): { ok: boolean; message: string; harvest?: boolean } {
+export function applyCommand(farm: OnlineFarm, input: unknown, now: number): { ok: boolean; message: string; harvest?: boolean;caught?:import('./fishing.js').Fish } {
   const c = input as Command & Record<string,any>;
   if (!c || typeof c !== 'object') return { ok: false, message: 'Ação inválida.' };
   upgradeFarm(farm);replenish(farm, now);
@@ -28,7 +29,7 @@ export function applyCommand(farm: OnlineFarm, input: unknown, now: number): { o
     return result;
   }
   if (c.type === 'buy') return Object.hasOwn(CROPS, c.crop) && buySeeds(farm, c.crop) ? { ok: true, message: '+5 sementes guardadas!' } : { ok: false, message: 'Saldo insuficiente ou cultura inválida.' };
-  if (c.type === 'sell') { const total = sellAll(farm); return { ok: total > 0, message: total ? `Colheita vendida: +${total} moedas.` : 'Seu celeiro está vazio.' }; }
+  if (c.type === 'sell') return applyVendorSale(farm,c);
   if (c.type === 'expand') {
     const next = ECONOMY.expansions.find(e => e.plots > farm.unlockedPlots);
     if (!next) return { ok: false, message: 'Todos os canteiros já estão liberados.' };

@@ -55,3 +55,5 @@
 }
 
 .touch-controls{z-index:10}#touch-action,[data-tool=hand]{touch-action:none;user-select:none;-webkit-user-select:none}
+
+.sale-row input{width:62px;min-height:40px;padding:7px;border:1px solid #a28d61;border-radius:5px;background:#fff5d4}.sale-row label{font-size:11px;display:grid;gap:3px}#choose-equipment{min-height:44px;width:100%;margin-bottom:12px}

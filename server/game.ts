@@ -1,3 +1,5 @@
+import {atVendor} from '../src/vendor-sales.js';
+import {riverWalkable} from '../src/river-boundary.js';
 import {plantNeeds,settlePlant} from '../src/plant-care.js';
 import { plotPosition,plotUsable } from '../src/plots.js';
 import { requiresNewClient, CLIENT_UPDATE_MESSAGE } from '../src/client-compat.js';
@@ -42,6 +44,7 @@ export async function visit(id: string, code: string) {
 }
 function move(row: any, position: any, now: number) {
   if (!position || !Number.isFinite(position.x) || !Number.isFinite(position.y) || position.x<100 || position.x>1480 || position.y<180 || position.y>1090) throw new GameError('Posição inválida.');
+  if(!riverWalkable(position))throw new GameError('Não é possível caminhar sobre a água.');
   const elapsed = Math.max(0,(now-new Date(row.position_at).getTime())/1000);
   if (Math.hypot(position.x-row.state.player.x,position.y-row.state.player.y)>elapsed*190+45) throw new GameError('Movimento rápido demais. Aguarde a sincronização.',409);
   row.state.player={x:position.x,y:position.y};
@@ -69,7 +72,7 @@ export async function mutate(user: string, body: any, version?: string|null) {
       row.name=row.state.playerName;await db.query('UPDATE farms SET name=$2 WHERE user_id=$1',[user,row.name]);row.result=result;
     }else if(c.type==='position') move(row,body.position,now);
     else if(['work','buy','sell','expand',...LIFE_COMMANDS].includes(c.type)) {
-      if(['cast-line','reel-line'].includes(c.type))move(row,body.position,now);
+      if(['cast-line','reel-line','sell'].includes(c.type))move(row,body.position,now);
       if(c.type==='work') {
         move(row,body.position,now);
         const point=plotPosition(c.plot,row.state);if(!point)throw new GameError('Canteiro inválido.');
@@ -78,11 +81,11 @@ export async function mutate(user: string, body: any, version?: string|null) {
       }
       const result=applyCommand(row.state,c,now); if(!result.ok) throw new GameError(result.message);
       row.result=result;
-    } else row.result=await social(db,user,row,c,now);
+    } else {if(c.type==='list'){move(row,body.position,now);if(!atVendor(row.state.player))throw new GameError('Vá até a venda para anunciar produtos na feira.');}row.result=await social(db,user,row,c,now);}
     row.result??={ok:true,message:'Posição salva.'};
     // Older cached clients may play before seeing the new welcome flow. Preserve that farm too.
     if(c.type!=='position'&&c.type!=='initialize-profile'&&row.state.profileComplete===false)row.state.profileComplete=true;
-    await db.query('UPDATE farms SET state=$2,revision=revision+1,last_action_at=now(),position_at=CASE WHEN $3 THEN now() ELSE position_at END WHERE user_id=$1',[user,row.state,['position','work','cast-line','reel-line'].includes(c.type)]);
+    await db.query('UPDATE farms SET state=$2,revision=revision+1,last_action_at=now(),position_at=CASE WHEN $3 THEN now() ELSE position_at END WHERE user_id=$1',[user,row.state,['position','work','cast-line','reel-line','sell','list'].includes(c.type)]);
     await db.query('INSERT INTO action_receipts(user_id,id,hash,result) VALUES($1,$2,$3,$4)',[user,body.id,hash,row.result]);
     await db.query('COMMIT');
     return {...row.result,farm:row.state,revision:row.revision+1,name:row.name,now};
