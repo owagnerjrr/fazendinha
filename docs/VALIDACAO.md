@@ -1,3 +1,9 @@
+## Correção 0.12.6 — patas na caminhada horizontal
+
+O passo anterior levantava faixas de patas em apenas 1 pixel da textura 48×48, quase imperceptível após a redução para o tamanho do cachorro no jogo. Nas vistas esquerda/direita, os quatro passos agora deslocam as patas para frente/trás em até 3 pixels e levantam alternadamente as patas dianteiras/traseiras em até 3 pixels. O tronco permanece fixo. A transformação substitui a área das patas por amostragem inversa, sem sobrepor o desenho anterior; mantém as texturas isoladas e alfa 0/255 da correção anterior. O acompanhante externo troca de passo a cada 8 pixels percorridos, evitando cadência rápida demais.
+
+101 testes passaram e o build de produção foi concluído. A regressão verifica oposição entre as patas, quatro fases distintas, levantamento do pé, tronco idêntico e ausência de mutação da arte de origem. Na prévia Canvas foram inspecionados os 16 passos, incluindo as quatro fases para esquerda e direita. Captura das fases laterais em `screenshots/cachorro-passos-0.12.6.jpg`. O cenário de QA continua verificando pausas da física sem troca indevida para sentado. Sem alteração no salvamento ou nas regras dos animais. A verificação não inclui aparelhos físicos ou GPU WebGL.
+
 ## Correção 0.12.5 — animação do cachorro
 
 A revisão identificou uma troca instantânea entre pose de caminhada e pose sentada sempre que um tick de renderização não registrava deslocamento da física. O acompanhante agora mantém a silhueta da caminhada em pausas curtas, estabiliza em pé após 180 ms e só senta após 1,2 s sem movimento; deita após 10 s. Olhando para trás, permanece em pé até deitar, pois a arte sentada disponível não tem vista traseira.

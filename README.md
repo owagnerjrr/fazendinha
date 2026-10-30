@@ -1,3 +1,5 @@
+Correção 0.12.6: passos horizontais do cachorro com passada e levantamento de patas mais visíveis, mantendo o tronco estável e os quadros isolados.
+
 Correção 0.12.5: o cachorro usa 24 texturas individuais opacas, alinhadas ao chão. O acompanhante mantém a silhueta em pé durante pausas breves da física e só senta após 1,2 segundo parado, evitando alternância de poses durante a caminhada.
 
 Correção 0.12.4: cache do piso preserva indicadores vivos e ovos, mantendo posições individuais e recuperando o desenho original se a captura falhar. Acabamento gráfico do celeiro retomado.

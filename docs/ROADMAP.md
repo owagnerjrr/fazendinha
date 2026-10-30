@@ -1,3 +1,5 @@
+0.12.6 — Corrigida a passada horizontal do cachorro: patas dianteiras/traseiras alternadas, amplitude visível na escala do jogo e cadência externa por distância.
+
 0.12.5 — Texturas individuais do cachorro e transição entre caminhada/repouso estabilizada. Sem alterações de contas ou regras da criação. Validação e limites em VALIDACAO.md.
 
 0.12.4: isolada falha de ciclo de vida no cache do piso; indicadores dos animais preservados. Acabamento do celeiro 0.12.1 retomado com cache corrigido e verificável também no renderizador Canvas.
