@@ -1,3 +1,5 @@
+0.20.0 — Modelos masculinos diferenciados por cabelo curto sem chapéu, olhos compactos/sobrancelhas e camisa de corte reto. Modelos femininos mantêm coques/tranças/capuz e traços originais. Seleção por imagem sem legendas.
+
 0.19.4 — Cadastro sem conta é temporário em memória: recarregar começa novamente pela abertura, sem retomar nome/personagem. Rascunhos anônimos antigos deixam de ser usados; progresso das contas segue no servidor.
 
 0.19.3 — Abertura sempre aparece sem sessão ativa, mesmo com rascunho ou save local antigo. Continuar meu cadastro retoma nome/personagem; contas conectadas continuam entrando direto.

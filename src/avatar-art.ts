@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import {drawModelFeatures} from './avatar-features';
 import {cleanAvatarPixels} from './avatar-pixels';
 import {drawNightHood} from './hood-art';
 import {idlePixels} from './idle-pixels';
@@ -49,6 +50,7 @@ export class AvatarArt {
    // Every style keeps the complete native body and face; no separate head is cut in.
    const direction=['down','left','right','up'][row],ox=col*w,oy=row*h;
    ctx.save();ctx.beginPath();ctx.rect(ox,oy,w,h);ctx.clip();
+   ctx.save();ctx.translate(ox,oy);drawModelFeatures(ctx,avatar,row,cx,top);ctx.restore();
    if(avatar.style==='hood'){
     const face=document.createElement('canvas');face.width=22;face.height=15;face.getContext('2d')!.drawImage(canvas,ox+cx-11,oy+top+19,22,15,0,0,22,15);
     ctx.clearRect(ox+cx-25,oy+Math.max(0,top-4),50,top+30-Math.max(0,top-4));ctx.save();ctx.translate(ox+cx-20,oy+top-4);drawNightHood(ctx,direction);ctx.restore();

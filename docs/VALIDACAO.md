@@ -389,3 +389,10 @@ Removido o desvio automático para personagem por haver rascunho e o desvio loca
 Nome, personagem e etapa de cadastro não são mais gravados em localStorage. Rascunhos antigos de cadastro são descartados ao iniciar; saves da fazenda e contas não são excluídos. As escolhas duram somente enquanto a página está aberta; recarregar sem sessão volta à abertura, com novo formulário vazio. O redirecionamento Google também encerra essa escolha temporária; perfil de conta incompleta é preenchido após autenticar. Perfil concluído continua salvo pelo comando autenticado initialize-profile no servidor.
 
 134 testes e build aprovados. Nenhum cadastro anônimo é restaurado ou gravado; botão Continuar meu cadastro removido. Sessão ativa com perfil completo continua entrando diretamente. Sem novo login pessoal.
+
+
+## Diferenciação dos modelos 0.20.0 — 30/10/2026
+
+Os estilos crop/short receberam corte curto visível sem chapéu, detalhes de sobrancelhas/olhos compactos e gola de camisa reta. Corpo e rosto nativos permanecem como base; as demais opções mantêm os traços anteriores, incluindo coques, tranças e capuz. A personalização de pele/cabelo/roupa continua disponível, sem adicionar legendas ou nomes à seleção. IDs de modelos e campos de saves não mudaram.
+
+134 testes e build aprovados. Fixture real de AvatarArt conferiu frente, lados e costas; remoção completa da aba do chapéu e união do cabelo à nuca foram revisadas. A decoração continua limitada à célula do quadro. Sem mudanças de cadastro, economia ou contas.
