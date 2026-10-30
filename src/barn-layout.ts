@@ -16,5 +16,5 @@ export function animalPose(pen:BarnPen,index:number,time:number){
  const animal=pen.animals[index],size=ANIMAL_SIZE[animal.kind],motion=livestockMotion(pen,index,pen.animals.length,size,time,pen.id);
  const dog=animal.kind==='dog'?penDogMotion(time,index):null;
  const cellWidth=(pen.width-38)/4,dogX=pen.x+19+cellWidth*(index+.5),dogY=pen.y+91;
- return {x:dog?dogX+dog.x:motion.x,y:dog?dogY+dog.y:motion.y,width:size.width,height:size.height*(1+Math.sin(time/450+index)*.008),flip:!dog&&motion.flip,blink:Math.floor((time+index*673+pen.id*191)/140)%37===0,eating:!dog&&!motion.walking&&Math.sin(time/700+index)>.3,dog,walking:dog?.walking??motion.walking,frame:motion.frame};
+ return {x:dog?dogX+dog.x:motion.x,y:dog?dogY+dog.y:motion.y,width:size.width,height:size.height,flip:!dog&&motion.flip,blink:Math.floor((time+index*673+pen.id*191)/140)%37===0,eating:!dog&&!motion.walking&&Math.sin(time/700+index)>.3,dog,walking:dog?.walking??motion.walking,frame:motion.frame};
 }

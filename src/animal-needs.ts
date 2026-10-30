@@ -1,5 +1,5 @@
 import type {Animal} from './content.js';
-export const ANIMAL_CARE={foodMs:86400000,waterMs:86400000,cleanMs:172800000,illnessNeglectMs:129600000,illnessDirtMs:259200000,refillAt:70} as const;
+export const ANIMAL_CARE={foodMs:172800000,waterMs:172800000,cleanMs:345600000,illnessNeglectMs:259200000,illnessDirtMs:518400000,refillAt:40} as const;
 const pct=(at:number|null|undefined,now:number,duration:number)=>at==null?0:Math.max(0,Math.min(100,100*(1-Math.max(0,now-at)/duration)));
 export function animalNeeds(a:Animal,now:number){
  const care=a.care,start=care?.startedAt??now,water=a.wateredAt===undefined?a.fedAt:a.wateredAt;

@@ -1,7 +1,10 @@
+import {retainLiveFloorNode} from './floor-cache';
+import type {RoomPoint} from './barn-art';
 import type Phaser from 'phaser';
 import type { Obstacle } from './pathfinding';
 export const HOUSE_BOUNDS={x:270,y:220,width:660,height:500};
 export const HOUSE_PROPS=[
+ {kind:'lamp',x:303,y:703,width:42,height:70,facing:'south',body:{x:0,y:0,width:0,height:0},access:{x:352,y:685},name:'Luz'},
  {kind:'bed',x:317,y:315,width:74,height:84,facing:'south',body:{x:284,y:271,width:66,height:42},access:{x:376,y:337},name:'Cama'},
  {kind:'wardrobe',x:887,y:315,width:66,height:90,facing:'south',body:{x:857,y:283,width:60,height:30},access:{x:887,y:349},name:'Guarda-roupa'},
  {kind:'tv',x:740,y:326,width:78,height:90,facing:'south',body:{x:705,y:307,width:70,height:18},access:{x:740,y:359},name:'TV'},
@@ -48,7 +51,8 @@ export function buildHouse(scene:Phaser.Scene,block:(x:number,y:number,w:number,
  const trim=scene.add.graphics().setDepth(1);trim.fillStyle(0x765333).fillRect(278,189,644,26);for(let x=280;x<922;x+=26){trim.fillStyle(0xaf8b56).fillRect(x,191,23,22);trim.fillStyle(0xcaae74).fillRect(x+1,191,21,1);trim.fillStyle(0x8c693f).fillRect(x+20,194,2,17);}trim.fillStyle(0xe0c18a).fillRect(278,186,644,3);trim.fillStyle(0x4e3928).fillRect(270,215,660,11).fillRect(270,224,8,492).fillRect(922,224,8,492).fillRect(270,708,280,10).fillRect(650,708,280,10);trim.fillStyle(0xba945a).fillRect(278,217,644,2).fillRect(550,708,100,18);trim.fillStyle(0xd3b77e).fillRect(555,711,90,2);
  for(const x of [335,845])scene.add.image(x,211,'life-window').setOrigin(.5,1).setDisplaySize(47,57).setDepth(221);
  rug(scene,280,233,154,133,[0x3f5a60,0xa4b4a0,0x6c8b83]);rug(scene,647,340,192,220,[0x374e3d,0xb2b384,0x66805c]);rug(scene,554,552,64,115,[0x766142,0xc8aa78,0x9c8055]);
- const points=HOUSE_PROPS.map(p=>{const key=['bed','wardrobe','tv'].includes(p.kind)?`life-${p.kind}`:p.kind==='sofa'?'house-sofa-back':`house-${p.kind}`;scene.add.ellipse(p.x+2,p.y-3,p.width*.95,12,0x30291e,.24).setDepth(p.y-.2);scene.add.image(p.x,p.y,key).setOrigin(.5,1).setDisplaySize(p.width,p.height).setDepth(p.kind==='sofa'?p.y-50:p.y);block(p.body.x,p.body.y,p.body.width,p.body.height);return {kind:p.kind,...p.access,hitX:p.x,hitY:p.y-p.height/2,radius:Math.max(18,p.width*.45),name:p.name,run:()=>interact(p.kind)};});
+ const points:RoomPoint[]=HOUSE_PROPS.filter(p=>p.kind!=='lamp').map(p=>{const key=['bed','wardrobe','tv'].includes(p.kind)?`life-${p.kind}`:p.kind==='sofa'?'house-sofa-back':`house-${p.kind}`;scene.add.ellipse(p.x+2,p.y-3,p.width*.95,12,0x30291e,.24).setDepth(p.y-.2);scene.add.image(p.x,p.y,key).setOrigin(.5,1).setDisplaySize(p.width,p.height).setDepth(p.kind==='sofa'?p.y-50:p.y);block(p.body.x,p.body.y,p.body.width,p.body.height);return {kind:p.kind,...p.access,hitX:p.x,hitY:p.y-p.height/2,radius:Math.max(18,p.width*.45),name:p.name,run:()=>interact(p.kind)};});
+ points.push({kind:'lamp' as any,x:352,y:685,hitX:303,hitY:670,radius:30,name:'Luz',run:()=>interact('lamp')});
  scene.add.image(HOUSE_LAMP.x,HOUSE_LAMP.y,'house-lamp').setOrigin(.5,1).setDepth(HOUSE_LAMP.y);for(const b of HOUSE_DETAIL_BODIES)block(b.x,b.y,b.width,b.height);
  scene.add.image(502,258,'life-flowerPlanter').setOrigin(.5,1).setDisplaySize(31,34).setDepth(258);
  const art=scene.add.graphics().setDepth(221);art.fillStyle(0x5c3e28).fillRect(477,167,66,44);art.fillStyle(0xc5a16a).fillRect(480,170,60,38);art.fillStyle(0x89a99b).fillRect(484,174,52,30);art.fillStyle(0xdcd7a5).fillCircle(523,182,5);art.fillStyle(0x567958).fillTriangle(484,204,510,180,536,204);art.fillStyle(0x86a171).fillTriangle(503,204,524,191,536,204);
@@ -58,17 +62,17 @@ export function buildHouse(scene:Phaser.Scene,block:(x:number,y:number,w:number,
  for(const x of [335,845]){textile.fillStyle(0x583e2b).fillRect(x-37,153,74,3);for(const side of [-1,1]){const left=x+side*30-7;textile.fillStyle(0x4e7773).fillRect(left,157,14,48);textile.fillStyle(0x8eaaa0).fillRect(left+2,158,3,45);textile.fillStyle(0x345954).fillRect(left+10,160,2,43);textile.fillStyle(0xd6b778).fillRect(left,187,14,3);}}
  scene.add.image(740,397,'life-flowerPlanter').setDisplaySize(22,25).setOrigin(.5,1).setDepth(419);
  const pillows=scene.add.graphics().setDepth(471);for(const x of [699,780]){pillows.fillStyle(0x394b35).fillRect(x-9,458,18,16);pillows.fillStyle(0xd8c394).fillRect(x-8,457,16,14);pillows.fillStyle(0x9d7952).fillRect(x-5,459,2,10);pillows.fillStyle(0xf0deba).fillRect(x-7,458,13,1);}
- const light=scene.add.graphics().setDepth(1.9);light.fillStyle(0xf3cc82,.09).fillEllipse(HOUSE_LAMP.x,HOUSE_LAMP.y-20,94,85);for(const x of [335,845]){light.fillStyle(0xf5dfa6,.055).fillTriangle(x-20,225,x+21,225,x+90,430);}
+ const light=retainLiveFloorNode(scene.add.graphics().setDepth(10));light.fillStyle(0xf3cc82,.09).fillEllipse(HOUSE_LAMP.x,HOUSE_LAMP.y-20,94,85);for(const x of [335,845]){light.fillStyle(0xf5dfa6,.055).fillTriangle(x-20,225,x+21,225,x+90,430);}
  const overlay=(key:string,sourceKey:string,w:number,h:number,cut:number,x:number,y:number,depth:number)=>{
   if(!scene.textures.exists(key)){const cv=document.createElement('canvas');cv.width=w;cv.height=h;const c=cv.getContext('2d')!;c.imageSmoothingEnabled=false;const image=scene.textures.get(sourceKey).getSourceImage() as HTMLImageElement;c.drawImage(image,0,image.height*cut/h,image.width,image.height*(h-cut)/h,0,cut,w,h-cut);scene.textures.addCanvas(key,cv);}
   return scene.add.image(x,y,key).setOrigin(.5,1).setDepth(depth);
  };
  overlay('house-sofa-rail','house-sofa-back',124,78,50,740,520,521);
- overlay('house-bed-cover','life-bed',74,84,45,317,315,317);
+ overlay('house-bed-cover','life-bed',74,84,34,317,315,317);
  const screen=scene.add.graphics().setDepth(327);
  let lastFrame=-1;
- return Object.assign(points,{updateHome(home:{tvOn:boolean}|undefined,time:number,sleeping:boolean,reduced:boolean){
-  const frame=home?.tvOn?(reduced?0:Math.floor(time/250)%24):-2;if(frame===lastFrame)return;lastFrame=frame;screen.clear();if(!home?.tvOn)return;
+ return Object.assign(points,{updateHome(home:{tvOn:boolean;lightsOn?:boolean}|undefined,time:number,sleeping:boolean,reduced:boolean){
+  light.setVisible(home?.lightsOn!==false);const frame=home?.tvOn?(reduced?0:Math.floor(time/250)%24):-2;if(frame===lastFrame)return;lastFrame=frame;screen.clear();if(!home?.tvOn)return;
   const {x,y,width:w,height:h}=HOUSE_TV_SCREEN;screen.fillStyle(0x80b8bd).fillRect(x,y,w,h);screen.fillStyle(0xe7e4aa).fillRect(x+w-9,y+3,4,4);screen.fillStyle(0x436c48).fillTriangle(x,y+h,x+15,y+9,x+w,y+h);screen.fillStyle(0x769c58).fillRect(x,y+h-6,w,6);screen.fillStyle(0xf0e8bf).fillRect(x+2+Math.max(0,frame)%12,y+4,7,2);screen.fillStyle(0xacc97b).fillRect(x+5,y+h-3,w-10,1);
  }});
 }

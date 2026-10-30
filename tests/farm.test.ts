@@ -10,17 +10,17 @@ test('complete agricultural cycle, quest reward and duplicate harvest prevention
   assert.equal(f.seeds.carrot, 7);
   assert.equal(act(f, 0, 'hand', 'carrot', start + 1e6).ok, false, 'unwatered crop never matures');
   assert.equal(act(f, 0, 'water', 'carrot', start).ok, true);
-  assert.equal(act(f, 0, 'hand', 'carrot', start + 44_999).ok, false);
-  assert.equal(act(f, 0, 'hand', 'carrot', start + 45_000).harvest, true);
+  assert.equal(act(f, 0, 'hand', 'carrot', start + CROPS.carrot.seconds*1000-1).ok, false);
+  assert.equal(act(f, 0, 'hand', 'carrot', start + CROPS.carrot.seconds*1000).harvest, true);
   assert.equal(f.inventory.carrot, 3); assert.equal(f.coins, 325);
-  assert.equal(act(f, 0, 'hand', 'carrot', start + 45_000).ok, false);
+  assert.equal(act(f, 0, 'hand', 'carrot', start + CROPS.carrot.seconds*1000).ok, false);
   assert.equal(f.inventory.carrot, 3);
   assert.equal(sellAll(f), 36); assert.equal(f.coins, 361);
   assert.equal(sellAll(f), 0); assert.equal(f.coins, 361);
 });
 test('quest is granted exactly once across multiple harvests', () => {
   const f = makeFarm();
-  for (const id of [0, 1]) { act(f, id, 'hoe', 'carrot', 0); act(f, id, 'seed', 'carrot', 0); act(f, id, 'water', 'carrot', 0); act(f, id, 'hand', 'carrot', 45000); }
+  for (const id of [0, 1]) { act(f, id, 'hoe', 'carrot', 0); act(f, id, 'seed', 'carrot', 0); act(f, id, 'water', 'carrot', 0); act(f, id, 'hand', 'carrot', CROPS.carrot.seconds*1000); }
   assert.equal(f.coins, 325); assert.equal(f.harvests, 2); assert.equal(f.inventory.carrot, 6);
 });
 for (const c of Object.keys(CROPS) as Crop[]) test(`${c}: exact maturity boundary and correct yield`, () => {
@@ -59,7 +59,7 @@ test('purchasing respects balance and rejects invalid quantities', () => {
 test('save roundtrip preserves growth offline and does not mature before watering', () => {
   const f = makeFarm(); act(f, 0, 'hoe', 'tomato', 100); act(f, 0, 'seed', 'tomato', 100); act(f, 0, 'water', 'tomato', 100);
   const restored = restoreFarm(JSON.stringify(f)); assert.deepEqual(restored, f);
-  assert.equal(remaining(restored.plots[0], 1e6), 0);
+  assert.equal(remaining(restored.plots[0], 100+CROPS.tomato.seconds*1000), 0);
   assert.equal(remaining(restored.plots[1], 1e6), null);
   assert.equal(remaining(restored.plots[0], 0), CROPS.tomato.seconds * 1000, 'clock rollback does not accelerate growth');
 });

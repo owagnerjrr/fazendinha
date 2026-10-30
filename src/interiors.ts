@@ -14,7 +14,7 @@ import { AvatarArt } from './avatar-art';
 import { buildBarn, type RoomPoint } from './barn-art';
 import type { Farm, Tool } from './farm';
 import { findPath } from './pathfinding';
-type Services={farm:()=>Farm;stick:()=>{x:number;y:number};modal:()=>boolean;tool:()=>Tool;now:()=>number;avatar:()=>void;animals:(id?:string)=>void;equipment:()=>void;toast:(s:string)=>void;open:(title:string,html:string)=>void;exit:()=>void;collect?:(id:string)=>Promise<unknown>;home?:(c:{type:'home';action:'tv'|'sleep'|'wake';on?:boolean})=>Promise<unknown>;care?:(c:{type:'pet-animal'|'play-animal';id:string})=>Promise<unknown>;failed?:(error:Error,room:'house'|'barn')=>void};
+type Services={farm:()=>Farm;stick:()=>{x:number;y:number};modal:()=>boolean;tool:()=>Tool;now:()=>number;avatar:()=>void;animals:(id?:string)=>void;equipment:()=>void;toast:(s:string)=>void;open:(title:string,html:string)=>void;exit:()=>void;collect?:(id:string)=>Promise<unknown>;home?:(c:{type:'home';action:'tv'|'lights'|'sleep'|'wake';on?:boolean})=>Promise<unknown>;care?:(c:{type:'pet-animal'|'play-animal';id:string})=>Promise<unknown>;failed?:(error:Error,room:'house'|'barn')=>void};
 export class InteriorScene extends Phaser.Scene {
  private failed=false;
  private bonding:{id:string;type:'pet-animal'|'play-animal';phase:'arriving'|'contact'|'saving'|'reacting';start:number;resolve:()=>void;reject:(e:Error)=>void}|null=null;private gesture!:Phaser.GameObjects.Graphics;private reduced=matchMedia('(prefers-reduced-motion: reduce)');
@@ -44,15 +44,19 @@ export class InteriorScene extends Phaser.Scene {
   bakeFloor(this,this.room==='house'?{x:258,y:154,width:686,height:580}:{x:140,y:130,width:920,height:700});
   const exitY=this.room==='house'?697:790;this.points.push({x:600,y:exitY,name:'Voltar à fazenda',run:()=>this.leave()});
   const spawnY=this.room==='house'?660:735;
+  // Development-only synthetic QA spawn; never present in production builds or real profiles.
+  const qa=import.meta.env.DEV&&s.farm().playerName?.startsWith('QA')?new URLSearchParams(location.search).get('qa-room'):null;
+  const spawn=this.room==='barn'&&qa==='barn'?{x:550,y:323}:this.room==='house'&&qa?({sofa:{x:829,y:497},bed:{x:376,y:337},lamp:{x:352,y:685}} as Record<string,{x:number;y:number}>)[qa]:undefined;
   this.player=this.physics.add.sprite(600,spawnY,'farmer-down-0').setVisible(false).setOrigin(.5,1).setCollideWorldBounds(true);this.player.body!.setSize(14,10).setOffset(17,52);this.physics.world.setBounds(this.room==='house'?278:165,224,this.room==='house'?644:870,this.room==='house'?500:596);this.physics.add.collider(this.player,group);
-  this.actor=this.add.sprite(600,spawnY,'farmer-down-0').setOrigin(.5,62/64).setScale(1.08);
+  if(spawn)this.player.setPosition(spawn.x,spawn.y);
+  this.actor=this.add.sprite(this.player.x,this.player.y,'farmer-down-0').setOrigin(.5,62/64).setScale(1.08);
   this.lighting=new TimeLighting(this,true);
   this.houseButton=document.getElementById('house-action') as HTMLButtonElement|null;this.tvButton=document.getElementById('house-tv') as HTMLButtonElement|null;if(this.houseButton)this.houseButton.onclick=()=>this.interact();if(this.tvButton)this.tvButton.onclick=()=>this.useHouse('tv');
   this.gesture=this.add.graphics();
   this.cameras.main.setBounds(0,0,1200,950);this.cameras.main.startFollow(this.player,true,.1,.1,0,30);this.resize();this.scale.on('resize',this.resize,this);
   this.keys=this.input.keyboard!.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,E,ESC') as Record<string,Phaser.Input.Keyboard.Key>;
   this.input.keyboard!.on('keydown-E',(e:KeyboardEvent)=>{if(!e.repeat&&claimInteractionEvent(e))this.interact();});this.input.keyboard!.on('keydown-ESC',()=>{if(!s.modal())this.leave();});
-  this.input.on('pointerdown',(p:Phaser.Input.Pointer)=>{if(s.modal()||this.bonding||this.homeBusy)return;if(this.rest){this.releaseRest();return;}const point=this.cameras.main.getWorldPoint(p.x,p.y);const item=this.points.find(t=>(!t.enabled||t.enabled())&&Math.hypot((t.hitX??t.x)-point.x,(t.hitY??t.y-30)-point.y)<(t.radius??65));if(item?.kind){this.requestHouseInteraction(item.kind);return;}const target=item?{x:item.x,y:item.y,run:item.run}:{x:Phaser.Math.Clamp(point.x,185,1015),y:Phaser.Math.Clamp(point.y,240,790)};this.route=findPath(this.player,target,this.blocks);if(this.route.length)this.target=target;else s.toast('Passagem bloqueada.');});
+  this.input.on('pointerdown',(p:Phaser.Input.Pointer)=>{if(s.modal()||this.bonding||this.homeBusy)return;const point=this.cameras.main.getWorldPoint(p.x,p.y);if(this.rest){if(this.rest.kind==='sit'&&Math.abs(point.x-740)<50&&point.y>235&&point.y<330)this.useHouse('tv');else this.releaseRest();return;}const item=this.points.find(t=>(!t.enabled||t.enabled())&&Math.hypot((t.hitX??t.x)-point.x,(t.hitY??t.y-30)-point.y)<(t.radius??65));if(item?.interactionPosition&&Math.hypot(this.player.x-item.interactionPosition().x,this.player.y-item.interactionPosition().y)<100){item.run();return;}if(item?.kind){this.requestHouseInteraction(item.kind);return;}const target=item?{x:item.x,y:item.y,run:item.run}:{x:Phaser.Math.Clamp(point.x,185,1015),y:Phaser.Math.Clamp(point.y,240,790)};this.route=findPath(this.player,target,this.blocks);if(this.route.length)this.target=target;else s.toast('Passagem bloqueada.');});
   this.events.once('shutdown',()=>{this.scale.off('resize',this.resize,this);this.art.destroy();if(this.houseButton)this.houseButton.hidden=true;if(this.tvButton)this.tvButton.hidden=true;this.bonding?.reject(new Error('Interação interrompida.'));this.bonding=null;});
 
  }
@@ -67,8 +71,8 @@ export class InteriorScene extends Phaser.Scene {
   return new Promise((resolve,reject)=>{this.bonding={id,type,phase:'arriving',start:this.time.now,resolve,reject};this.route=route;this.target={...access,run:()=>{if(!this.bonding)return;this.bonding.phase='contact';this.bonding.start=this.time.now;this.barn!.beginCare(id,type,this.time.now);this.dir=access.x<600?1:2;}};});
  }
  exitRoom(){this.leave();}
- private leave(){if(this.bonding||this.homeBusy||this.services.farm().home?.sleep)return;this.player.setVelocity(0);this.target=null;this.route=[];this.scene.stop();this.scene.wake('Farm');this.services.exit();}
- interact(){if(this.services.modal()||this.bonding||this.homeBusy)return;if(this.rest){this.releaseRest();return;}const nearest=closestInReach(this.player,this.points.filter(p=>!p.pointerOnly&&(!p.enabled||p.enabled())),110);nearest?.run();}
+ private leave(){if(this.bonding||this.homeBusy||this.services.farm().home?.sleep)return;if(this.rest){this.releaseRest();return;}this.player.setVelocity(0);this.target=null;this.route=[];this.scene.stop();this.scene.wake('Farm');this.services.exit();}
+ interact(){if(this.services.modal()||this.bonding||this.homeBusy)return;if(this.rest?.kind==='sit'){const s=this.services;s.open('Sofá',`<button id="sofa-tv">${s.farm().home?.tvOn?'Desligar':'Ligar'} TV</button><button id="sofa-rise">Levantar</button>`);document.getElementById('sofa-tv')!.onclick=()=>{(document.getElementById('panel') as HTMLDialogElement).close();this.useHouse('tv');};document.getElementById('sofa-rise')!.onclick=()=>{(document.getElementById('panel') as HTMLDialogElement).close();this.releaseRest();};return;}if(this.rest){this.releaseRest();return;}const nearest=closestInReach(this.player,this.points.filter(p=>!p.pointerOnly&&(!p.enabled||p.enabled())),110);nearest?.run();}
  getActivity(){return this.homeBusy?'Salvando':this.rest?.kind==='sit'?'Sentada no sofá':this.rest?.kind==='sleep'?'Dormindo na cama':this.rest?.kind==='leaving'?'Levantando':this.target?'Caminhando':'Em pé';}
  requestHouseInteraction(kind:string){
   if(this.room!=='house'||this.services.modal()||this.homeBusy||this.services.farm().home?.sleep)return;
@@ -80,6 +84,7 @@ export class InteriorScene extends Phaser.Scene {
   const s=this.services;if(this.homeBusy||s.farm().home?.sleep)return;
   if(kind==='wardrobe'){s.avatar();return;}
   if(kind==='sofa'){this.rest={kind:'sit',start:this.time.now,from:{x:this.player.x,y:this.player.y-2}};this.target=null;this.route=[];this.player.setVelocity(0);return;}
+  if(kind==='lamp'){if(s.home){this.homeBusy=true;void s.home({type:'home',action:'lights',on:s.farm().home?.lightsOn===false}).catch(e=>s.toast(e.message)).finally(()=>this.homeBusy=false);}return;}
   if(kind==='bed'||kind==='tv'){
    if(!s.home){s.toast('Interação indisponível neste ambiente.');return;}
    this.homeBusy=true;this.player.setVelocity(0);this.target=null;this.route=[];
@@ -88,7 +93,7 @@ export class InteriorScene extends Phaser.Scene {
   }
   s.open('À mesa','<p>Um cantinho tranquilo para desacelerar.</p>');
  }
- private releaseRest(){if(!this.rest||this.rest.kind==='leaving'||this.services.farm().home?.sleep||this.homeBusy)return;this.rest={kind:'leaving',start:this.time.now,from:{x:this.actor.x,y:this.actor.y}};}
+ private releaseRest(){if(!this.rest||this.rest.kind==='leaving'||this.services.farm().home?.sleep||this.homeBusy)return;if(this.rest.kind==='sit'&&this.services.farm().home?.tvOn)void this.services.home?.({type:'home',action:'tv',on:false}).catch(e=>this.services.toast(e.message));this.rest={kind:'leaving',start:this.time.now,from:{x:this.actor.x,y:this.actor.y}};}
  private restFrame(time:number,phase:number){
   const rest=this.rest;if(!rest)return;
   const destination=rest.kind==='sit'?HOUSE_SEAT:rest.kind==='sleep'?HOUSE_SLEEP:{x:this.player.x,y:this.player.y-2};const t=Math.min(1,(time-rest.start)/600),ease=t*t*(3-2*t);
@@ -108,7 +113,7 @@ export class InteriorScene extends Phaser.Scene {
  private finishBond(error?:Error){const bond=this.bonding;this.bonding=null;this.barn?.endCare();this.gesture.clear();this.target=null;this.route=[];if(error)bond?.reject(error);else bond?.resolve();}
  update(time:number){if(this.failed)return;try{this.updateRoom(time);}catch(error){this.failRoom(error);}}
  private failRoom(error:unknown){if(this.failed)return;this.failed=true;if(this.player?.body)this.player.setVelocity(0);const detail=error instanceof Error?error:new Error(String(error));queueMicrotask(()=>{if(this.services.failed)this.services.failed(detail,this.room);else this.services.toast(`Não foi possível abrir o cômodo: ${detail.message}`);});}
- private updateRoom(time:number){if(!this.player)return;const s=this.services;this.lighting.update(s.farm().calendar,s.now());if(this.room==='house'&&s.farm().home?.sleep&&!this.rest)this.rest={kind:'sleep',start:time,from:{x:this.player.x,y:this.player.y-2}};if(this.rest?.kind==='sleep'&&!s.farm().home?.sleep)this.releaseRest();let vx=0,vy=0;
+ private updateRoom(time:number){if(!this.player)return;const s=this.services;this.lighting.update(s.farm().calendar,s.now(),this.room==='house'?s.farm().home?.lightsOn!==false:undefined);if(this.room==='house'&&s.farm().home?.sleep&&!this.rest)this.rest={kind:'sleep',start:time,from:{x:this.player.x,y:this.player.y-2}};if(this.rest?.kind==='sleep'&&!s.farm().home?.sleep)this.releaseRest();let vx=0,vy=0;
   if(!s.modal()){const stick=s.stick();vx=Number(this.keys.D.isDown||this.keys.RIGHT.isDown)-Number(this.keys.A.isDown||this.keys.LEFT.isDown)+stick.x;vy=Number(this.keys.S.isDown||this.keys.DOWN.isDown)-Number(this.keys.W.isDown||this.keys.UP.isDown)+stick.y;
    if(this.rest&&(vx||vy))this.releaseRest();
    if(this.bonding||this.rest||this.homeBusy){vx=0;vy=0;}
@@ -125,11 +130,11 @@ export class InteriorScene extends Phaser.Scene {
     const access=this.barn?.access(bond.id);if(!access||Math.hypot(this.player.x-access.x,this.player.y-access.y)>20){this.finishBond(new Error('Fora de alcance.'));return;}
     bond.phase='saving';void (s.care?.({type:bond.type,id:bond.id})??Promise.reject(new Error('Cuidados indisponíveis.'))).then(()=>{if(this.bonding===bond){bond.phase='reacting';bond.start=this.time.now;}}).catch(e=>{if(this.bonding===bond)this.finishBond(e);});
    }
-   if(bond.phase==='reacting'){
+   if(bond.phase==='contact'||bond.phase==='reacting'){
     const elapsed=time-bond.start,side=this.dir===1?-1:1,wave=this.reduced.matches?0:Math.round(Math.sin(elapsed/140)*2),skin=parseInt(SKIN_TONES[s.farm().avatar.skin].slice(1),16),shirt=parseInt(SHIRT_COLORS[s.farm().avatar.shirt].slice(1),16);
-    this.gesture.setDepth(this.player.y+1).fillStyle(shirt).fillRect(this.player.x+side*17-4,this.player.y-29,12,7).fillStyle(skin).fillRect(this.player.x+side*28-4,this.player.y-28+wave,8,4);
+    const animal=this.barn?.contact(bond.id);if(animal&&Math.hypot(animal.x-this.player.x,animal.y-this.player.y)<80){const hx=animal.x+(this.dir===1?9:-9),hy=animal.y-25+wave,shoulder={x:this.player.x+side*8,y:this.player.y-29},elbow={x:shoulder.x+(hx-shoulder.x)*.5,y:shoulder.y+4};this.gesture.setDepth(Math.max(this.player.y,animal.y)+2).lineStyle(7,0x392c22).lineBetween(shoulder.x,shoulder.y,elbow.x,elbow.y).lineBetween(elbow.x,elbow.y,hx,hy).lineStyle(5,shirt).lineBetween(shoulder.x,shoulder.y,elbow.x,elbow.y).lineStyle(4,skin).lineBetween(elbow.x,elbow.y,hx,hy).fillStyle(skin).fillRoundedRect(hx-4,hy-3,8,5,2);}
     const pet=this.barn?.contact(bond.id);if(pet&&bond.type==='play-animal'){this.gesture.fillStyle(0xcaae63).fillCircle(pet.x-side*12,pet.y-6,3);}
-    if(elapsed>2100)this.finishBond();
+    if(bond.phase==='reacting'&&elapsed>2100)this.finishBond();
    }
    if(time-bond.start>15000&&bond.phase==='arriving')this.finishBond(new Error('O caminho até o animal ficou bloqueado.'));
   }

@@ -4,10 +4,10 @@ export function livestockArt(scene:Phaser.Scene){
  for(const kind of ['cow','goat','chicken','rooster','chick'] as const){const key=`walk-${kind}`;if(scene.textures.exists(key)||!scene.textures.exists(`life-${kind}`))continue;
   const {width:w,height:h}=ANIMAL_SIZE[kind],source=scene.textures.get(`life-${kind}`).getSourceImage() as HTMLImageElement;
   const base=document.createElement('canvas');base.width=w;base.height=h;const b=base.getContext('2d')!;b.imageSmoothingEnabled=false;b.drawImage(source,0,0,w,h);
-  const cv=document.createElement('canvas');cv.width=w*8;cv.height=h;const c=cv.getContext('2d')!;c.imageSmoothingEnabled=false;const split=Math.floor(h*.76);
+  const cv=document.createElement('canvas');cv.width=w*8;cv.height=h;const c=cv.getContext('2d')!;c.imageSmoothingEnabled=false;const split=Math.floor(h*.66);
   for(let frame=0;frame<8;frame++){
    // One source sample per output pixel keeps the torso opaque and the feet free of trails.
-   const data=b.getImageData(0,0,w,h),out=c.createImageData(w,h),stride=Math.max(1,Math.round(w*.035));
+   const data=b.getImageData(0,0,w,h),out=c.createImageData(w,h),stride=Math.max(1,Math.round(w*.055));
    for(let y=0;y<h;y++)for(let x=0;x<w;x++){
     const leg=Math.floor(x/(w/4)),phase=frame*Math.PI/4+(leg%2)*Math.PI;
     const blend=Math.max(0,(y-split)/(h-split)),sx=Math.round(x-Math.sin(phase)*stride*blend),sy=y+Math.round(Math.max(0,Math.cos(phase))*2*blend);

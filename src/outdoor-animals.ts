@@ -6,7 +6,7 @@ export class OutdoorAnimals{
  update(time:number){const f=this.farm();
   if(time>=this.nextSignature){this.nextSignature=time+300;const sig=JSON.stringify([f.buildings,f.animals.map(a=>[a.id,a.kind,a.housing])]);if(sig!==this.signature){this.signature=sig;this.rebuild(f);}}
   for(const item of this.items){const live=f.animals.find(a=>a.id===item.animal.id);if(!live)continue;item.animal=live;const size=ANIMAL_SIZE[live.kind],p=livestockMotion(item.box,item.index,item.count,size,time,item.box.x);
-   item.image.setTexture(p.walking?`walk-${live.kind}`:`life-${live.kind}`,p.walking?p.frame:undefined).setDisplaySize(size.width,size.height).setPosition(p.x,p.y).setFlipX(p.flip).setDepth(p.y);
+   item.image.setTexture(p.walking?`walk-${live.kind}`:`life-${live.kind}`,p.walking?p.frame:undefined).setDisplaySize(size.width,size.height).setPosition(p.x,p.y).setFlipX(live.kind==='cow'?!p.flip:p.flip).setDepth(p.y);
    item.shadow.setPosition(p.x,p.y-2).setDepth(p.y-.2);item.icons.update(live,this.now(),p.x,p.y,size.height,item.spot);
   }
  }

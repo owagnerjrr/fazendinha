@@ -10,7 +10,7 @@ import { barnLayout,animalPose,type BarnPen } from './barn-layout';
 import type { Farm } from './farm';
 type Block=(x:number,y:number,w:number,h:number)=>void;
 export type BarnActor={pen:BarnPen;index:number;sprite:Phaser.GameObjects.Image;shadow:Phaser.GameObjects.Ellipse;point:RoomPoint;indicators:AnimalIndicators;spot:{x:number;y:number}};
-export type RoomPoint={enabled?:()=>boolean;pointerOnly?:boolean;reach?:number;kind?:string;x:number;y:number;hitX?:number;hitY?:number;radius?:number;name?:string;run:()=>void};
+export type RoomPoint={interactionPosition?:()=>{x:number;y:number};enabled?:()=>boolean;pointerOnly?:boolean;reach?:number;kind?:string;x:number;y:number;hitX?:number;hitY?:number;radius?:number;name?:string;run:()=>void};
 export function buildBarn(scene:Phaser.Scene,farm:Farm,block:Block,animals:(id?:string)=>void,equipment:()=>void,collect?:(id:string)=>void){
  const points:RoomPoint[]=[],actors:BarnActor[]=[],gates=new Map<number,Phaser.GameObjects.Graphics>();
  const gateLeaves=new Map<number,Phaser.GameObjects.Image>();
@@ -45,13 +45,13 @@ export function buildBarn(scene:Phaser.Scene,farm:Farm,block:Block,animals:(id?:
   const gateX=pen.side==='left'?x+w-10:x-2;const gateLeaf=scene.add.image(gateX+6,y+81,'barn-gate-leaf').setOrigin(.5,1).setDisplaySize(16,45).setDepth(y+h+12.7);gateLeaves.set(pen.id,gateLeaf);const gate=scene.add.graphics().setDepth(y+h+13);gate.lineStyle(3,0xc09759);gate.strokeRect(gateX,y+39,12,39);gate.lineBetween(gateX,y+42,gateX+12,y+75);gates.set(pen.id,gate);
   if(pen.animals.length){
    points.push({...pen.access,name:pen.purpose,hitX:gateX+6,hitY:y+58,radius:26,reach:75,run:()=>{const actor=nearestPenAnimal(actors,pen.id,visitor??pen.access);if(actor)animals(actor.pen.animals[actor.index].id);}});
-   pen.animals.forEach((a,index)=>{ensureBlink(scene,a.kind);const pose=animalPose(pen,index,0);const shadow=scene.add.ellipse(pose.x,pose.y-2,pose.width*.72,pose.width*.21,0x332d20,.35).setDepth(pose.y-.2);const sprite=scene.add.image(pose.x,pose.y,`life-${a.kind}`).setOrigin(.5,1).setDisplaySize(pose.width,pose.height).setDepth(pose.y);const point:RoomPoint={...pen.access,reach:75,name:a.name??ANIMALS[a.kind].name,hitX:pose.x,hitY:pose.y-pose.height/2,radius:Math.max(15,pose.width*.48),run:()=>animals(a.id)},indicators=new AnimalIndicators(scene),spot={x:pen.x+39+(index%3)*51+(index>=3?5:-5),y:pen.y+25+(index>=3?3:0)};actors.push({pen,index,sprite,shadow,point,indicators,spot});points.push(point);points.unshift({...pen.access,pointerOnly:true,reach:75,enabled:()=>indicators.product.visible,hitX:spot.x,hitY:spot.y-6,radius:14,name:'Ninho / produto',run:()=>indicators.product.tintTopLeft===0xffffff&&collect?collect(a.id):animals(a.id)});});
+   pen.animals.forEach((a,index)=>{ensureBlink(scene,a.kind);const pose=animalPose(pen,index,0);const shadow=scene.add.ellipse(pose.x,pose.y-2,pose.width*.72,pose.width*.21,0x332d20,.35).setDepth(pose.y-.2);const sprite=scene.add.image(pose.x,pose.y,`life-${a.kind}`).setOrigin(.5,1).setDisplaySize(pose.width,pose.height).setDepth(pose.y);const point:RoomPoint={...pen.access,interactionPosition:()=>({x:sprite.x,y:sprite.y}),reach:100,name:a.name??ANIMALS[a.kind].name,hitX:pose.x,hitY:pose.y-pose.height/2,radius:Math.max(15,pose.width*.48),run:()=>animals(a.id)},indicators=new AnimalIndicators(scene),spot={x:pen.x+39+(index%3)*51+(index>=3?5:-5),y:pen.y+25+(index>=3?3:0)};actors.push({pen,index,sprite,shadow,point,indicators,spot});points.push(point);points.unshift({...pen.access,pointerOnly:true,reach:75,enabled:()=>indicators.product.visible,hitX:spot.x,hitY:spot.y-6,radius:14,name:'Ninho / produto',run:()=>indicators.product.tintTopLeft===0xffffff&&collect?collect(a.id):animals(a.id)});});
 
   }
  }
 
  return {points,actors,
-  access(id:string){return actors.find(a=>a.pen.animals[a.index].id===id)?.pen.access;},
+  access(id:string){const a=actors.find(a=>a.pen.animals[a.index].id===id);if(!a)return;const left=a.pen.x+a.pen.width+28,right=a.pen.x-28;return{x:a.pen.side==='left'?left:right,y:Math.max(a.pen.y+22,Math.min(a.pen.y+a.pen.height-16,visitor?.y??a.sprite.y))};},
   beginCare(id:string,type:'pet-animal'|'play-animal',time:number){const a=actors.find(a=>a.pen.animals[a.index].id===id);if(!a)return false;care={id,type,start:time,from:{x:a.sprite.x,y:a.sprite.y},pen:a.pen};return true;},
   endCare(){if(care){const a=actors.find(a=>a.pen.animals[a.index].id===care!.id);if(a)returning.set(care.id,{x:a.sprite.x,y:a.sprite.y,start:scene.time.now});}care=null;},
   contact(id:string){const a=actors.find(a=>a.pen.animals[a.index].id===id);return a?{x:a.sprite.x,y:a.sprite.y}:undefined;},
@@ -64,13 +64,13 @@ export function buildBarn(scene:Phaser.Scene,farm:Farm,block:Block,animals:(id?:
    else if(pose.walking&&scene.textures.exists(`walk-${kind}`))a.sprite.setTexture(`walk-${kind}`,pose.frame);else a.sprite.setTexture(`life-${kind}${pose.blink?'-blink':''}`);
    if(care&&a.pen.animals[a.index].id===care.id){
     const elapsed=time-care.start,t=Math.min(1,elapsed/1000),ease=t*t*(3-2*t),edge=a.pen.side==='left'?a.pen.x+a.pen.width-22:a.pen.x+22;
-    pose.x=care.from.x+(edge-care.from.x)*ease;pose.y=care.from.y+(a.pen.access.y-care.from.y)*ease;pose.flip=a.pen.side==='right';
+    pose.x=care.from.x+(edge-care.from.x)*ease;pose.y=care.from.y+((visitor?.y??a.pen.access.y)-care.from.y)*ease;pose.flip=a.pen.side==='right';
     if(kind==='dog'){pose.flip=false;const dx=edge-care.from.x,row=dx<0?1:2;const playing=care.type==='play-animal'&&elapsed>1100&&!matchMedia('(prefers-reduced-motion: reduce)').matches;const hop=playing?Math.sin((elapsed-1100)/300)*8:0;pose.x+=a.pen.side==='left'?-Math.abs(hop):Math.abs(hop);a.sprite.setTexture(dogTexture(t<1||playing,t<1||playing?row*4+Math.floor(elapsed/160)%4:row));}
     else if(t>=1){pose.height*=1+Math.sin(elapsed/180)*.025;a.sprite.setTexture(`life-${kind}`);}
     pose.eating=false;
    }else if(care){pose.x=a.sprite.x;pose.y=a.sprite.y;pose.eating=false;}
    const back=returning.get(a.pen.animals[a.index].id);if(back&&!care){const t=Math.min(1,(time-back.start)/700);pose.x=back.x+(pose.x-back.x)*t;pose.y=back.y+(pose.y-back.y)*t;if(t>=1)returning.delete(a.pen.animals[a.index].id);}
-   a.sprite.setPosition(pose.x,pose.y).setDisplaySize(pose.width,pose.height).setFlipX(pose.flip).setAngle(pose.eating?(pose.flip?-4:4):0).setDepth(pose.y);a.shadow.setPosition(pose.x,pose.y-2).setDepth(pose.y-.2);a.point.hitX=pose.x;a.point.hitY=pose.y-pose.height/2;const live=current.animals.find(v=>v.id===a.pen.animals[a.index].id)??a.pen.animals[a.index];a.indicators.update(live,now,pose.x,pose.y,pose.height,a.spot);
+   a.sprite.setPosition(pose.x,pose.y).setDisplaySize(pose.width,pose.height).setFlipX(kind==='cow'?!pose.flip:pose.flip).setAngle(pose.eating?(pose.flip?-4:4):0).setDepth(pose.y);a.shadow.setPosition(pose.x,pose.y-2).setDepth(pose.y-.2);a.point.hitX=pose.x;a.point.hitY=pose.y-pose.height/2;const live=current.animals.find(v=>v.id===a.pen.animals[a.index].id)??a.pen.animals[a.index];a.indicators.update(live,now,pose.x,pose.y,pose.height,a.spot);
   }
  }};
 }

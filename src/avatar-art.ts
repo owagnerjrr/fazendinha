@@ -17,7 +17,12 @@ export class AvatarArt {
    const source=this.scene.textures.get(this.key('farmer-v2',avatar)).getSourceImage() as HTMLCanvasElement;
    const cv=document.createElement('canvas');cv.width=48;cv.height=64;const c=cv.getContext('2d')!;c.imageSmoothingEnabled=false;
    c.drawImage(source,0,base==='pose-sit'?192:0,48,48,0,0,48,48);
-   const key=`avatar-${this.instance}-${this.generation}-${base}`;this.scene.textures.addCanvas(key,cv);this.keys.set(base,key);return key;
+   if(base==='pose-sleep'){// Keep face/skin; cover open-eye pixels with skin and closed lids.
+    const pixels=c.getImageData(0,0,48,48),d=pixels.data;let eyeY=29;const rows=new Map<number,number>();
+    for(let y=24;y<38;y++)for(let x=15;x<34;x++){const i=(y*48+x)*4;if(d[i+3]>100&&d[i]<75&&d[i+1]<65&&d[i+2]<65)rows.set(y,(rows.get(y)??0)+1);}
+    eyeY=[...rows].sort((a,b)=>b[1]-a[1])[0]?.[0]??29;
+    c.fillStyle=SKIN_TONES[avatar.skin];c.fillRect(17,eyeY-2,5,5);c.fillRect(27,eyeY-2,5,5);c.fillStyle='#50392b';c.fillRect(17,eyeY+1,5,1);c.fillRect(27,eyeY+1,5,1);
+   }const key=`avatar-${this.instance}-${this.generation}-${base}`;this.scene.textures.addCanvas(key,cv);this.keys.set(base,key);return key;
   }
   const {w,h}=spec[base],source=this.scene.textures.get(base).getSourceImage() as HTMLImageElement;
   const canvas=document.createElement('canvas');canvas.width=w*4;canvas.height=h*4;const ctx=canvas.getContext('2d')!;ctx.imageSmoothingEnabled=false;ctx.drawImage(source,0,0);

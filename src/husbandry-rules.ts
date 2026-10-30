@@ -1,3 +1,4 @@
+import {getPlot} from './farm.js';
 import {ANIMALS,type Animal} from './content.js';import {animalNeeds,productionAt,ANIMAL_CARE} from './animal-needs.js';
 import {plantNeeds,settlePlant,PLANT_CARE} from './plant-care.js';import {housingProblem} from './housing.js';import {plotUsable} from './plots.js';import type {Farm} from './farm.js';
 export const SUPPLIES={medicine:{name:'Remédio veterinário',price:30,amount:3},plantMedicine:{name:'Defensivo orgânico',price:18,amount:3},bedding:{name:'Palha limpa',price:10,amount:5}} as const;
@@ -12,17 +13,17 @@ export function applyHusbandry(f:Farm,c:any,now:number){
  }
  if(c.type==='cure-plant'){
   if(!Number.isInteger(c.plot)||!plotUsable(f,c.plot)||(c.plot<24&&(f as Farm&{unlockedPlots?:number}).unlockedPlots!==undefined&&c.plot>=(f as any).unlockedPlots))return fail('Canteiro inválido.');
-  const p=f.plots[c.plot],needs=plantNeeds(p,now);if(!p.crop||!p.care||!needs.sick)return fail('Esta planta não está doente.');if(needs.dry)return fail('Regue a planta antes de aplicar o defensivo.');if(f.supplies.plantMedicine<1)return fail('Compre defensivo orgânico na venda.');
+  const p=getPlot(f,c.plot)!,needs=plantNeeds(p,now);if(!p.crop||!p.care||!needs.sick)return fail('Esta planta não está doente.');if(needs.dry)return fail('Regue a planta antes de aplicar o defensivo.');if(f.supplies.plantMedicine<1)return fail('Compre defensivo orgânico na venda.');
   settlePlant(p,now);p.care.illnessAt=null;p.care.checkpointAt=now;p.pestAt=now+PLANT_CARE.pestReturnMs;f.supplies.plantMedicine--;return{ok:true,message:'Planta tratada! O crescimento foi retomado.'};
  }
  const original=f.animals.find(a=>a.id===c.id);if(!original)return fail('Animal não encontrado.');const a=settledAnimal(original,now),needs=animalNeeds(a,now),house=a.housing??'barn';
  const commit=(message:string)=>{Object.assign(original,a);return{ok:true,message};};
  if(c.type==='feed-animal'){
   if(needs.food>ANIMAL_CARE.refillAt)return fail('O comedouro ainda está abastecido.');if(f.feed<1)return fail('Compre ração na venda.');
-  f.feed--;a.fedAt=now;return commit('Comedouro abastecido. A ração dura até 24 horas.');
+  f.feed--;a.fedAt=now;return commit('Comedouro abastecido. A ração dura até 48 horas.');
  }
  if(c.type==='water-animal'){
-  if(needs.water>ANIMAL_CARE.refillAt)return fail('O bebedouro ainda tem água fresca.');a.wateredAt=now;return commit('Bebedouro abastecido com água fresca por até 24 horas.');
+  if(needs.water>ANIMAL_CARE.refillAt)return fail('O bebedouro ainda tem água fresca.');a.wateredAt=now;return commit('Bebedouro abastecido com água fresca por até 48 horas.');
  }
  if(c.type==='clean-animal'){
   if(needs.clean>ANIMAL_CARE.refillAt)return fail('A cama do animal ainda está limpa.');if(f.supplies.bedding<1)return fail('Compre palha limpa na venda.');

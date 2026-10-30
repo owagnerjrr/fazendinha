@@ -1,5 +1,5 @@
 export type Calendar={startedAt:number;offsetMinutes:number};
-export type HomeState={tvOn:boolean;sleep?:{startedAt:number;morning:number}};
+export type HomeState={tvOn:boolean;lightsOn?:boolean;sleep?:{startedAt:number;morning:number}};
 export const GAME_MINUTE_MS=1000,DAY_MINUTES=1440,SEASON_DAYS=28,SLEEP_MS=6000;
 export const SEASONS=['Primavera','Verão','Outono','Inverno'] as const;
 // Stable fallback only for legacy saves lacking a calendar; server backfills their actual first opening.
@@ -17,13 +17,14 @@ export function nightOpacity(minute:number){
 }
 export function applyHome(f:{calendar?:Calendar;home?:HomeState},c:{action?:unknown;on?:unknown},now:number){
  const fail=(message:string)=>({ok:false,message});
- if(!['tv','sleep','wake'].includes(String(c.action)))return fail('Ação da casa inválida.');
- if(c.action==='tv'&&typeof c.on!=='boolean')return fail('Escolha ligar ou desligar a TV.');
+ if(!['tv','lights','sleep','wake'].includes(String(c.action)))return fail('Ação da casa inválida.');
+ if((c.action==='tv'||c.action==='lights')&&typeof c.on!=='boolean')return fail('Escolha ligar ou desligar a TV.');
  if(c.action==='sleep'&&f.home?.sleep)return fail('Você já está descansando.');
  if(c.action==='wake'&&(!f.home?.sleep||now-f.home.sleep.startedAt<SLEEP_MS))return fail('Aguarde alguns segundos de descanso.');
  f.calendar??={startedAt:now,offsetMinutes:0};f.home??={tvOn:false};
+ if(c.action==='lights'){f.home.lightsOn=c.on as boolean;return{ok:true,message:c.on?'Luz ligada.':'Luz desligada.'};}
  if(c.action==='tv'){f.home.tvOn=c.on as boolean;return {ok:true,message:f.home.tvOn?'TV ligada.':'TV desligada.'};}
- if(c.action==='sleep'){f.home.sleep={startedAt:now,morning:nextMorning(worldTime(f.calendar,now).absolute)};return {ok:true,message:'Boa noite! Descanse até a manhã.'};}
+ if(c.action==='sleep'){f.home.tvOn=false;f.home.sleep={startedAt:now,morning:nextMorning(worldTime(f.calendar,now).absolute)};return {ok:true,message:'Boa noite! Descanse até a manhã.'};}
  const current=worldTime(f.calendar,now).absolute;f.calendar.offsetMinutes+=Math.max(0,f.home.sleep!.morning-current);delete f.home.sleep;
  return {ok:true,message:'Bom dia! Uma nova manhã no vale.'};
 }

@@ -7,16 +7,16 @@ test('migration preserves mature crops, ready production, identity and resources
  const saved=splitLocalFarm(f),restored=restoreLocalFarm(saved.core,saved.land);enableFarmCare(restored,start+200000);assert.equal(restored.careStartedAt,anchor);assert.equal(restored.playerName,'Joana');assert.deepEqual(restored.supplies,f.supplies);assert.equal(requiresNewClient(restored,'4'),true);assert.equal(requiresNewClient(restored,'5'),false);
 });
 test('needs decay, illness latches through feeding, treatment requires care and consumes only one real dose',()=>{
- const f=setup(),a=f.animals[0];cared(f,a.id);assert.equal(animalNeeds(a,start).food,100);assert.equal(animalNeeds(a,start+43200000).food,50);const late=start+ANIMAL_CARE.illnessDirtMs+1;assert.equal(animalNeeds(a,late).sick,true);
+ const f=setup(),a=f.animals[0];cared(f,a.id);assert.equal(animalNeeds(a,start).food,100);assert.equal(animalNeeds(a,start+ANIMAL_CARE.foodMs/2).food,50);const late=start+ANIMAL_CARE.illnessDirtMs+1;assert.equal(animalNeeds(a,late).sick,true);
  const before=JSON.stringify(f);assert.equal(applyLife(f,{type:'treat-animal',id:a.id},late).ok,false);assert.equal(JSON.stringify(f),before);
  cared(f,a.id,late);assert.equal(animalNeeds(a,late).sick,true);ok(f,{type:'clean-animal',id:a.id},late);const doses=f.supplies!.medicine;ok(f,{type:'treat-animal',id:a.id},late);assert.equal(f.supplies!.medicine,doses-1);assert.equal(animalNeeds(a,late).sick,false);assert.equal(applyLife(f,{type:'treat-animal',id:a.id},late).ok,false);assert.equal(f.supplies!.medicine,doses-1);
 });
 test('an egg already produced survives neglect and refills, collects once, and new production waits for recovery',()=>{
- const f=setup(),a=f.animals[0];cared(f,a.id);const late=start+40*3600000;assert.equal(animalReady(a,late),true);ok(f,{type:'feed-animal',id:a.id},late);ok(f,{type:'water-animal',id:a.id},late);ok(f,{type:'collect-animal',id:a.id},late);assert.equal(f.products.egg,1);assert.equal(applyLife(f,{type:'collect-animal',id:a.id},late).ok,false);assert.equal(animalReady(a,late+100000),false);ok(f,{type:'treat-animal',id:a.id},late);assert.equal(animalReady(a,late+89999),false);assert.equal(animalReady(a,late+90000),true);
+ const f=setup(),a=f.animals[0];cared(f,a.id);const late=start+ANIMAL_CARE.illnessNeglectMs+1;assert.equal(animalReady(a,late),true);ok(f,{type:'feed-animal',id:a.id},late);ok(f,{type:'water-animal',id:a.id},late);ok(f,{type:'collect-animal',id:a.id},late);assert.equal(f.products.egg,1);assert.equal(applyLife(f,{type:'collect-animal',id:a.id},late).ok,false);assert.equal(animalReady(a,late+100000),false);ok(f,{type:'treat-animal',id:a.id},late);assert.equal(animalReady(a,late+89999),false);assert.equal(animalReady(a,late+90000),true);
 });
 test('plants dry and become ill over real time; watering never restarts growth or cures disease, medicine is consumed once',()=>{
  const f=setup();act(f,0,'hoe','sunflower',start);act(f,0,'seed','sunflower',start);act(f,0,'water','sunflower',start);const p=f.plots[0],anchor=p.wateredAt;
- assert.equal(remaining(p,start+200000),0);assert.equal(plantNeeds(p,start+PLANT_CARE.waterMs).dry,true);assert.equal(act(f,0,'hand','sunflower',start+PLANT_CARE.waterMs).ok,false);
+ assert.equal(remaining(p,start+CROPS.sunflower.seconds*1000),0);assert.equal(plantNeeds(p,start+PLANT_CARE.waterMs).dry,true);assert.equal(act(f,0,'hand','sunflower',start+PLANT_CARE.waterMs).ok,false);
  const late=start+PLANT_CARE.dryIllnessMs+1;assert.equal(plantNeeds(p,late).sick,true);assert.equal(act(f,0,'water','sunflower',late).ok,true);assert.equal(p.wateredAt,anchor);assert.equal(plantNeeds(p,late).sick,true);const medicine=f.supplies!.plantMedicine;ok(f,{type:'cure-plant',plot:0},late);assert.equal(f.supplies!.plantMedicine,medicine-1);assert.equal(remaining(p,late),0);assert.equal(act(f,0,'hand','sunflower',late).harvest,true);assert.equal(f.inventory.sunflower,3);assert.equal(applyLife(f,{type:'cure-plant',plot:0},late).ok,false);
 });
 test('housing enforces species and reserved chick capacity, transfers preserve identity and cannot duplicate animals',()=>{
@@ -36,5 +36,5 @@ test('supply prices and quantities are authoritative and failures leave balances
 });
 test('smooth gait remains inside outdoor fences, has continuous transitions and stops without walking in place',()=>{
  for(const kind of ['cow','goat','chicken','chick','rooster'] as const){const b={id:'x',site:'north' as const,kind:kind==='cow'||kind==='goat'?'pasture' as const:'coop' as const,col:0,row:0},box=outdoorBox(b),count=b.kind==='pasture'?2:6,size=ANIMAL_SIZE[kind];for(let i=0;i<count;i++)for(let t=0;t<44000;t+=137){const p=livestockMotion(box,i,count,size,t);assert.ok(p.x-size.width/2>=box.x);assert.ok(p.x+size.width/2<=box.x+box.width);assert.ok(p.y-size.height>=box.y);assert.ok(p.y<=box.y+box.height);const next=livestockMotion(box,i,count,size,t+1);assert.ok(Math.hypot(next.x-p.x,next.y-p.y)<.1);}}
- const box={x:0,y:0,width:335,height:110},size=ANIMAL_SIZE.cow,a=livestockMotion(box,0,1,size,15000),b=livestockMotion(box,0,1,size,18000);assert.equal(a.walking,false);assert.equal(a.x,b.x);assert.equal(a.y,b.y);
+ const box={x:0,y:0,width:335,height:110},size=ANIMAL_SIZE.cow,a=livestockMotion(box,0,1,size,25000),b=livestockMotion(box,0,1,size,28000);assert.equal(a.walking,false);assert.equal(a.x,b.x);assert.equal(a.y,b.y);
 });

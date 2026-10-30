@@ -1,7 +1,10 @@
+import {SKIN_TONES,SHIRT_COLORS} from './content';
 import {atVendor,VENDOR,saleItems,applyVendorSale} from './vendor-sales';
 import {riverObstacles,safeRiverPosition} from './river-boundary';
 import {bindPressAction} from './press-action';
 import {closestInReach} from './proximity';
+import {groundPosition,groundAllowed} from './ground-rules';
+import {getPlot,ageSoil,soilTime} from './farm';
 import {FISH,FISH_SPOT,nearFishing,fishingClearance,FISHING_COMMANDS,type Fish} from './fishing';
 import {FishingView} from './fishing-view';
 import {claimInteractionEvent} from './interaction-event';
@@ -54,7 +57,7 @@ let localSaveBlocked=false;
 try { farm = restoreLocalFarm(localStorage.getItem(SAVE_KEY),localStorage.getItem(LAND_SAVE_KEY)); } catch { farm = restoreFarm(localStorage.getItem(SAVE_KEY)); localSaveBlocked=true; }
 enableFarmCare(farm);
 let selected: Crop = 'carrot', tool: Tool = 'hand', modal = false, toastTimer: ReturnType<typeof setTimeout>;
-let equippedTool:Exclude<Tool,'hand'>='hoe';
+let equippedTool:Exclude<Tool,'hand'|'hoe'|'seed'>='water';try{if(localStorage.getItem('wj-tool-slot-v1')==='rod')equippedTool='rod';}catch{/* Farm progress is independent of preferences. */}
 let joystick = { x: 0, y: 0 };
 let scene: FarmScene;
 let life:ReturnType<typeof setupLifeUI>;
@@ -85,8 +88,8 @@ function syncUI() {
   $('online-bar').hidden = false;
   $('progression').hidden=!cloud.active;$('community').hidden=!cloud.active;
   if (cloud.active) { const f=farm as OnlineFarm; $('progression').textContent = `Nível ${levelOf(f.xp)} · Energia ${f.energy}/${ECONOMY.energyMax}`; }
-  if(equippedTool==='rod'&&!farm.fishing?.rod)equippedTool='hoe';
-  document.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach(b=>{b.hidden=b.dataset.tool!=='hand'&&b.dataset.tool!==equippedTool;});
+  if(equippedTool==='rod'&&!farm.fishing?.rod)equippedTool='water';
+  document.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach(b=>{b.hidden=!['hand','hoe','seed',equippedTool].includes(b.dataset.tool!);});
   $('seed-choice').hidden=tool!=='seed';
   $('quest-card').hidden=farm.questClaimed;
   $('coins').textContent = farm.coins.toLocaleString('pt-BR');
@@ -97,7 +100,7 @@ function syncUI() {
   if (farm.questClaimed) { $('quest-text').textContent = 'A primeira colheita a gente nunca esquece.'; $('quest-progress').textContent = 'Capítulo concluído'; $('quest-fill').style.width = '100%'; }
   document.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach(b => { const active = b.dataset.tool === tool; b.classList.toggle('active', active); b.setAttribute('aria-pressed', String(active)); });
 }
-function setTool(next: Tool) { if(next==='rod'&&!farm.fishing?.rod)return;if(tool==='rod'&&next!=='rod')void scene?.fishingView?.cancel();if(next!=='hand')equippedTool=next;tool = next; syncUI(); const hints: Record<Tool, string> = {rod:'', hand: 'Toque em uma planta pronta para colher.', hoe: 'Toque em um canteiro para preparar a terra.', seed: `Toque na terra preparada para plantar ${CROPS[selected].name.toLowerCase()}.`, water: 'Toque na plantação para regar e iniciar o crescimento.' }; $('hint').textContent = hints[tool]; }
+function setTool(next: Tool) { if(next==='rod'&&!farm.fishing?.rod)return;if(tool==='rod'&&next!=='rod')void scene?.fishingView?.cancel();if(next==='rod'||next==='water'){equippedTool=next;try{localStorage.setItem('wj-tool-slot-v1',next);}catch{/* optional preference */}}tool = next; syncUI(); const hints: Record<Tool, string> = {rod:'', hand: 'Toque em uma planta pronta para colher.', hoe: 'Toque em um canteiro para preparar a terra.', seed: `Toque na terra preparada para plantar ${CROPS[selected].name.toLowerCase()}.`, water: 'Toque na plantação para regar e iniciar o crescimento.' }; $('hint').textContent = hints[tool]; }
 function openPanel(title: string, content: string, kind: 'shop' | 'other' = 'other') {
   dialog.classList.remove('animal-detail');activePanel = kind; scene?.finishCurrentWork();
   modal = true; scene?.cancelMovement(); $('panel-eyebrow').textContent = 'UM POUQUINHO DE VIDA NO CAMPO'; $('panel-content').innerHTML = `<h2>${title}</h2>${content}`; document.body.classList.add('modal-open'); if (!dialog.open) dialog.showModal();
@@ -114,7 +117,7 @@ function inventory() {
   $('choose-equipment').onclick=()=>life.equipment();$('inventory-animals').onclick=()=>life.animals();
 }
 function seedPanel() {
-  openPanel('O que vamos plantar?', `<p>Escolha vegetais, frutas ou flores. Use a mão também para remover pragas quando aparecerem.</p>${cropKeys.map(c => `<div class="item-row"><span class="emoji"><img src="${cropImage(c)}" alt="" /></span><div class="item-info"><strong>${CROPS[c].name}</strong><small>${farm.seeds[c]} sementes · cresce em ${CROPS[c].seconds}s após regar</small></div><button class="choose-seed" data-crop="${c}">${selected === c ? 'Selecionada' : 'Escolher'}</button></div>`).join('')}`);
+  openPanel('O que vamos plantar?', `<p>Escolha vegetais, frutas ou flores. Use a mão também para remover pragas quando aparecerem.</p>${cropKeys.map(c => `<div class="item-row"><span class="emoji"><img src="${cropImage(c)}" alt="" /></span><div class="item-info"><strong>${CROPS[c].name}</strong><small>${farm.seeds[c]} sementes · cresce em ${Math.round(CROPS[c].seconds/60)} min após regar</small></div><button class="choose-seed" data-crop="${c}">${selected === c ? 'Selecionada' : 'Escolher'}</button></div>`).join('')}`);
   document.querySelectorAll<HTMLButtonElement>('[data-crop]').forEach(b => b.onclick = () => { selected = b.dataset.crop as Crop; setTool('seed'); closePanel(); });
 }
 function shop(){life.shop();}
@@ -184,6 +187,7 @@ class FarmScene extends Phaser.Scene {
     scene = this; createArt(this);this.avatarArt=new AvatarArt(this);this.previewArt=new AvatarArt(this);
     for(const crop of cropKeys.filter(c=>!['carrot','lettuce','tomato'].includes(c))){const image=this.textures.get(`life-${crop}`).getSourceImage() as HTMLImageElement;for(let stage=0;stage<4;stage++){const key=`${crop}-${stage}`;if(this.textures.exists(key))continue;const t=this.textures.createCanvas(key,36,40)!;const ctx=t.getContext();ctx.imageSmoothingEnabled=false;const scale=.35+stage*.216;const h=36*scale,w=Math.min(34,36*image.width/image.height)*scale;ctx.drawImage(image,(36-w)/2,39-h,w,h);t.refresh();}}
     $('loading').hidden = true;
+    this.cameras.main.setBackgroundColor('#287287');this.add.rectangle(800,600,5000,5000,0x287287).setDepth(-2);
     this.add.image(0, 0, 'terrain').setOrigin(0);
     this.physics.world.setBounds(90, 160, 1410, 930);
     this.obstacles = this.physics.add.staticGroup();
@@ -193,12 +197,13 @@ class FarmScene extends Phaser.Scene {
     this.add.image(408, 451, 'house').setOrigin(.5, 1).setScale(1.35).setDepth(448); block(408, 400, 180, 88);
     this.add.image(1030, 390, 'shop').setOrigin(.5, 1).setScale(1.25).setDepth(386);
     const vendorArt=new AvatarArt(this),vendorAvatar={style:'short' as const,skin:3,hair:1,shirt:3};
-    this.vendor=this.add.sprite(1030,352,vendorArt.idleKey('farmer-v2',vendorAvatar),0).setOrigin(.5,62/64).setScale(.95).setDepth(387);
+    this.vendor=this.add.sprite(1030,339,vendorArt.idleKey('farmer-v2',vendorAvatar),0).setOrigin(.5,62/64).setScale(.95).setDepth(387);
     const shopImage=this.textures.get('shop').getSourceImage() as HTMLImageElement;
-    for(const [y,h] of [[0,shopImage.height*.48],[shopImage.height*.69,shopImage.height*.31]])this.add.image(1030,390,'shop').setOrigin(.5,1).setScale(1.25).setCrop(0,y,shopImage.width,h).setDepth(388);
+    for(const [y,h] of [[0,shopImage.height*.48],[shopImage.height*.79,shopImage.height*.21]])this.add.image(1030,390,'shop').setOrigin(.5,1).setScale(1.25).setCrop(0,y,shopImage.width,h).setDepth(388);
+ const vendorHands=this.add.graphics().setDepth(389);vendorHands.fillStyle(0x925431).fillRoundedRect(1014,334,8,6,2).fillRoundedRect(1038,334,8,6,2);
  block(1030, 350, 130, 65);
     this.add.image(1050, 795, 'barn').setOrigin(.5, 1).setScale(1.15).setDepth(790); block(1050, 752, 128, 80);
-    this.add.image(493, 545, 'well').setOrigin(.5, 1).setScale(1.1).setDepth(545); block(493, 530, 44, 25);
+    // Old well removed: clear walking space.
     shadow(1120, 995, 150, 32);
     this.add.image(1120, 1000, 'mill').setOrigin(.5, 1).setScale(1.15).setDepth(995); block(1120, 973, 87, 48);
     for (let row = 0; row < 4; row++) for (let col = 0; col < 6; col++) {
@@ -278,7 +283,8 @@ class FarmScene extends Phaser.Scene {
       if (modal) return;
       if(farm.fishing?.cast){void this.fishingView.use();return;}
       const p = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
-      if(tool==='rod'&&p.x>1300&&p.y>780&&p.y<930){this.navigate({...FISH_SPOT,run:()=>void this.fishingView.use()});return;}
+      if(tool==='rod'&&nearFishing(this.player)){this.fishingView.aim(p,this.player);return;}
+      if(tool==='hoe'&&!this.fields.some(f=>Math.abs(f.x-p.x)<25&&Math.abs(f.y-p.y)<25)&&groundAllowed(farm,groundPosition(p))){this.navigate({...groundPosition(p),y:groundPosition(p).y+42,run:()=>void this.prepareGround(groundPosition(p))});return;}
       const animal=this.outdoor.hit(p);if(animal){this.navigate(animal);return;}
       const building=this.landWorld.buildingAt(farm,p);if(building){this.navigate({...this.landWorld.access(building),building:building.id});return;}
       const field = this.fields.find(f => Math.abs(f.x - p.x) < 20 && Math.abs(f.y - p.y) < 20);
@@ -297,19 +303,21 @@ class FarmScene extends Phaser.Scene {
   resize() { this.cameras.main.setZoom(this.scale.width < 600 ? 1.1 : this.scale.height < 560 ? .9 : 1.08); this.vignette?.setDisplaySize(this.scale.width, this.scale.height); }
   cancelMovement() { this.destination = null; this.route = []; this.queuedDestination = null; this.player?.setVelocity(0); this.input.keyboard?.resetKeys(); joystick.x = 0; joystick.y = 0; }
   paintFields() {
+    for(const p of farm.customPlots??[])if(!this.fields[p.id]){const q=p.position!;this.fields[p.id]={...q,id:p.id,soil:this.add.image(q.x,q.y,'plot-raw').setDepth(1),plant:this.add.image(q.x,q.y+11,'carrot-0').setOrigin(.5,1).setDepth(q.y+2),label:this.add.text(q.x,q.y-27,'').setVisible(false)};}
+    for(const field of this.fields)if(field.id>=60&&!getPlot(farm,field.id)){field.soil.setVisible(false);field.plant.setVisible(false);}
     const now = Date.now() + (cloud.active ? cloud.offset : 0);
     const signature=JSON.stringify(farm.decorations);if(signature!==this.decorSignature){this.decorSprites.forEach(x=>x.destroy());this.decorSprites=[];this.decorSignature=signature;for(const d of farm.decorations){const slot=DECOR_SLOTS[d.slot],item=DECOR[d.kind];if(slot&&item)this.decorSprites.push(this.add.image(slot.x,slot.y,`life-${item.texture}`).setOrigin(.5,1).setDepth(slot.y).setScale(d.kind==='cocoaTree'?.85:.65));}}
     if(this.landWorld?.update(farm))this.dogCompanions?.invalidateObstacles();
     for(const b of farm.buildings??[]){const site=LAND_SITES[b.site],cx=site.x+b.col*40+20,cy=site.y+b.row*40+38;if(this.player&&Math.abs(this.player.x-cx)<43&&Math.abs(this.player.y-cy)<30){this.cancelMovement();const access=this.landWorld.access(b);this.player.setPosition(access.x,access.y);}}
     for (const field of this.fields) {
       const point=plotPosition(field.id,farm);const usable=plotUsable(farm,field.id);field.soil.setVisible(!!point&&usable);if(!point||!usable){field.plant.setVisible(false);field.label.setVisible(false);continue;}field.x=point.x;field.y=point.y;field.soil.setPosition(point.x,point.y);field.plant.setPosition(point.x,point.y+11).setDepth(point.y+2);field.label.setPosition(point.x,point.y-27);
-      const plot = farm.plots[field.id];
-      if ((field.id>=24&&(!farm.landOwned||!plot))||(cloud.active && field.id<24 && field.id >= (farm as OnlineFarm).unlockedPlots)) { field.soil.setTexture('plot-raw').setAlpha(.35);field.plant.setVisible(false);field.label.setText('Bloqueado').setVisible(false);continue; }
+      const plot = getPlot(farm,field.id);if(!plot)continue;ageSoil(plot,soilTime(farm,now));
+      if ((field.id>=24&&(field.id<60&&!farm.landOwned||!plot))||(cloud.active && field.id<24 && field.id >= (farm as OnlineFarm).unlockedPlots)) { field.soil.setTexture('plot-raw').setAlpha(.35);field.plant.setVisible(false);field.label.setText('Bloqueado').setVisible(false);continue; }
       field.soil.setAlpha(1);
       field.soil.setTexture(plot.wateredAt !== null ? 'plot-wet' : plot.tilled ? 'plot-tilled' : 'plot-raw');
       field.plant.setVisible(!!plot.crop);
       if (!plot.crop) { field.label.setText('').setVisible(false); continue; }
-      const left = remaining(plot, now), progress = left === null ? 0 : 1 - left / (CROPS[plot.crop].seconds * 1000);
+      const left = remaining(plot, now), progress = left === null ? 0 : 1 - left / (plot.growthDurationMs??CROPS[plot.crop].seconds * 1000);
       const stage = left === 0 ? 3 : progress < .3 ? 0 : progress < .7 ? 1 : 2;
       field.plant.setTexture(`${plot.crop}-${stage}`);
       field.label.setText(left === null ? 'Gota?' : left === 0 ? 'COLHER' : `${Math.ceil(left / 1000)}s`).setVisible(left === 0 || left === null);
@@ -331,6 +339,7 @@ class FarmScene extends Phaser.Scene {
     if (!this.route.length) { this.destination=null;toast('Passagem bloqueada.');return; }
     this.destination = target;
   }
+  async prepareGround(p:Point){if(this.activeWork||modal||onlineLoading)return;const blockers=this.obstacles.getChildren().some(o=>{const b=(o as Phaser.GameObjects.Zone).body as Phaser.Physics.Arcade.StaticBody;return p.x>b.x-20&&p.x<b.x+b.width+20&&p.y>b.y-20&&p.y<b.y+b.height+20;});if(blockers){toast('Escolha terra livre.');return;}if(!groundAllowed(farm,p)||Math.hypot(p.x-this.player.x,p.y-this.player.y)>70){toast('Escolha terra livre por perto.');return;}const dx=p.x-this.player.x,dy=p.y-this.player.y;this.direction=Math.abs(dx)>Math.abs(dy)?dx<0?'left':'right':dy<0?'up':'down';this.activeWork={clock:new ActionClock('hoe',this.time.now),field:-1,crop:selected,ground:p};this.player.setVelocity(0);}
   useField(id: number) {
     if(tool==='rod')return;
     if (this.activeWork || onlineLoading || cloud.busy) return;
@@ -346,7 +355,7 @@ class FarmScene extends Phaser.Scene {
     this.player.setVelocity(0);
   }
   commitWork(work: Work) {
-    if (work.ground) { this.workEffects.wetSoil(work.ground); return; }
+    if(work.ground){if(work.clock.tool==='hoe')void lifeCommand({type:'till-ground',position:work.ground}).then(()=>this.workEffects.dirt(work.ground!)).catch(e=>toast(e.message));else this.workEffects.wetSoil(work.ground);return;}
     if (cloud.active) {
       void cloud.command({type:'work',plot:work.field,tool:work.clock.tool,crop:work.crop},{x:this.player.x,y:this.player.y}).then(result=>{const target=this.fields[work.field];if(work.clock.tool==='hoe')this.workEffects.dirt(target);else if(work.clock.tool==='water')this.workEffects.wetSoil(target);else if(result.harvest)this.workEffects.harvest(target);}).catch(error=>toast(error.message));
       return;
@@ -378,7 +387,7 @@ class FarmScene extends Phaser.Scene {
     if (work.clock.finished(time)) { this.activeWork = null; const next=this.queuedDestination;this.queuedDestination=null;if(next)this.navigate(next); }
   }
   buildingAccess(b:NonNullable<Farm['buildings']>[number]){return this.landWorld.access(b);}
-  careHeart(id:string){const p=this.outdoor.contact(id);if(!p)return;const heart=this.add.text(p.x,p.y-45,'♥',{fontFamily:'monospace',fontSize:'18px',color:'#f0a47e',stroke:'#4e4734',strokeThickness:2}).setDepth(p.y+2);this.tweens.add({targets:heart,y:p.y-67,alpha:0,duration:1100,onComplete:()=>heart.destroy()});}
+  careHeart(id:string){const p=this.outdoor.contact(id);if(!p)return;const arm=this.add.graphics(),skin=parseInt(SKIN_TONES[farm.avatar.skin].slice(1),16),shirt=parseInt(SHIRT_COLORS[farm.avatar.shirt].slice(1),16);this.direction=p.x<this.player.x?'left':'right';this.tweens.addCounter({from:0,to:1,duration:1400,onUpdate:t=>{const pet=this.outdoor.contact(id);if(!pet)return;const side=pet.x<this.player.x?-1:1,hx=this.player.x+side*Math.min(45,Math.abs(pet.x-this.player.x)),hy=this.player.y-26+Math.sin((t.getValue()??0)*Math.PI*8)*2;arm.clear().setDepth(Math.max(pet.y,this.player.y)+2).lineStyle(6,shirt).lineBetween(this.player.x+side*8,this.player.y-30,this.player.x+side*20,this.player.y-24).lineStyle(4,skin).lineBetween(this.player.x+side*20,this.player.y-24,hx,hy).fillStyle(skin).fillRoundedRect(hx-4,hy-3,8,5,2);},onComplete:()=>arm.destroy()});const heart=this.add.text(p.x,p.y-45,'♥',{fontFamily:'monospace',fontSize:'18px',color:'#f0a47e',stroke:'#4e4734',strokeThickness:2}).setDepth(p.y+2);this.tweens.add({targets:heart,y:p.y-67,alpha:0,duration:1100,onComplete:()=>heart.destroy()});}
   tendPlot(id:number,next:Tool){const field=this.fields.find(f=>f.id===id);if(!field)return;setTool(next);const blocks=this.obstacles.getChildren().map(o=>{const b=(o as Phaser.GameObjects.Zone).body as Phaser.Physics.Arcade.StaticBody;return{x:b.x,y:b.y,width:b.width,height:b.height};});const target=[[42,10],[-42,10],[0,45],[0,-45]].map(([dx,dy])=>({x:field.x+dx,y:field.y+dy,field:id})).find(p=>findPath(this.player,p,blocks).length);if(target)this.navigate(target);else toast('Não há passagem livre.');}
   renderAvatar(time: number, moving: boolean) {
     const work = this.activeWork, equipped = work?.clock.tool ?? (tool==='rod'?'hand':tool);
@@ -415,8 +424,8 @@ class FarmScene extends Phaser.Scene {
   }
   interactNearest() {
     if (modal || this.activeWork || performance.now()<entranceLockedUntil) return;
-    if(this.enterNearbyPlace())return;
-    const cropDistance=this.fields.filter(f=>farm.plots[f.id]?.crop&&Math.hypot(f.x-this.player.x,f.y-this.player.y)<65).reduce((d,f)=>Math.min(d,Math.hypot(f.x-this.player.x,f.y-this.player.y)),Infinity);
+    if(tool==='hand'&&this.enterNearbyPlace())return;
+    const cropDistance=this.fields.filter(f=>getPlot(farm,f.id)?.crop&&Math.hypot(f.x-this.player.x,f.y-this.player.y)<65).reduce((d,f)=>Math.min(d,Math.hypot(f.x-this.player.x,f.y-this.player.y)),Infinity);
     if(this.outdoor.distance(this.player)<cropDistance&&this.outdoor.interact(this.player))return;
     const nearbyBuilding=closestInReach(this.player,(farm.buildings??[]).map(building=>({...this.landWorld.access(building),building,reach:75})),75);
     if(nearbyBuilding&&Math.hypot(this.player.x-nearbyBuilding.x,this.player.y-nearbyBuilding.y)<cropDistance){const b=nearbyBuilding.building;this.cancelMovement();if(b.kind==='shed')life.equipment();else if(['coop','pasture'].includes(b.kind))life.enclosure(b.id);else openPanel('Coreto do jardim','<p>Seu cantinho para descansar e aproveitar a fazenda.</p>');return;}
@@ -424,6 +433,7 @@ class FarmScene extends Phaser.Scene {
     const available = cloud.active ? this.fields.filter(f=>plotUsable(farm,f.id)&&(f.id>=24||f.id<(farm as OnlineFarm).unlockedPlots)) : this.fields.filter(f=>plotUsable(farm,f.id));
     const target = choosePlot(farm, available, this.player, tool, selected, this.focusedField, Date.now() + cloud.offset);
     if (target !== null) this.useField(target);
+    else if(tool==='hoe'){const offsets={up:[0,-40],down:[0,40],left:[-40,0],right:[40,0]};const [dx,dy]=offsets[this.direction];void this.prepareGround(groundPosition({x:this.player.x+dx,y:this.player.y+dy}));}
     else if(tool==='water') { const offsets={up:[0,-40],down:[0,40],left:[-40,0],right:[40,0]};const [dx,dy]=offsets[this.direction];this.waterGround({x:this.player.x+dx,y:this.player.y+dy}); }
 
   }
@@ -437,7 +447,7 @@ class FarmScene extends Phaser.Scene {
     this.entranceControl.update();
     if(time>=this.nextContext){this.nextContext=time+100;this.contextLabels();}
     this.outdoor.update(time);this.flock.update(time, delta); this.dogCompanions.update(farm); this.atmosphere.update(time); this.workEffects.update(time);
-    if(this.fishingView.locked){this.cancelMovement();this.direction=this.fishingView.showingFish?'down':'right';this.renderAvatar(time,false);return;}
+    if(this.fishingView.locked){this.cancelMovement();this.direction=this.fishingView.showingFish?'down':this.fishingView.facing;this.renderAvatar(time,false);return;}
     if (this.activeWork) { this.updateWork(time); this.player.setVelocity(0); this.renderAvatar(time, false); return; }
     if (modal) { this.player.setVelocity(0); this.renderAvatar(time, false); return; }
     let vx = Number(this.keys.D.isDown || this.keys.RIGHT.isDown) - Number(this.keys.A.isDown || this.keys.LEFT.isDown) + joystick.x;
@@ -486,6 +496,7 @@ cloud.onSnapshot=(snapshot,initial)=>{ farm=snapshot.farm;if(initial&&scene?.pla
 setupOnlineUI(cloud,openPanel,closePanel,toast,()=>farm as OnlineFarm,()=>{farm=restoreLocalFarm(localStorage.getItem(SAVE_KEY),localStorage.getItem(LAND_SAVE_KEY));scene?.cancelMovement();scene?.player.setPosition(farm.player.x,farm.player.y);scene?.paintFields();syncUI();save();},()=>journey.show());
 async function lifeCommand(c:any){
  if(onlineLoading)throw new Error('Aguarde a conexão com sua conta.');
+ if(c.type==='till-ground'){if(inside)throw new Error('Escolha terra na fazenda.');if(cloud.active)return cloud.command(c,{x:scene.player.x,y:scene.player.y});farm.player={x:scene.player.x,y:scene.player.y};}
  if(c.type==='sell'){if(inside||!atVendor(scene.player))throw new Error('Vá até a venda para vender.');if(cloud.active)return cloud.command(c,{x:scene.player.x,y:scene.player.y});farm.player={x:scene.player.x,y:scene.player.y};const result=applyVendorSale(farm,c);if(!result.ok)throw new Error(result.message);save();syncUI();return result;}
  if((FISHING_COMMANDS as readonly string[]).includes(c.type)&&c.type!=='buy-rod'){if(inside)throw new Error('Pesca disponível no rio.');if(cloud.active)return cloud.command(c,{x:scene.player.x,y:scene.player.y});farm.player={x:scene.player.x,y:scene.player.y};}
  if(cloud.active)return cloud.command(c);
@@ -496,7 +507,7 @@ function finishInteriorExit(){entranceLockedUntil=performance.now()+600;currentI
 function recoverInterior(error:Error,room:'house'|'barn'){
  game.scene.stop('Interior');game.scene.wake('Farm');finishInteriorExit();
  openPanel('Não foi possível abrir o cômodo',`<p>A fazenda foi recuperada e seu progresso foi mantido.</p><p>Detalhe da falha:</p><pre id="room-error-detail" style="white-space:pre-wrap;overflow-wrap:anywhere"></pre><button class="primary" id="retry-room">Tentar entrar novamente</button><button class="secondary" id="continue-farm">Continuar na fazenda</button>`);
- $('room-error-detail').textContent=`v0.15.0 · ${room==='barn'?'Celeiro':'Casa'} · ${error.name}: ${error.message}`;
+ $('room-error-detail').textContent=`v0.16.0 · ${room==='barn'?'Celeiro':'Casa'} · ${error.name}: ${error.message}`;
  $('retry-room').onclick=()=>{closePanel();entranceLockedUntil=0;enterInterior(room);};$('continue-farm').onclick=closePanel;
 }
 function enterInterior(room:'house'|'barn'){

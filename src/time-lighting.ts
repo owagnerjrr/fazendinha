@@ -2,5 +2,5 @@ import type Phaser from 'phaser';import {nightOpacity,worldTime,type Calendar} f
 export class TimeLighting{
  private next=0;private shade:Phaser.GameObjects.Rectangle;
  constructor(private scene:Phaser.Scene,private interior=false){this.shade=scene.add.rectangle(0,0,1,1,0x16223d,1).setAlpha(0).setScrollFactor(0).setDepth(4000);}
- update(calendar:Calendar|undefined,now:number){if(now<this.next)return;this.next=now+100;const cam=this.scene.cameras.main,t=worldTime(calendar,now);this.shade.setPosition(cam.width/2,cam.height/2).setSize(cam.width/cam.zoom+4,cam.height/cam.zoom+4).setAlpha(nightOpacity(t.minuteOfDay)*(this.interior?.35:1));}
+ update(calendar:Calendar|undefined,now:number,lightsOn?:boolean){if(now<this.next)return;this.next=now+100;const cam=this.scene.cameras.main,t=worldTime(calendar,now);this.shade.setPosition(cam.width/2,cam.height/2).setSize(cam.width/cam.zoom+4,cam.height/cam.zoom+4).setAlpha(lightsOn===true?0:lightsOn===false?.25:nightOpacity(t.minuteOfDay)*(this.interior?.35:1));}
 }

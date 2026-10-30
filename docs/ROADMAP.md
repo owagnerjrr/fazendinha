@@ -1,3 +1,5 @@
+0.16.0 — Revisão de ferramentas, vara/linha, direção e alcance da pesca, Vartin, margem do rio, retirada do poço, vento discreto e passadas. Luz da casa, sono sob a coberta com olhos fechados, TV sentada/desligamento ao levantar. Capina após colher, cultivos novos de 15–90 min reais, cuidados animais de 48h e canteiros avulsos persistidos nas clareiras, com solo vazio envelhecendo em três dias do jogo. Protocolo 8 impede clientes antigos de perder os novos dados.
+
 0.15.0 — Ponte e margens com colisões e limite compartilhado com servidor; recuperação de posições antigas sobre a água. Pesca com lançamento, recolhimento, salto e apresentação do peixe na mão, nomes e cinco cores/formas próprias. Venda e anúncio de produtos junto ao Vartin; aba Vender com quantidades de colheitas, sementes, produtos animais e peixes. Barra com mão fixa, um equipamento substituível e mochila.
 
 0.14.2 — Recepção direta do toque nas duas mãos, sem depender de clique sintetizado; clique posterior não duplica interação. Interrompe movimento pendente ao agir e aproxima até entradas próximas quando fora do alcance imediato.

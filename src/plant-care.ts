@@ -1,5 +1,5 @@
 import type {Plot} from './farm.js';
-export const PLANT_CARE={waterMs:600000,dryIllnessMs:1800000,pestIllnessMs:2700000,pestReturnMs:1200000} as const;
+export const PLANT_CARE={waterMs:7200000,dryIllnessMs:21600000,pestIllnessMs:21600000,pestReturnMs:14400000} as const;
 export function plantNeeds(p:Plot,now:number){
  const c=p.care;if(!p.crop)return{water:100,dry:false,sick:false,illnessAt:null};
  if(!c)return{water:p.wateredAt==null?0:100,dry:p.wateredAt==null,sick:false,illnessAt:null};
