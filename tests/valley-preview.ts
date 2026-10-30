@@ -22,3 +22,5 @@ $('qa-house').onclick=()=>room('house');$('qa-barn').onclick=()=>room('barn');$(
 setInterval(()=>{if(game.scene.isActive('Visit'))visit.remote?.accept([{code:'QAREMOTE01',name:'QA Visitante ao vivo',avatar:{style:'cap',skin:3,hair:0,shirt:2},x:760+Math.sin(Date.now()/3000)*100,y:640,direction:2}]);},1500);
 
 const firstPet=document.createElement('button');firstPet.id='qa-first-pet';firstPet.textContent='Primeiro carinho';document.getElementById('qa-toolbar')!.append(firstPet);firstPet.onclick=()=>{f.animals=[];interior.events.once('create',()=>{const result=applyLife(f,{type:'buy-animal',kind:'cat',color:'black'},Date.now());if(!result.ok)throw Error(result.message);void interior.bond(f.animals[0].id,'pet-animal').then(()=>toast('Carinho confirmado no primeiro animal')).catch(e=>toast(e.message));});room('barn');};
+
+(globalThis as any).__valleyQA=game;

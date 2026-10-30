@@ -68,6 +68,7 @@ export function buildBarn(scene:Phaser.Scene,farm:Farm,block:Block,animals:(id?:
     const elapsed=time-care.start,t=Math.min(1,elapsed/750),ease=t*t*(3-2*t),edge=a.pen.side==='left'?a.pen.x+a.pen.width-8:a.pen.x+8;
     pose.x=care.from.x+(edge-care.from.x)*ease;pose.y=care.from.y+((visitor?.y??a.pen.access.y)-care.from.y)*ease;pose.flip=a.pen.side==='right';
     if(kind==='dog'){pose.flip=false;const dx=edge-care.from.x,row=dx<0?1:2;const playing=care.type==='play-animal'&&elapsed>1100&&!matchMedia('(prefers-reduced-motion: reduce)').matches;const hop=playing?Math.sin((elapsed-1100)/300)*8:0;pose.x+=a.pen.side==='left'?-Math.abs(hop):Math.abs(hop);a.sprite.setTexture(dogTexture(t<1||playing,t<1||playing?row*4+Math.floor(elapsed/160)%4:row));}
+    else if(t<1){if(kind==='cat')a.sprite.setTexture(catTexture(a.pen.animals[a.index].color),Math.floor(elapsed/100)%8);else if(scene.textures.exists(`walk-${kind}`))a.sprite.setTexture(`walk-${kind}`,Math.floor(elapsed/100)%8);}
     else if(t>=1){if(kind==='cat')a.sprite.setTexture(catTexture(a.pen.animals[a.index].color),0);else a.sprite.setTexture(`life-${kind}`);}
     pose.eating=false;
    }else if(care){pose.x=a.sprite.x;pose.y=a.sprite.y;pose.eating=false;}

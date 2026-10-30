@@ -249,3 +249,5 @@ Nome, identidade definitiva e monetização continuam em aberto. Não há compro
 - 0.25.2: corrigida linha pendente fora do rio, botão da ferramenta ativa na barra/celular e empunhadura da vara.
 
 - 0.25.3: removida duplicação do item escolhido no espaço da mão na barra.
+
+- 0.26.0: auditoria com correções reproduzidas e escopo/limites em CHECKUP_0_26.md.

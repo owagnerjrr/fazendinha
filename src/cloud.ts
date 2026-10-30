@@ -34,7 +34,7 @@ export class CloudFarm {
   async refresh() { if(!this.active||this.busy||sessionStorage.getItem('wj-pending-action')) return; try { this.accept(await this.request()); } catch { this.onStatus('Sem conexão · reconecte para continuar'); } }
   async retryPending() {
     const raw=sessionStorage.getItem('wj-pending-action'); if(!raw) return null;
-    const p=JSON.parse(raw);
+    let p;try{p=JSON.parse(raw);if(!p||typeof p.code!=='string'||!p.body||typeof p.body.id!=='string'||!p.body.command||typeof p.body.command!=='object')throw new Error();}catch{sessionStorage.removeItem('wj-pending-action');this.accept(await this.request());return null;}
     // Pending payloads are scoped to the public farm code, never applied to another account.
     if(p.code!==this.code) { sessionStorage.removeItem('wj-pending-action'); return null; }
     try { const snapshot=await this.request('',p.body);this.accept(snapshot);sessionStorage.removeItem('wj-pending-action');return snapshot as Snapshot; }
@@ -48,7 +48,7 @@ export class CloudFarm {
       try {
         const hadPending=!!sessionStorage.getItem('wj-pending-action');
         const recovered=await this.retryPending();
-        if(hadPending){if(recovered)return recovered;throw new Error('Fazenda atualizada. Confira o resultado antes de repetir a ação.');}
+        if(hadPending)throw new Error(recovered?'A ação anterior foi recuperada. Confira o resultado e repita a nova ação.':'Fazenda atualizada. Confira o resultado antes de repetir a ação.');
         const body={id:crypto.randomUUID(),revision:this.revision,command,position};
         sessionStorage.setItem('wj-pending-action',JSON.stringify({code:this.code,body}));
         const snapshot=await this.request('',body);sessionStorage.removeItem('wj-pending-action');this.accept(snapshot);return snapshot;

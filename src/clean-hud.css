@@ -50,7 +50,7 @@
 
 /* Touch interaction has one permanent hand control; no contextual action buttons. */
 @media(pointer:coarse),(max-width:800px){
- #enter-place,#house-action,#house-tv,#fish-action,#exit-interior{display:none!important}
+ #enter-place,#house-action,#house-tv,#fish-action{display:none!important}
  .touch-controls{display:block}
 }
 

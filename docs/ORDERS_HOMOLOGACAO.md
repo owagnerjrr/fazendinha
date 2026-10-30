@@ -1,3 +1,9 @@
+## Auditoria 0.26.0 — estado atual
+
+Consulte [relatório do check-up](CHECKUP_0_26.md) para correções, testes, segurança e limites. Vendas Orders seguem habilitadas; Pix real é validação anterior, cartão/reembolso foram validados em sandbox. CRON_SECRET está cadastrado em produção e o agendamento consta na configuração, mas a primeira execução automática ainda não foi observada. Migrações 009–012 já aplicadas; PRs #2 a #5 integrados à main. Registros abaixo são históricos e podem descrever pendências já resolvidas.
+
+---
+
 ## Estado atual — 30/10/2026
 
 Vendas reais Orders habilitadas; Pix real validado anteriormente. Cartão/recusa/reembolso e repetição validados em sandbox. CRON_SECRET ausente em produção; reconciliação automática pendente. PR #2 ainda é rascunho, não integrado à main. **184 testes passaram nesta conferência.** Evidências, limites e continuidade em [Conferência de 30/10/2026](CONFERENCIA_2026_10_30.md).
