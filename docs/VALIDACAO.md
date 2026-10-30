@@ -478,3 +478,6 @@ Para repetir o QA visual: iniciar Vite e executar `node scripts/qa-store-browser
 
 ### Diagnóstico do simulador de webhooks
 179 testes aprovados. Endpoint agora registra chegada, recusa, evento ignorado e processamento, sem gravar assinatura, token ou corpo do pagador. Requisições inválidas continuam recusadas; testes cobrem assinatura ausente, JSON inválido, divergência de recurso e ausência de segredos nos registros.
+
+### Assinatura de Orders — correção de maiúsculas
+A simulação oficial chegou e retornou 401. Revisão do SDK oficial atual confirmou que data.id deve preservar maiúsculas/minúsculas; o validador anterior convertia IDs alfanuméricos para minúsculas. Corrigido o manifesto e o tratamento de espaços nos componentes do cabeçalho, com comparação em tempo constante preservada. 180 testes passam, incluindo recusa de ID alterado e compatibilidade do formato atual do SDK. Ainda é necessária nova simulação oficial após o deploy; o segredo não foi substituído.

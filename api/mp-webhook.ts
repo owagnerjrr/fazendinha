@@ -21,5 +21,5 @@ export async function GET(){
  if(process.env.MP_MODE==='test'&&sandboxRuntime()&&process.env.MP_ACCESS_TOKEN&&process.env.MP_COLLECTOR_ID){
   try{const {verifyCollector}=await import('../server/mercadopago.js');await verifyCollector({token:process.env.MP_ACCESS_TOKEN,collector:process.env.MP_COLLECTOR_ID,secret:'',mode:'test',origin:process.env.MP_APP_ORIGIN??''});testAccountVerified=true;}catch{/* Health checks never disclose credentials or provider account details. */}
  }
- return Response.json({service:'fazendinha-payments-webhook',api:'orders',diagnosticVersion:2,ready:!!paymentConfig(),testAccountVerified,salesEnabled:salesAllowed()},{headers:{'Cache-Control':'no-store'}});
+ return Response.json({service:'fazendinha-payments-webhook',api:'orders',diagnosticVersion:3,ready:!!paymentConfig(),testAccountVerified,salesEnabled:salesAllowed()},{headers:{'Cache-Control':'no-store'}});
 }

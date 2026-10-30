@@ -38,9 +38,14 @@ test('Orders refunds, disputes and Pix data preserve exact entitlement',()=>{
  assert.throws(()=>validateProviderOrder({...proof,status_detail:'partially_refunded'},local,config));
  const pix=validateProviderOrder({...proof,status:'action_required',total_paid_amount:'0.00',transactions:{payments:[{...payment,payment_method:{...payment.payment_method,qr_code:'fixture',qr_code_base64:'cWE='}}]}},local,config);assert.equal(pix.qr,'fixture');assert.equal(pix.qrImage,'cWE=');assert.equal(pix.status,'pending');
 });
-test('Orders HMAC uses signed resource, with lower-case canonical id and original API id retained',()=>{
- const headers=new Headers({'x-request-id':'fixture','x-signature':'ts=1793390400,v1='+createHmac('sha256',config.secret).update(`id:${id.toLowerCase()};request-id:fixture;ts:1793390400;`).digest('hex')});
+test('Orders HMAC preserves signed resource case, matching the official SDK',()=>{
+ const headers=new Headers({'x-request-id':'fixture','x-signature':'ts=1793390400,v1='+createHmac('sha256',config.secret).update(`id:${id};request-id:fixture;ts:1793390400;`).digest('hex')});
  assert.ok(verifyWebhook(headers,new URL('https://farm.test/api/mp-webhook?data.id='+id),config.secret));assert.equal(verifyWebhook(headers,new URL('https://farm.test/api/mp-webhook?data.id='+id+'A'),config.secret),false);
+});
+test('signature parsing trims SDK-supported whitespace but never accepts a case-altered resource',()=>{
+ const hash=createHmac('sha256',config.secret).update(`id:${id};request-id:fixture;ts:1793390400;`).digest('hex'),headers=new Headers({'x-request-id':' fixture ','x-signature':` ts = 1793390400 , v1 = ${hash} `});
+ assert.ok(verifyWebhook(headers,new URL('https://farm.test/api/mp-webhook?data.id='+id),config.secret));assert.equal(verifyWebhook(headers,new URL('https://farm.test/api/mp-webhook?data.id='+id.toLowerCase()),config.secret),false);
+ const legacy=createHmac('sha256',config.secret).update(`id:${id.toLowerCase()};request-id:fixture;ts:1793390400;`).digest('hex');assert.equal(verifyWebhook(new Headers({'x-request-id':'fixture','x-signature':`ts=1793390400,v1=${legacy}`}),new URL('https://farm.test/api/mp-webhook?data.id='+id),config.secret),false);
 });
 test('Orders settlement uses one stable aggregate ledger key and never writes on invalid proof',async()=>{
  const query=pool.query,connect=pool.connect,seen:any[]=[];pool.query=(async()=>({rows:[local]})) as any;pool.connect=(async()=>({query:async(sql:string,args:any[])=>{seen.push({sql,args});return{rows:[],rowCount:1};},release:()=>{}})) as any;
