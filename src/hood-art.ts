@@ -1,15 +1,17 @@
-// Original pixel-art night hood: pointed ears, rose lining and a diamond badge.
-export function drawNightHood(c:CanvasRenderingContext2D,direction:string,skin:string,hair:string){
+// Original night hood, drawn at native pixel size around the farmer's own face.
+export function drawNightHood(c:CanvasRenderingContext2D,direction:string){
  const r=(color:string,x:number,y:number,w:number,h:number)=>{c.fillStyle=color;c.fillRect(x,y,w,h);};
- const poly=(color:string,points:number[][])=>{c.fillStyle=color;c.beginPath();points.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.closePath();c.fill();};
- poly('#211e2b',[[3,2],[15,10],[25,10],[37,2],[34,22],[6,22]]);
- poly('#bd719b',[[6,6],[13,11],[8,16]]);poly('#bd719b',[[34,6],[27,11],[32,16]]);
- poly('#211e2b',[[13,9],[27,9],[33,13],[36,20],[35,28],[29,34],[11,34],[5,28],[4,20],[7,13]]);
- poly('#393445',[[13,12],[27,12],[31,16],[33,22],[31,29],[27,32],[13,32],[8,28],[7,21],[10,16]]);r('#51465c',13,12,14,2);
- if(direction==='up'){r('#51465c',10,18,20,2);r('#a2648a',16,30,8,3);return;}
- r('#211e2b',9,20,22,13);r(skin,11,21,18,11);r(skin,9,23,22,6);
- r(hair,11,20,18,3);r(hair,direction==='left'?24:11,22,4,4);
- if(direction==='down'){r('#211e2b',13,25,3,4);r('#211e2b',24,25,3,4);r('#fff0d6',13,25,1,1);r('#fff0d6',24,25,1,1);r('#b17573',18,30,4,1);}
- else{const x=direction==='left'?12:25;r('#211e2b',x,25,3,4);r('#fff0d6',x,25,1,1);r('#b17573',direction==='left'?10:28,30,3,1);}
- poly('#f1a4c9',[[20,12],[24,16],[20,20],[16,16]]);r('#ffe4ed',19,14,2,2);r('#bd719b',8,32,5,2);r('#bd719b',27,32,5,2);
+ // Stepped curves retain the same pixel density as the original face and body.
+ const bands=[[7,13,14],[9,9,22],[11,7,26],[14,5,30],[18,4,32],[24,5,30],[30,7,26],[34,11,18]];
+ for(let i=0;i<bands.length;i++){const [y,x,w]=bands[i];r('#231d2d',x,y,w,(bands[i+1]?.[0]??38)-y);}
+ r('#403348',10,11,20,3);r('#54425c',12,10,14,2);r('#403348',6,17,3,12);r('#312638',31,16,3,15);
+ // Curved, asymmetrical ears with rose lining and tiny tip pompons.
+ for(const [x,y,w,h]of [[4,0,3,3],[5,3,4,4],[6,7,5,4],[8,11,5,4],[33,2,3,3],[31,5,4,4],[28,9,5,6]])r('#231d2d',x,y,w,h);
+ r('#231d2d',5,5,5,4);r('#231d2d',7,9,7,6);r('#231d2d',30,7,5,4);r('#231d2d',27,11,7,5);
+ r('#b775a1',7,6,2,5);r('#da9cbd',9,10,2,3);r('#b775a1',31,7,2,5);
+ r('#4c3c54',3,0,3,2);r('#4c3c54',34,2,3,2);
+ if(direction==='up'){r('#4c3c54',10,21,20,2);r('#b775a1',16,33,8,2);r('#edb8d2',19,32,2,4);return;}
+ // Heart-shaped rose badge; the face itself is restored from the full sprite.
+ r('#d98eb5',17,13,3,3);r('#d98eb5',21,13,3,3);r('#efa6ca',17,16,7,2);r('#d98eb5',19,18,3,2);r('#ffe0ef',18,14,1,1);
+ r('#bd7b9f',7,32,4,3);r('#e5a4c4',8,32,2,1);r('#bd7b9f',29,32,4,3);r('#e5a4c4',30,32,2,1);
 }

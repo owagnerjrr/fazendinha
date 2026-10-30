@@ -1,3 +1,5 @@
+0.19.1 — Substituída a montagem por cabeças separadas pela preservação do sprite completo. Recoloração de pele mais restrita, sem atingir botas; estilos com escala consistente, limpeza de fragmentos, clipping por quadro e capuz noturno redesenhado em torno do rosto original.
+
 0.19.0 — Corrigida a união de cabeça/pescoço/corpo dos avatares personalizados. Modelos sem nomes prontos; novo capuz noturno preto/rosa original e roupa preta no cadastro e guarda-roupa.
 
 0.18.2 — Removida a opção “Continuar fazenda deste aparelho” da abertura. Dados existentes preservados.

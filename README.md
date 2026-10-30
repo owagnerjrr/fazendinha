@@ -1,3 +1,5 @@
+Correção 0.19.1: avatares usam corpo e rosto completos do sprite original, estilos aplicados na mesma escala, bordas opacas e limpeza de fragmentos isolados. Capuz noturno redesenhado com rosto expressivo, curvas e coração rosa.
+
 Atualização 0.19.0: seleção de personagens sem nomes predefinidos, composição de sprites corrigida, capuz noturno com orelhas pontudas e detalhes rosa, e roupa preta. O nome escolhido no cadastro permanece como identidade do jogador; contas e progresso preservados.
 
 Atualização 0.18.0: abertura “Bem-vindo à Fazenda Feliz”, Google/Gmail em destaque, e-mail e escolha de nome/personagem. Sessão ativa abre direto a fazenda nas visitas seguintes. Fazendas locais anteriores continuam disponíveis, sem apagar progresso.

@@ -363,3 +363,10 @@ Removidos botão de continuação local e seu manipulador da abertura, sem exclu
 A substituição de cabeça apagava 40 linhas e removia parte do corpo. O recorte agora preserva a roupa e usa alinhamento pelo queixo, com ponte de pescoço; coques e tranças mantêm suas extensões laterais. O capuz noturno é desenhado em pixel art própria, com detalhes rosa e emblema de losango, em quatro direções; roupa preta foi acrescentada ao fim da paleta sem mudar índices existentes. Os modelos não têm nomes; o cadastro continua determinando o nome do jogador.
 
 131 testes e build aprovados. Teste de perfil valida capuz/roupa preta, nome cadastrado e preservação da economia. O fixture tests/avatar-visual-qa.html usa AvatarArt real, sem contas/saves, para inspecionar os sete modelos em quatro direções, caminhada e ação da enxada. Conferidos pescoço, roupa, tranças, capuz e ferramenta. Sem novo teste em celular físico ou login pessoal.
+
+
+## Revisão de avatares 0.19.1 — 30/10/2026
+
+A revisão anterior ainda deformava a composição. A nova versão preserva o corpo e o rosto do sprite nativo; não usa mais as cabeças v5 redimensionadas. Cabelos são aplicados na mesma grade, sem alterar a identidade salva. Recoloração de pele exige tons de pêssego e não muda botas/madeira; bordas passam a alfa binário e componentes de menos de oito pixels são retirados, preservando ferramentas maiores. Toda decoração é limitada à célula do quadro para impedir invasão de sprites vizinhos. Capuz redesenhado com curvas em degraus, orelhas e coração rosa ao redor do rosto original.
+
+132 testes e build aprovados. Teste específico verifica remoção de halo/fragmento sem apagar corpo ou ferramenta separada. Fixture real de AvatarArt ampliado com escolha dos quatro quadros; conferidos sete modelos em quatro direções na caminhada e último quadro de ação da enxada. Aparência de cadastro e economia continuam usando os mesmos IDs e índices. Sem migração, exclusão de contas ou alteração do progresso; sem teste físico de celular.

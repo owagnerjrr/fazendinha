@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import {cleanAvatarPixels} from './avatar-pixels';
 import {drawNightHood} from './hood-art';
 import {idlePixels} from './idle-pixels';
 import { SKIN_TONES, HAIR_COLORS, SHIRT_COLORS, type Avatar } from './content';
@@ -30,32 +31,34 @@ export class AvatarArt {
   const skin=rgb(SKIN_TONES[avatar.skin]),hair=rgb(HAIR_COLORS[avatar.hair]),shirt=rgb(SHIRT_COLORS[avatar.shirt]);
   for(let row=0;row<4;row++)for(let col=0;col<4;col++){
    const data=ctx.getImageData(col*w,row*h,w,h),p=data.data;let top=h,cx=w/2,left=w,right=0;
-   for(let y=0;y<h*.72;y++)for(let x=Math.max(0,w/2-24);x<Math.min(w,w/2+24);x++){const i=(y*w+x)*4,r=p[i],g=p[i+1],b=p[i+2];if(p[i+3]>100&&r>145&&g>95&&r>g*1.08&&b<g*.8)top=Math.min(top,y);}
-   for(let y=top;y<Math.min(h,top+15);y++)for(let x=0;x<w;x++){const i=(y*w+x)*4;if(p[i+3]>100&&p[i]>145&&p[i+1]>95&&p[i]>p[i+1]*1.08&&p[i+2]<p[i+1]*.8){left=Math.min(left,x);right=Math.max(right,x);}}
-   if(left<right)cx=(left+right)/2;
+   for(let y=0;y<h*.65;y++)for(let x=Math.max(0,w/2-24);x<Math.min(w,w/2+24);x++){const i=(y*w+x)*4;if(p[i+3]>180&&p[i]>145&&p[i+1]>95&&p[i]>p[i+1]*1.08&&p[i+2]<p[i+1]*.8)top=Math.min(top,y);}
+   for(let y=top;y<Math.min(h,top+15);y++)for(let x=0;x<w;x++){const i=(y*w+x)*4;if(p[i+3]>180&&p[i]>145&&p[i+1]>95&&p[i]>p[i+1]*1.08&&p[i+2]<p[i+1]*.8){left=Math.min(left,x);right=Math.max(right,x);}}
+   if(left<right)cx=Math.round((left+right)/2);
    for(let y=0;y<h;y++)for(let x=0;x<w;x++){
-    const i=(y*w+x)*4;if(p[i+3]<30)continue;const r=p[i],g=p[i+1],b=p[i+2];let target:number[]|null=null,shade=1;
-    if(y>top+23&&y<h-8&&Math.abs(x-cx)<23&&g>r*1.08&&g>b*1.1){target=shirt;shade=Math.max(.35,(r+g+b)/340);}
-    else if(y>top+15&&y<h-9&&Math.abs(x-cx)<26&&r>g*1.12&&g>b*1.15&&r>105&&g>55&&b>25){target=skin;shade=Math.max(.38,Math.min(1.2,(r+g+b)/480));}
+    const i=(y*w+x)*4;if(p[i+3]<180)continue;const r=p[i],g=p[i+1],b=p[i+2];let target:number[]|null=null,shade=1;
+    if(y>top+23&&y<h-8&&Math.abs(x-cx)<23&&g>r*1.08&&g>b*1.1){target=shirt;shade=Math.max(.35,Math.min(1.3,(r+g+b)/180));}
+    // Peach skin only: brown boots, trousers, hair and outlines are never skin.
+    else if(y>top+15&&y<h-13&&Math.abs(x-cx)<23&&r>200&&g>125&&g<r*.84&&b>85&&b<g*.85){target=skin;shade=Math.max(.5,Math.min(1.15,(r+g+b)/565));}
+    else if(y>top+16&&y<top+31&&Math.abs(x-cx)<20&&r>65&&r<180&&g<r*.55&&b<65){target=hair;shade=Math.max(.4,Math.min(1.1,r/125));}
     if(target){p[i]=Math.min(255,target[0]*shade);p[i+1]=Math.min(255,target[1]*shade);p[i+2]=Math.min(255,target[2]*shade);}
    }
-   ctx.putImageData(data,col*w,row*h);
-   if(avatar.style!=='classic'){
-    const direction=['down','left','right','up'][row];
-    if(avatar.style==='hood'){const hood=document.createElement('canvas');hood.width=40;hood.height=36;drawNightHood(hood.getContext('2d')!,direction,SKIN_TONES[avatar.skin],HAIR_COLORS[avatar.hair]);ctx.clearRect(col*w+Math.round(cx)-25,row*h+top-2,50,33);ctx.drawImage(hood,col*w+Math.round(cx)-18,row*h+top-2,36,33);continue;}
-    const head=this.scene.textures.get(`head-${avatar.style}-${direction}`).getSourceImage() as HTMLImageElement;
-    const headCanvas=document.createElement('canvas');headCanvas.width=head.width;headCanvas.height=head.height;const hc=headCanvas.getContext('2d')!;hc.drawImage(head,0,0);const hd=hc.getImageData(0,0,head.width,head.height),hp=hd.data;
-    for(let y=0;y<head.height;y++)for(let x=0;x<head.width;x++){const i=(y*head.width+x)*4,r=hp[i],g=hp[i+1],b=hp[i+2];if(hp[i+3]<30)continue;let target:number[]|null=null,shade=1;
-     if(y>head.height*.36&&r>g*1.35&&g>b*1.1&&r>65&&g>30){target=skin;shade=Math.min(1.2,(r+g+b)/260);}
-     else if(y>head.height*.34&&r<95&&g<75&&b<75&&r>g*.9){target=hair;shade=Math.max(.35,(r+g+b)/110);}
-     if(target){hp[i]=target[0]*shade;hp[i+1]=target[1]*shade;hp[i+2]=target[2]*shade;}
-    }hc.putImageData(hd,0,0);
-    // Replace only the head: the old 40px erase also removed the neck and shirt.
-    const width=40,scale=width/head.width,height=Math.round(head.height*scale);
-    const chin=(avatar.style==='braids'||avatar.style==='puffs')?31:head.height-1;
-    const headY=top+31-Math.round(chin*scale);
-    ctx.clearRect(col*w+Math.round(cx)-25,row*h+top-2,50,33);ctx.fillStyle=SKIN_TONES[avatar.skin];ctx.fillRect(col*w+Math.round(cx)-3,row*h+top+28,6,7);ctx.drawImage(headCanvas,col*w+Math.round(cx-width/2),row*h+headY,width,height);
+   cleanAvatarPixels(p,w,h);ctx.putImageData(data,col*w,row*h);
+   // Every style keeps the complete native body and face; no separate head is cut in.
+   const direction=['down','left','right','up'][row],ox=col*w,oy=row*h;
+   ctx.save();ctx.beginPath();ctx.rect(ox,oy,w,h);ctx.clip();
+   if(avatar.style==='hood'){
+    const face=document.createElement('canvas');face.width=22;face.height=15;face.getContext('2d')!.drawImage(canvas,ox+cx-11,oy+top+19,22,15,0,0,22,15);
+    ctx.clearRect(ox+cx-25,oy+Math.max(0,top-4),50,top+30-Math.max(0,top-4));ctx.save();ctx.translate(ox+cx-20,oy+top-4);drawNightHood(ctx,direction);ctx.restore();
+    if(direction!=='up'){ctx.save();ctx.beginPath();ctx.rect(ox+cx-10,oy+top+20,20,13);ctx.clip();ctx.drawImage(face,ox+cx-11,oy+top+19);ctx.restore();}
+   }else if(avatar.style==='puffs'||avatar.style==='braids'){
+    const baseHair=HAIR_COLORS[avatar.hair];ctx.fillStyle=baseHair;
+    const sides=direction==='left'?[1]:direction==='right'?[-1]:[-1,1];
+    for(const side of sides){const profile=direction==='left'||direction==='right';const x=ox+cx+side*(profile?7:10)-2,y=oy+top+21;
+     if(avatar.style==='puffs'){ctx.fillRect(x,y,5,7);ctx.fillRect(x-1,y+2,7,3);ctx.fillStyle='#bd9d6a';ctx.fillRect(x+2,y,3,1);ctx.fillStyle=baseHair;}
+     else{for(let n=0;n<4;n++)ctx.fillRect(x+(n%2),y+n*3,4,4);ctx.fillStyle='#bd9d6a';ctx.fillRect(x+1,y+11,3,2);ctx.fillStyle=baseHair;}
+    }
    }
+   ctx.restore();const final=ctx.getImageData(ox,oy,w,h);cleanAvatarPixels(final.data,w,h);ctx.putImageData(final,ox,oy);
   }
   const key=`avatar-${this.instance}-${this.generation}-${base}`;const sourceTexture=this.scene.textures.addCanvas(key,canvas)!;this.scene.textures.addSpriteSheet('',sourceTexture,{frameWidth:w,frameHeight:h});this.keys.set(base,key);return key;
  }
