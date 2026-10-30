@@ -16,6 +16,10 @@ test('Orders prices, references, hosted payment restrictions and return URLs com
  for(const method of ['pix','card']){const p=orderPayload({...local,method},'qa@example.invalid',methods);assert.equal(p.total_amount,'10.00');assert.equal(p.processing_mode,'manual');assert.equal(p.external_reference,local.id);assert.equal(p.config.payment_method.max_installments,1);assert.equal(p.config.online.callback_url,'https://farm.test/api/mp-webhook');assert.ok(!JSON.stringify(p).includes('card_number'));assert.ok(p.config.payment_method.not_allowed_ids.includes(method==='pix'?'visa':'pix'));}
  for(const bad of [10,'10.001','1e1','-1.00','10,00',null])assert.throws(()=>orderCents(bad));assert.equal(orderCents('10.10'),1010);
 });
+test('a prepaid brand sharing the same id cannot exclude its permitted credit card',()=>{
+ const methods=[{id:'visa',payment_type_id:'prepaid_card',status:'active'},{id:'visa',payment_type_id:'credit_card',status:'active'},{id:'account_money',payment_type_id:'account_money',status:'active'}];
+ const p=orderPayload({...local,method:'card'},'qa@example.invalid',methods);assert.equal(p.config.payment_method.not_allowed_ids.includes('visa'),false);assert.ok(p.config.payment_method.not_allowed_types.includes('prepaid_card'));
+});
 test('Orders proof binds seller, application, mode, BRL price, method and immutable remote id',()=>{
  assert.equal(validateProviderOrder(proof,local,config).status,'approved');
  for(const change of [{id:id.replace('TST','')},{user_id:'999'},{currency:'USD'},{country_code:'ARG'},{external_reference:'other'},{total_amount:'1.00'},{total_amount:'10.001'},{total_paid_amount:'0.00'},{last_updated_date:'bad'},{live_mode:true},{processing_mode:'automatic'},{integration_data:{application_id:'wrong'}},{transactions:{payments:[]}}])assert.throws(()=>validateProviderOrder({...proof,...change},local,config));

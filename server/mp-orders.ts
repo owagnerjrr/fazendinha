@@ -8,9 +8,10 @@ export function orderPayload(order:any,email:string,methods:any[]){
  const allowed=(m:any)=>order.method==='pix'?m.id==='pix':m.payment_type_id==='credit_card';
  if(!Array.isArray(methods)||!methods.some(m=>allowed(m)&&m.status==='active')){console.error('mercado_pago_method_unavailable',{method:order.method,available:Array.isArray(methods)?methods.map(m=>({id:String(m.id).slice(0,50),type:String(m.payment_type_id).slice(0,50),status:String(m.status).slice(0,50)})):[]});throw new StoreError('Forma de pagamento indisponível na conta recebedora.',503);}
  const types=[...new Set<string>(methods.filter(m=>!allowed(m)).map(m=>String(m.payment_type_id)).filter(t=>!methods.some(m=>allowed(m)&&m.payment_type_id===t)).concat(['wallet','account_money']))];
+ const excludedIds=[...new Set<string>(methods.filter(m=>!allowed(m)&&!methods.some(a=>allowed(a)&&a.id===m.id)).map(m=>String(m.id)))];
  return{type:'online',processing_mode:'manual',total_amount:amount,external_reference:order.id,expiration_time:order.method==='pix'?'PT30M':'P1D',
   payer:{email},items:[{title:`Fazenda Feliz · ${pack.coins} moedas`,unit_price:amount,quantity:1,external_code:order.package}],
-  config:{online:{success_url:back,failure_url:back,pending_url:back,auto_return:'approved',callback_url:order.origin+'/api/mp-webhook',retries:{allowed:false}},payment_method:{max_installments:1,default_installments:1,not_allowed_types:types,not_allowed_ids:methods.filter(m=>!allowed(m)).map(m=>String(m.id))}}};
+  config:{online:{success_url:back,failure_url:back,pending_url:back,auto_return:'approved',callback_url:order.origin+'/api/mp-webhook',retries:{allowed:false}},payment_method:{max_installments:1,default_installments:1,not_allowed_types:types,not_allowed_ids:excludedIds}}};
 }
 /** Only call with a response obtained from the authenticated Orders API. */
 export function validateProviderOrder(p:any,order:any,c:MPConfig){

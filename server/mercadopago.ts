@@ -16,7 +16,8 @@ export async function mpRequest(config:MPConfig,path:string,body?:unknown,idempo
  const data=await r.json();if(!r.ok){
   // Only provider codes/field names: never log request bodies, tokens or payer data.
   const safe=(v:unknown)=>typeof v==='string'&&/^[a-zA-Z0-9_.[\]-]{1,100}$/.test(v)?v:undefined;
-  console.error('mercado_pago_api_error',{status:r.status,path:path.split('?')[0],code:safe(data.error),errors:(Array.isArray(data.errors)?data.errors:Array.isArray(data.cause)?data.cause:[]).slice(0,8).map((e:any)=>({code:safe(String(e.code??'')),field:safe(e.field??e.param)}))});
+  const description=(v:unknown)=>config.mode==='test'&&typeof v==='string'?v.replaceAll(config.token,'[secret]').replace(/\b(?:APP_USR|TEST)-[\w-]+/g,'[secret]').replace(/https?:\/\/[^\s]+/g,'[url]').replace(/[\w.+%-]+@[\w.-]+/g,'[email]').replace(/\b[A-Za-z0-9_-]{24,}\b/g,'[identifier]').replace(/\b\d{6,}\b/g,'[number]').slice(0,350):undefined;
+  console.error('mercado_pago_api_error',{status:r.status,path:path.split('?')[0],code:safe(data.error),errors:(Array.isArray(data.errors)?data.errors:Array.isArray(data.cause)?data.cause:[]).slice(0,8).map((e:any)=>({code:safe(String(e.code??'')),field:safe(e.field??e.param),description:description(e.message??e.description)}))});
   throw new StoreError('O Mercado Pago não concluiu a operação. Consulte o pedido antes de tentar novamente.',502);
  }return data;
 }
