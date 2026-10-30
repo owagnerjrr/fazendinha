@@ -13,7 +13,12 @@ export function sandboxRuntime(env:NodeJS.ProcessEnv=process.env){return env.VER
 export function salesAllowed(env:NodeJS.ProcessEnv=process.env){const c=paymentConfig(env);if(!c)return false;if(c.mode==='test')return sandboxRuntime(env)&&env.MP_TEST_CHECKOUT_ENABLED==='true';return env.MP_SALES_ENABLED==='true'&&env.MP_SANDBOX_VALIDATED==='true'&&env.MP_FEES_ACKNOWLEDGED==='true'&&env.MP_ACCOUNT_VERIFIED==='true';}
 export async function mpRequest(config:MPConfig,path:string,body?:unknown,idempotency?:string,fetcher:typeof fetch=fetch){
  const r=await fetcher('https://api.mercadopago.com'+path,{method:body?'POST':'GET',headers:{Authorization:`Bearer ${config.token}`,'Content-Type':'application/json',...(idempotency?{'X-Idempotency-Key':idempotency}:{})},body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(12000),cache:'no-store'});
- const data=await r.json();if(!r.ok)throw new StoreError('O Mercado Pago não concluiu a operação. Consulte o pedido antes de tentar novamente.',502);return data;
+ const data=await r.json();if(!r.ok){
+  // Only provider codes/field names: never log request bodies, tokens or payer data.
+  const safe=(v:unknown)=>typeof v==='string'&&/^[a-zA-Z0-9_.[\]-]{1,100}$/.test(v)?v:undefined;
+  console.error('mercado_pago_api_error',{status:r.status,path:path.split('?')[0],code:safe(data.error),errors:(Array.isArray(data.errors)?data.errors:Array.isArray(data.cause)?data.cause:[]).slice(0,8).map((e:any)=>({code:safe(String(e.code??'')),field:safe(e.field??e.param)}))});
+  throw new StoreError('O Mercado Pago não concluiu a operação. Consulte o pedido antes de tentar novamente.',502);
+ }return data;
 }
 let verified:{key:string;until:number}|undefined;
 export async function verifyCollector(config:MPConfig){const key=config.collector+':'+config.mode+':'+createHmac('sha256','cache').update(config.token).digest('hex');if(verified?.key===key&&verified.until>Date.now())return;const user=await mpRequest(config,'/users/me');if(String(user.id)!==config.collector||user.site_id!=='MLB'||(config.mode==='production'&&user.tags?.includes('test_user'))||(config.mode==='test'&&!config.token.startsWith('TEST-')&&!user.tags?.includes('test_user')))throw new StoreError('A conta recebedora ainda não foi validada.',503);verified={key,until:Date.now()+60000};}

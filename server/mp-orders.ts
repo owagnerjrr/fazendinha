@@ -6,7 +6,7 @@ export function orderCents(value:unknown){if(typeof value!=='string'||!/^\d{1,10
 export function orderPayload(order:any,email:string,methods:any[]){
  const pack=COIN_PACKS[order.package as PackId],amount=(pack.cents/100).toFixed(2),back=`${order.origin}/?store=return&order=${order.id}`;
  const allowed=(m:any)=>order.method==='pix'?m.id==='pix':m.payment_type_id==='credit_card';
- if(!Array.isArray(methods)||!methods.some(m=>allowed(m)&&m.status==='active'))throw new StoreError('Forma de pagamento indisponível na conta recebedora.',503);
+ if(!Array.isArray(methods)||!methods.some(m=>allowed(m)&&m.status==='active')){console.error('mercado_pago_method_unavailable',{method:order.method,available:Array.isArray(methods)?methods.map(m=>({id:String(m.id).slice(0,50),type:String(m.payment_type_id).slice(0,50),status:String(m.status).slice(0,50)})):[]});throw new StoreError('Forma de pagamento indisponível na conta recebedora.',503);}
  const types=[...new Set<string>(methods.filter(m=>!allowed(m)).map(m=>String(m.payment_type_id)).filter(t=>!methods.some(m=>allowed(m)&&m.payment_type_id===t)).concat(['wallet','account_money']))];
  return{type:'online',processing_mode:'manual',total_amount:amount,external_reference:order.id,expiration_time:order.method==='pix'?'PT30M':'P1D',
   payer:{email},items:[{title:`Fazenda Feliz · ${pack.coins} moedas`,unit_price:amount,quantity:1,external_code:order.package}],
