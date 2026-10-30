@@ -50,3 +50,16 @@ export function restoreRaisedTool(out:Uint8ClampedArray,source:Uint8ClampedArray
 
 /** Back-facing heads follow the spine rather than alternating shoulder skin highlights. */
 export function alignHeadToSpine(neck:HeadAttachment,w:number,row:number):HeadAttachment{return row===3?{x:w/2,y:neck.y}:neck;}
+
+/** Reuse one upright back silhouette, retaining each frame's vertical body step.
+ * The original/hood models keep the native head, so anchoring replacement heads
+ * alone does not fix their alternating tilt. Never transform the whole body. */
+export function stableBackHead(out:Uint8ClampedArray,reference:Uint8ClampedArray,w:number,h:number,region:{x:number;top:number},neck:HeadAttachment,referenceRegion:{x:number;top:number},referenceNeck:HeadAttachment){
+ eraseNativeHead(out,w,h,region.top,region.x,neck.y,3);
+ const dx=Math.round(w/2-referenceNeck.x),dy=neck.y-referenceNeck.y;
+ for(let y=Math.max(0,referenceRegion.top-3);y<referenceNeck.y;y++)for(let x=Math.max(0,referenceRegion.x-25);x<Math.min(w,referenceRegion.x+26);x++){
+  const tx=x+dx,ty=y+dy,i=(y*w+x)*4;
+  if(tx<0||tx>=w||ty<0||ty>=neck.y||ty>=h||reference[i+3]<180)continue;
+  out.set(reference.subarray(i,i+4),(ty*w+tx)*4);
+ }
+}

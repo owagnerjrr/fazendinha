@@ -1,5 +1,5 @@
 import {outfitPixels,drawOutfitCap} from './outfit-art';
-import {headAttachment,eraseNativeHead,nativeSkin,nativeHeadRegion,restoreRaisedTool,alignHeadToSpine} from './avatar-attachment';
+import {headAttachment,eraseNativeHead,nativeSkin,nativeHeadRegion,restoreRaisedTool,alignHeadToSpine,stableBackHead} from './avatar-attachment';
 import Phaser from 'phaser';
 import {drawPortraitHead} from './avatar-head-art';
 import {drawModelFeatures} from './avatar-features';
@@ -33,6 +33,13 @@ export class AvatarArt {
   const {w,h}=spec[base],source=this.scene.textures.get(base).getSourceImage() as HTMLImageElement;
   const canvas=document.createElement('canvas');canvas.width=w*4;canvas.height=h*4;const ctx=canvas.getContext('2d')!;ctx.imageSmoothingEnabled=false;ctx.drawImage(source,0,0);
   const skin=rgb(SKIN_TONES[avatar.skin]),hair=rgb(HAIR_COLORS[avatar.hair]),shirt=rgb(SHIRT_COLORS[avatar.shirt]);
+  if(['farmer-v2','carry-hoe','carry-seed','carry-water'].includes(base)){
+   const reference=ctx.getImageData(0,3*h,w,h).data,region=nativeHeadRegion(reference,w,h,{x:w/2,top:5}),neck=headAttachment(reference,w,h,region.top,region.x);
+   for(let col=0;col<4;col++){
+    const data=ctx.getImageData(col*w,3*h,w,h),r=nativeHeadRegion(data.data,w,h,{x:w/2,top:region.top}),n=headAttachment(data.data,w,h,r.top,r.x);
+    stableBackHead(data.data,reference,w,h,r,n,region,neck);ctx.putImageData(data,col*w,3*h);
+   }
+  }
   for(let row=0;row<4;row++)for(let col=0;col<4;col++){
    const data=ctx.getImageData(col*w,row*h,w,h),p=data.data,original=p.slice();let top=h,cx=w/2,left=w,right=0;
    for(let y=0;y<h*.65;y++)for(let x=Math.max(0,w/2-24);x<Math.min(w,w/2+24);x++){const i=(y*w+x)*4;if(p[i+3]>180&&p[i]>145&&p[i+1]>95&&p[i]>p[i+1]*1.08&&p[i+2]<p[i+1]*.8)top=Math.min(top,y);}

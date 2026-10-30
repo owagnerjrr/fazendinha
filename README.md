@@ -1,3 +1,5 @@
+Atualização 0.24.1: cabeça estabilizada também no personagem original e no capuz durante a caminhada para cima, inclusive carregando ferramentas. Loja com prévias animadas das roupas nas quatro direções. Pacotes de moedas e integração Mercado Pago existentes revisados; **vendas reais continuam desativadas por falta de credenciais e homologação oficial**. Consulte [configuração dos pagamentos](docs/MERCADO_PAGO_SETUP.md) e [validação](docs/VALIDACAO.md).
+
 Atualização 0.21.0: nove personagens com rostos e cabelos redesenhados no padrão da personagem original. Dois novos modelos: rabo de cavalo e boné; seleção visual sem legendas, com cores livres e animações preservadas. Arte e prompt em docs/CHARACTERS_0_21.md.
 
 Correção 0.19.1: avatares usam corpo e rosto completos do sprite original, estilos aplicados na mesma escala, bordas opacas e limpeza de fragmentos isolados. Capuz noturno redesenhado com rosto expressivo, curvas e coração rosa.

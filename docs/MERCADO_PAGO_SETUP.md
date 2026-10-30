@@ -1,6 +1,6 @@
 # Loja de moedas — configuração segura do Mercado Pago
 
-## Estado na entrega 0.24.0
+## Estado na revisão 0.24.1
 
 **Vendas desativadas.** O projeto não tem credenciais Mercado Pago. A chave Pix informada pelo proprietário não foi usada como credencial nem como destino presumido. Não foram realizadas cobranças reais. A homologação no sandbox oficial ainda depende das credenciais de teste; testes de contrato com fixtures e testes transacionais no banco não a substituem.
 
@@ -90,3 +90,6 @@ As páginas web do portal Developers não retornaram conteúdo utilizável neste
 Recuperação de interrupções: a consulta oficial restaura QR/validade Pix e a preferência do cartão quando o provedor criou o recurso mas a resposta inicial se perdeu. A criação usa lease e chave de idempotência; consultas não criam cobranças. As funções e o cliente permitem tempo suficiente para conciliar, mantendo o histórico como caminho de recuperação.
 
 Verifique também no painel da conta recebedora se o Pix está habilitado e se a chave informada pertence a ela. Essa verificação não é substituída pelo simples preenchimento de um telefone na aplicação.
+
+
+Revisão 0.24.1: Vercel conferida em 30/10/2026; nenhuma variável MP_ cadastrada. Mantidas as vendas desativadas e a homologação oficial pendente. Validação agora recusa frações de centavo e origens de callback malformadas.

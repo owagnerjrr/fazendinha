@@ -207,3 +207,10 @@ Nome, identidade definitiva e monetização continuam em aberto. Não há compro
 - Implementado: loja integrada, guarda-roupa persistente, três conjuntos autorais e correção da cabeça na caminhada para cima.
 - Preparado: integração Pix/Checkout Pro, pedidos, histórico, webhooks assinados, ledger e reversões.
 - Bloqueado por configuração externa: homologação real Mercado Pago e ativação de vendas. Sem credenciais/testes oficiais/taxas aceitas, comprar moedas permanece indisponível.
+
+
+### 0.24.1
+- Estabilização da cabeça nativa/original e do capuz nas costas, incluindo caminhada com enxada, sementes e regador.
+- Prévia de roupas animada nas quatro direções, com respeito à preferência de movimento reduzido.
+- Validação financeira recusa frações de centavo e origens de retorno malformadas.
+- Pendência externa: configurar credenciais de teste/produção do Mercado Pago, conferir recebedor, cadastrar webhook e homologar Pix/cartão antes de habilitar vendas.

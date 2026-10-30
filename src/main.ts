@@ -75,7 +75,7 @@ let inside=false;let visiting=false;
 let entranceLockedUntil=0;
 let currentInterior:'house'|'barn'|null=null;
 let portraitSignature='';
-function previewAvatar(a:Avatar){if(!scene?.previewArt)return '';const key=scene.previewArt.key('farmer-v2',a),image=scene.textures.get(key).getSourceImage() as HTMLCanvasElement;const c=document.createElement('canvas');c.width=48;c.height=64;c.getContext('2d')!.drawImage(image,0,0,48,64,0,0,48,64);return c.toDataURL();}
+function previewAvatar(a:Avatar,row=0,frame=0){if(!scene?.previewArt)return '';const key=scene.previewArt.key('farmer-v2',a),image=scene.textures.get(key).getSourceImage() as HTMLCanvasElement;const c=document.createElement('canvas');c.width=48;c.height=64;c.getContext('2d')!.drawImage(image,frame*48,row*64,48,64,0,0,48,64);return c.toDataURL();}
 const dialog = $<HTMLDialogElement>('panel');
 const menu = $<HTMLDialogElement>('game-menu');
 function closeMenu(){menu.close();$('menu-toggle').setAttribute('aria-expanded','false');}

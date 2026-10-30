@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {headAttachment,eraseNativeHead,nativeSkin,nativeHeadRegion,restoreRaisedTool,alignHeadToSpine} from '../src/avatar-attachment';
+import {headAttachment,eraseNativeHead,nativeSkin,nativeHeadRegion,restoreRaisedTool,alignHeadToSpine,stableBackHead} from '../src/avatar-attachment';
 const pixel=(p:Uint8ClampedArray,w:number,x:number,y:number,rgb:number[])=>p.set([...rgb,255],(y*w+x)*4);
 test('neck is registered on the torso, independent of the tilted brim',()=>{const w=48,p=new Uint8ClampedArray(w*64*4);for(let x=20;x<29;x++)pixel(p,w,x,34,[20,88,54]);for(let x=23;x<26;x++)pixel(p,w,x,34,[248,186,133]);assert.deepEqual(headAttachment(p,w,64,5,19),{x:24,y:34});});
 test('head removal preserves every shoulder/body pixel and distant foreground tools',()=>{const w=96,h=112,p=new Uint8ClampedArray(w*h*4).fill(255),old=p.slice();eraseNativeHead(p,w,h,40,48,70,2);for(let y=70;y<h;y++)assert.deepEqual(p.subarray(y*w*4,(y+1)*w*4),old.subarray(y*w*4,(y+1)*w*4));assert.equal(p[(50*w+4)*4+3],255);assert.equal(p[(48*w+48)*4+3],0);assert.equal(p[(63*w+70)*4+3],0);});
@@ -9,3 +9,14 @@ test('hands use the chosen skin palette while cream sleeves, wood and boots keep
 test('raised tool and hand stay joined in front of the new head; other frames are untouched',()=>{const w=96,h=112,source=new Uint8ClampedArray(w*h*4),out=source.slice();pixel(source,w,32,50,[137,57,35]);pixel(source,w,34,60,[248,186,133]);pixel(source,w,48,45,[220,160,85]);restoreRaisedTool(out,source,w,h,'hoe-actions',0,1,[104,59,41]);assert.equal(out[(50*w+32)*4+3],255);assert.equal(out[(60*w+34)*4+3],255);assert.ok(out[(60*w+34)*4]<125);assert.equal(out[(45*w+48)*4+3],0);const noTool=source.slice();restoreRaisedTool(noTool,source,w,h,'farmer-v2',0,1,[104,59,41]);assert.deepEqual(noTool,source);});
 
 test('walking upward keeps the head centered on the spine across alternating shoulder highlights',()=>{const poses=[{x:21,y:33},{x:25,y:34},{x:23,y:33},{x:26,y:34}];assert.deepEqual(poses.map(p=>alignHeadToSpine(p,48,3)),[{x:24,y:33},{x:24,y:34},{x:24,y:33},{x:24,y:34}]);assert.deepEqual(alignHeadToSpine(poses[0],48,2),poses[0]);});
+
+test('native back head is stable across body steps without moving shoulders, boots or carried tools',()=>{
+ const w=48,h=64,reference=new Uint8ClampedArray(w*h*4);
+ for(let y=6;y<32;y++)for(let x=15;x<32;x++)pixel(reference,w,x,y,[150,90,40]);
+ for(const [x,y] of [[21,33],[26,34],[24,33],[22,34]]){
+  const frame=reference.slice();pixel(frame,w,23,36,[20,90,45]);pixel(frame,w,24,60,[100,45,20]);pixel(frame,w,0,40,[180,120,60]);const before=frame.slice();
+  stableBackHead(frame,reference,w,h,{x,top:6},{x,y},{x:24,top:6},{x:24,y:33});
+  for(let row=y;row<h;row++)assert.deepEqual(frame.subarray(row*w*4,(row+1)*w*4),before.subarray(row*w*4,(row+1)*w*4));
+  assert.equal(frame[((6+y-33)*w+15)*4+3],255);assert.equal(frame[(40*w)*4+3],255);
+ }
+});
