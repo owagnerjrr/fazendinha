@@ -1,3 +1,5 @@
+0.18.0 — Introdução responsiva Fazenda Feliz, entrada Google/Gmail/e-mail, retomada de perfil e reconhecimento da sessão antes de abrir o jogo. Continuação local preservada e segunda entrada direta.
+
 0.17.2 — Verificação online concluída com três contas QA, correção de identidade UUID/text na autorização e IDs de mensagem compatíveis com a prévia HTTP. Chat persistente e isolado, gestão de pedidos/bloqueios e visita no mapa.
 
 0.17.0 — Google/Gmail com sessão e escolhas preservadas, painel da conta mostra e-mail/provedor, amizades com gestão de pedidos/bloqueios, visitas no mapa em cena isolada e chat privado persistido com paginação, reenvio idempotente e atualização de 3s. Banco aditivo validado em branch antes da produção; sem alterar progresso existente.

@@ -1,3 +1,4 @@
+import {WELCOME_DONE_KEY,welcomeDestination,welcomeHTML} from './welcome';
 import {googleSignIn, auth, type CloudFarm } from './cloud';
 import { AVATAR_STYLES,SKIN_TONES,HAIR_COLORS,SHIRT_COLORS,type Avatar } from './content';
 import type { Farm } from './farm';
@@ -5,12 +6,12 @@ import { CHARACTER_PRESETS,PROFILE_DRAFT_KEY,readProfileDraft,normalizePlayerNam
 type Services={cloud:CloudFarm;farm:()=>Farm;preview:(avatar:Avatar)=>string;block:(active:boolean)=>void;entered:()=>void;toast:(s:string)=>void};
 const esc=(s:string)=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
 export function setupJourney(s:Services){
- const root=document.getElementById('journey')!;let draft:ProfileDraft;let busy=false,finishing=false;
+ const root=document.getElementById('journey')!;let draft:ProfileDraft;let busy=false,finishing=false;let localAvailable=false;
  try{draft=readProfileDraft(localStorage.getItem(PROFILE_DRAFT_KEY));}catch{draft=readProfileDraft(null);}
  function persist(){try{localStorage.setItem(PROFILE_DRAFT_KEY,JSON.stringify(draft));}catch{throw new Error('Permita o armazenamento deste site para guardar suas escolhas durante o login.');}}
  function feedback(message:string){const el=document.getElementById('journey-feedback');if(el)el.textContent=message;}
- function show(){root.hidden=false;document.body.classList.add('journey-open');s.block(true);render();}
- function enter(){try{localStorage.removeItem(PROFILE_DRAFT_KEY);}catch{}root.hidden=true;root.replaceChildren();document.body.classList.remove('journey-open');s.block(false);s.entered();}
+ function show(){root.classList.remove('welcome-screen');root.hidden=false;document.body.classList.add('journey-open');s.block(true);render();}
+ function enter(){root.classList.remove('welcome-screen');try{localStorage.setItem(WELCOME_DONE_KEY,'1');localStorage.removeItem(PROFILE_DRAFT_KEY);}catch{}root.hidden=true;root.replaceChildren();document.body.classList.remove('journey-open');s.block(false);s.entered();}
  function header(title:string){return `<div class="journey-brand">WJ TECNOLOGIA <span>VALE DO SOSSEGO</span></div><ol class="journey-steps" aria-label="Sua chegada ao vale">${['Nome','Personagem','Conta'].map((n,i)=>`<li ${draft.step===i+1?'aria-current="step"':''}><span>${i+1}</span>${n}</li>`).join('')}</ol><h1>${title}</h1>`;}
  async function run(work:()=>Promise<void>){if(busy)return;busy=true;root.querySelectorAll<HTMLButtonElement>('button').forEach(b=>b.disabled=true);try{await work();}catch(e){feedback((e as Error).message);}finally{busy=false;root.querySelectorAll<HTMLButtonElement>('button').forEach(b=>b.disabled=false);}}
  function render(){
@@ -24,6 +25,9 @@ export function setupJourney(s:Services){
   const avatarForm=root.querySelector<HTMLFormElement>('#journey-avatar-form');
   if(avatarForm){avatarForm.onchange=()=>{const d=new FormData(avatarForm);draft.avatar={style:d.get('style'),skin:Number(d.get('skin')),hair:Number(d.get('hair')),shirt:Number(d.get('shirt'))} as Avatar;persist();root.querySelector<HTMLImageElement>('#journey-avatar-preview')!.src=s.preview(draft.avatar);root.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach(b=>b.setAttribute('aria-pressed',String(JSON.stringify(CHARACTER_PRESETS.find(p=>p.id===b.dataset.preset)!.avatar)===JSON.stringify(draft.avatar))));};avatarForm.onsubmit=e=>{e.preventDefault();draft.step=3;persist();render();root.scrollTop=0;};}
   const back=root.querySelector<HTMLButtonElement>('#journey-back');if(back)back.onclick=()=>{draft.step=draft.step===3?(draft.name?2:1):1;persist();render();root.scrollTop=0;};
+  bindAccountControls();
+ }
+ function bindAccountControls(){
   const google=root.querySelector<HTMLButtonElement>('#journey-google');if(google)google.onclick=()=>void run(async()=>{
    if(s.cloud.active){await acceptAccount();return;}persist();localStorage.setItem('wj-cloud-session','1');feedback('Abrindo o Google… Suas escolhas estão guardadas.');
    await googleSignIn();
@@ -32,6 +36,12 @@ export function setupJourney(s:Services){
    const login=(signup:boolean)=>run(async()=>{if(!emailForm.reportValidity())return;persist();const d=new FormData(emailForm);const a=await auth(),credentials={email:String(d.get('email')),password:String(d.get('password'))};const r=signup?await a.signUp.email({...credentials,name:draft.name||'Fazendeiro'}):await a.signIn.email(credentials);if(r.error)throw new Error(r.error.message||'Confira seu e-mail e sua senha.');if(!await s.cloud.connect())throw new Error('Não foi possível abrir sua conta. Tente novamente.');});
    emailForm.onsubmit=e=>{e.preventDefault();void login(false);};root.querySelector<HTMLButtonElement>('#journey-signup')!.onclick=()=>void login(true);
   }
+ }
+ function welcome(message=''){
+  root.hidden=false;root.classList.add('welcome-screen');document.body.classList.add('journey-open');s.block(true);root.innerHTML=welcomeHTML(localAvailable);bindAccountControls();
+  root.querySelector<HTMLButtonElement>('#welcome-profile')!.onclick=()=>{draft.step=draft.name?2:1;persist();show();};
+  const local=root.querySelector<HTMLButtonElement>('#welcome-local');if(local)local.onclick=enter;
+  if(message)feedback(message);
  }
  async function acceptAccount(){
   if(finishing||!s.cloud.active)return;finishing=true;
@@ -45,10 +55,13 @@ export function setupJourney(s:Services){
  }
  s.cloud.onConnected=acceptAccount;
  return {show,acceptAccount,async start(hasLocalFarm:boolean){
-  const marker=localStorage.getItem('wj-cloud-session')||new URLSearchParams(location.search).has('neon_auth_session_verifier');
-  if(hasLocalFarm&&!marker&&!localStorage.getItem(PROFILE_DRAFT_KEY)){enter();return;}
-  root.hidden=false;document.body.classList.add('journey-open');s.block(true);root.innerHTML='<main class="journey-card"><h1>Abrindo as porteiras…</h1><p>Conferindo se sua conta já tem uma fazenda.</p></main>';
-  try{if(await s.cloud.connect())return;}catch{/* Keep the profile draft intact and offer a retry. */}
-  if(hasLocalFarm&&!marker&&!localStorage.getItem(PROFILE_DRAFT_KEY)){enter();return;}show();if(marker)feedback('Reconecte sua conta para continuar. Suas escolhas e sua fazenda continuam guardadas.');
+  localAvailable=hasLocalFarm;
+  const marker=!!localStorage.getItem('wj-cloud-session')||new URLSearchParams(location.search).has('neon_auth_session_verifier');
+  root.hidden=false;document.body.classList.add('journey-open');s.block(true);root.innerHTML='<main class="journey-card welcome-loading"><span>🌱</span><h1>Abrindo as porteiras…</h1><p>Preparando seu cantinho no campo.</p></main>';
+  try{if(await s.cloud.connect())return;}catch{/* Keep saved choices and account progress intact. */}
+  const destination=welcomeDestination({connected:false,complete:!needsInitialProfile(s.farm()),hasLocalFarm,seen:localStorage.getItem(WELCOME_DONE_KEY)==='1',marker,draftName:draft.name});
+  if(destination==='farm'){enter();return;}
+  if(destination==='profile'){show();if(marker)feedback('Reconecte sua conta. Seu nome e personagem continuam guardados.');return;}
+  welcome(marker?'Entre novamente para recuperar sua fazenda salva.':new URLSearchParams(location.search).has('error')?'O acesso não foi concluído. Você pode tentar novamente.':'');
  }};
 }

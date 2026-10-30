@@ -337,3 +337,10 @@ A criação e a atualização de interiores agora capturam falhas, encerram a ce
 95 testes e build aprovados. No fixture da cena real, uma falha foi induzida na criação do celeiro em duas entradas sucessivas; em ambas foi exibida a recuperação e a reabertura funcionou. A validação em dados fictícios não prova que o erro específico do aparelho do jogador foi eliminado; a recuperação e o diagnóstico permitem continuar a investigação se persistir. Não houve novo teste físico de celular ou acesso à conta do jogador.
 
 O jogo principal com save fictício também abriu o celeiro por E, voltou à fazenda e reentrou pelo botão Entrar. Captura em `screenshots/celeiro-restaurado-0.12.3.jpg`.
+
+
+## Abertura Fazenda Feliz 0.18.0 — 30/10/2026
+
+130 testes e build TypeScript/Vite/PWA aprovados. Testes de roteamento cobrem primeira visita, sessão ativa com perfil completo ou incompleto, rascunho de perfil, retorno local e sessão online expirada. A sessão é consultada antes da decisão de mostrar a abertura, mesmo sem o marcador antigo do navegador. Nenhuma migração de economia ou dados.
+
+Inspeção visual no viewport 390×844: intro responsiva, Google/Gmail e alternativas disponíveis. Continuação da fazenda QA local preservou 500 moedas e inventário 7; recarregar abriu o jogo diretamente. Captura: screenshots/intro-0.18.jpg. O login pessoal Google/consentimento não foi repetido nesta alteração de interface; a integração existente foi preservada. Sem teste em celular físico.
