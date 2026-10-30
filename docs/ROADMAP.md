@@ -1,3 +1,5 @@
+0.19.0 — Corrigida a união de cabeça/pescoço/corpo dos avatares personalizados. Modelos sem nomes prontos; novo capuz noturno preto/rosa original e roupa preta no cadastro e guarda-roupa.
+
 0.18.2 — Removida a opção “Continuar fazenda deste aparelho” da abertura. Dados existentes preservados.
 
 0.18.1 — Campos de nome, e-mail, chat e demais formulários isolam o teclado dos atalhos globais do jogo; digitação nativa preservada.

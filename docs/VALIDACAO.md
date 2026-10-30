@@ -356,3 +356,10 @@ Causa confirmada no código Phaser 3.90: captura global chama preventDefault par
 ## Opções de entrada 0.18.2 — 30/10/2026
 
 Removidos botão de continuação local e seu manipulador da abertura, sem excluir saves ou alterar autenticação e retomada de sessão. Teste da marcação atualizado para verificar ausência do botão. 130 testes e build aprovados.
+
+
+## Personagens 0.19.0 — 30/10/2026
+
+A substituição de cabeça apagava 40 linhas e removia parte do corpo. O recorte agora preserva a roupa e usa alinhamento pelo queixo, com ponte de pescoço; coques e tranças mantêm suas extensões laterais. O capuz noturno é desenhado em pixel art própria, com detalhes rosa e emblema de losango, em quatro direções; roupa preta foi acrescentada ao fim da paleta sem mudar índices existentes. Os modelos não têm nomes; o cadastro continua determinando o nome do jogador.
+
+131 testes e build aprovados. Teste de perfil valida capuz/roupa preta, nome cadastrado e preservação da economia. O fixture tests/avatar-visual-qa.html usa AvatarArt real, sem contas/saves, para inspecionar os sete modelos em quatro direções, caminhada e ação da enxada. Conferidos pescoço, roupa, tranças, capuz e ferramenta. Sem novo teste em celular físico ou login pessoal.

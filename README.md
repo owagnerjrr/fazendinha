@@ -1,3 +1,5 @@
+Atualização 0.19.0: seleção de personagens sem nomes predefinidos, composição de sprites corrigida, capuz noturno com orelhas pontudas e detalhes rosa, e roupa preta. O nome escolhido no cadastro permanece como identidade do jogador; contas e progresso preservados.
+
 Atualização 0.18.0: abertura “Bem-vindo à Fazenda Feliz”, Google/Gmail em destaque, e-mail e escolha de nome/personagem. Sessão ativa abre direto a fazenda nas visitas seguintes. Fazendas locais anteriores continuam disponíveis, sem apagar progresso.
 
 Atualização 0.17.0: acesso Google/Gmail pelo transporte de sessão no próprio domínio, pedidos/aceite/recusa/cancelamento de amizade, remoção e bloqueio, visita caminhável no mapa do amigo com ajuda aos canteiros e chat persistido entre amigos aceitos. Mensagens atualizam por consulta periódica e não alteram a revisão ou a economia da fazenda. Não há caminhada simultânea de vários jogadores nesta versão. Google usa o provedor compartilhado Neon da beta; marca OAuth própria exige credenciais externas.

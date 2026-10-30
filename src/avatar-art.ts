@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import {drawNightHood} from './hood-art';
 import {idlePixels} from './idle-pixels';
 import { SKIN_TONES, HAIR_COLORS, SHIRT_COLORS, type Avatar } from './content';
 const spec:Record<string,{w:number;h:number}>={'farmer-v2':{w:48,h:64},'carry-hoe':{w:128,h:112},'carry-seed':{w:128,h:112},'carry-water':{w:128,h:112},'hoe-actions':{w:96,h:112},'water-actions':{w:96,h:112}};
@@ -40,14 +41,20 @@ export class AvatarArt {
    }
    ctx.putImageData(data,col*w,row*h);
    if(avatar.style!=='classic'){
-    const direction=['down','left','right','up'][row],head=this.scene.textures.get(`head-${avatar.style}-${direction}`).getSourceImage() as HTMLImageElement;
+    const direction=['down','left','right','up'][row];
+    if(avatar.style==='hood'){const hood=document.createElement('canvas');hood.width=40;hood.height=36;drawNightHood(hood.getContext('2d')!,direction,SKIN_TONES[avatar.skin],HAIR_COLORS[avatar.hair]);ctx.clearRect(col*w+Math.round(cx)-25,row*h+top-2,50,33);ctx.drawImage(hood,col*w+Math.round(cx)-18,row*h+top-2,36,33);continue;}
+    const head=this.scene.textures.get(`head-${avatar.style}-${direction}`).getSourceImage() as HTMLImageElement;
     const headCanvas=document.createElement('canvas');headCanvas.width=head.width;headCanvas.height=head.height;const hc=headCanvas.getContext('2d')!;hc.drawImage(head,0,0);const hd=hc.getImageData(0,0,head.width,head.height),hp=hd.data;
     for(let y=0;y<head.height;y++)for(let x=0;x<head.width;x++){const i=(y*head.width+x)*4,r=hp[i],g=hp[i+1],b=hp[i+2];if(hp[i+3]<30)continue;let target:number[]|null=null,shade=1;
      if(y>head.height*.36&&r>g*1.35&&g>b*1.1&&r>65&&g>30){target=skin;shade=Math.min(1.2,(r+g+b)/260);}
      else if(y>head.height*.34&&r<95&&g<75&&b<75&&r>g*.9){target=hair;shade=Math.max(.35,(r+g+b)/110);}
      if(target){hp[i]=target[0]*shade;hp[i+1]=target[1]*shade;hp[i+2]=target[2]*shade;}
     }hc.putImageData(hd,0,0);
-    ctx.clearRect(col*w+cx-25,row*h+top-2,50,40);const scale=40/head.width;ctx.drawImage(headCanvas,col*w+cx-20,row*h+top-1,40,head.height*scale);
+    // Replace only the head: the old 40px erase also removed the neck and shirt.
+    const width=40,scale=width/head.width,height=Math.round(head.height*scale);
+    const chin=(avatar.style==='braids'||avatar.style==='puffs')?31:head.height-1;
+    const headY=top+31-Math.round(chin*scale);
+    ctx.clearRect(col*w+Math.round(cx)-25,row*h+top-2,50,33);ctx.fillStyle=SKIN_TONES[avatar.skin];ctx.fillRect(col*w+Math.round(cx)-3,row*h+top+28,6,7);ctx.drawImage(headCanvas,col*w+Math.round(cx-width/2),row*h+headY,width,height);
    }
   }
   const key=`avatar-${this.instance}-${this.generation}-${base}`;const sourceTexture=this.scene.textures.addCanvas(key,canvas)!;this.scene.textures.addSpriteSheet('',sourceTexture,{frameWidth:w,frameHeight:h});this.keys.set(base,key);return key;
