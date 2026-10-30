@@ -419,8 +419,12 @@ Encontrados dois desvios: escolhas anônimas em memória desapareciam no redirec
 140 testes e build aprovados. Regressões cobrem entrada normal/edição explícita, inicialização, troca isolada de avatar preservando o restante da fazenda e nove modelos serializados. scripts/smoke-avatar.mjs passou em produção com uma identidade QA isolada: conta nova com boné, troca para rabo de cavalo sem mudar moedas/nome/sementes/inventário/animais, novo login preservando avatar e aceitação da rota de retorno OAuth. Credenciais geradas somente em memória; nenhuma conta de jogador alterada. O consentimento pessoal Google e o fluxo visual no navegador não foram repetidos nesta correção, pois a ferramenta de navegador não estava disponível.
 
 ## 0.23.0 — níveis e convites
-- 148 testes passando; build de produção concluído.
+- 150 testes passando; build de produção concluído.
 - Início reduzido, bloqueios autoritativos, economia de expansão e preservação de fazendas anteriores testados.
 - Migrações aditivas 005/006 validadas no branch isolado `dev-progression-referrals-023`.
 - Crédito real no banco testado com fixtures sintéticas e rollback: aguarda verificação, paga 1.000 uma vez, incrementa revisão e rejeita duplicação de e-mail/autoindicação.
 - Verificação de consentimento Google e recebimento de código em caixa pessoal dependem do usuário; não foram executados em sua conta.
+
+- Concorrência real no branch: três solicitações, um crédito de 1.000 e uma revisão.
+- API pública 0.23.0: início enxuto, gates, convite pendente, replay, recadastro negado, confirmação inválida rejeitada e retorno Google com convite conferidos com identidades QA. Regressão de avatar/login aprovada.
+- UI de níveis e convites e copiar convite conferidos em fixtures desktop e móvel de 390 × 844.
