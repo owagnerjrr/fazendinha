@@ -86,3 +86,7 @@ Contratos atuais do SDK oficial Mercado Pago (fonte primária, consultada nesta 
 - https://github.com/mercadopago/sdk-nodejs/blob/master/src/clients/chargeback/get/index.ts
 
 As páginas web do portal Developers não retornaram conteúdo utilizável neste ambiente. Isso reforça a necessidade de validar assinatura e fluxos reais no sandbox da aplicação antes de ativar produção; não foi declarada homologação inexistente.
+
+Recuperação de interrupções: a consulta oficial restaura QR/validade Pix e a preferência do cartão quando o provedor criou o recurso mas a resposta inicial se perdeu. A criação usa lease e chave de idempotência; consultas não criam cobranças. As funções e o cliente permitem tempo suficiente para conciliar, mantendo o histórico como caminho de recuperação.
+
+Verifique também no painel da conta recebedora se o Pix está habilitado e se a chave informada pertence a ela. Essa verificação não é substituída pelo simples preenchimento de um telefone na aplicação.

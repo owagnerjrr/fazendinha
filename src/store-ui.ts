@@ -4,7 +4,7 @@ const esc=(v:unknown)=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&l
 const $=<T extends HTMLElement=HTMLElement>(id:string)=>document.getElementById(id) as T;
 const date=(v:string)=>new Date(v).toLocaleString('pt-BR');
 export function setupStoreUI(s:Services){let tab:'coins'|'clothes'='coins',pack:PackId='p10',method:'pix'|'card'='pix',timer:ReturnType<typeof setTimeout>|undefined,busy=false,orders:any[]=[],enabled=false,mode='disabled',cursor:string|null=null;
- const api=(body?:unknown,path='')=>s.cloud.request(path,body,'/api/store');
+ const api=(body?:unknown,path='')=>s.cloud.request(path,body,'/api/store',45000);
  const feedback=(message:string)=>{const e=$('store-feedback');if(e)e.textContent=message;};
  const panel=$<HTMLDialogElement>('panel');panel.addEventListener('close',()=>{if(timer)clearTimeout(timer);});
  const chrome=(body:string)=>`<div class="store-tabs" role="group" aria-label="Áreas da loja"><button data-store-tab="coins" aria-pressed="${tab==='coins'}">Comprar moedas</button><button data-store-tab="clothes" aria-pressed="${tab==='clothes'}">Roupas</button></div><p class="store-balance">Seu saldo: <b>${s.farm().coins.toLocaleString('pt-BR')} moedas</b>${s.farm().coinDebt?`<small>${s.farm().coinDebt!.toLocaleString('pt-BR')} moedas pendentes de ajuste por reembolso. Próximos ganhos abatem esse ajuste.</small>`:''}</p><p id="store-feedback" role="status" aria-live="polite"></p>${body}`;

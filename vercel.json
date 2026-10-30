@@ -30,5 +30,13 @@
       "source": "/api/auth/:path*",
       "destination": "/api/auth?path=:path*"
     }
-  ]
+  ],
+  "functions": {
+    "api/store.ts": {
+      "maxDuration": 60
+    },
+    "api/mp-webhook.ts": {
+      "maxDuration": 60
+    }
+  }
 }
