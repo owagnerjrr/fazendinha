@@ -1,5 +1,5 @@
 // Same-origin auth transport keeps the session usable on mobile browsers that block third-party cookies.
-const allowed=new Set(['get-session','sign-up/email','sign-in/email','sign-out','token','email-otp/send-verification-otp','sign-in/email-otp','sign-in/social','link-social','list-accounts']);
+const allowed=new Set(['get-session','sign-up/email','sign-in/email','sign-out','token','email-otp/send-verification-otp','email-otp/verify-email','sign-in/email-otp','sign-in/social','link-social','list-accounts']);
 async function proxy(request:Request) {
   const url=new URL(request.url),path=url.searchParams.get('path')??url.pathname.replace(/^\/api\/auth\/?/,'');
   url.searchParams.delete('path');

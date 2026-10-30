@@ -1,3 +1,5 @@
+import {claimInvitation,settleVerifiedInvitation,referralSummary} from './referrals.js';
+import {progressionProblem} from '../src/progression.js';
 import {atVendor} from '../src/vendor-sales.js';
 import {riverWalkable} from '../src/river-boundary.js';
 import {plantNeeds,settlePlant} from '../src/plant-care.js';
@@ -25,6 +27,7 @@ export async function ensureFarm(id: string, name: string,care=false) {
 }
 async function getFarm(db: PoolClient, id: string) { const { rows } = await db.query('SELECT * FROM farms WHERE user_id=$1 FOR UPDATE',[id]); if (!rows[0]) throw new GameError('Fazenda não encontrada.',404); upgradeFarm(rows[0].state);return rows[0]; }
 export async function snapshot(id: string) {
+  await settleVerifiedInvitation(id);
   const { rows } = await pool.query('SELECT state,revision,public_code,name FROM farms WHERE user_id=$1',[id]);
   const row = rows[0]; upgradeFarm(row.state);replenish(row.state,Date.now());
   return { farm: row.state, revision: row.revision, code: row.public_code, name: row.name, now: Date.now() };
@@ -33,7 +36,7 @@ export async function community(id: string, marketVersion=1) {
   const friends = await pool.query(`SELECT f.public_code AS code,f.name,r.accepted,(r.recipient=$1) AS incoming FROM friendships r JOIN farms f ON f.user_id=CASE WHEN r.sender=$1 THEN r.recipient ELSE r.sender END WHERE (r.sender=$1 OR r.recipient=$1) AND NOT EXISTS(SELECT 1 FROM social_blocks b WHERE (b.owner=$1 AND b.blocked=f.user_id) OR (b.blocked=$1 AND b.owner=f.user_id)) ORDER BY r.created_at DESC LIMIT 100`,[id]);
   // Older installed PWAs only know crops. Keep their response compatible until they update.
   const market = await pool.query(`SELECT m.id,m.crop,m.quantity,m.price,(m.seller=$1) AS mine,f.name,f.public_code AS code FROM market_listings m JOIN farms f ON f.user_id=m.seller WHERE m.status='open' AND ($2 OR m.crop IN ('carrot','lettuce','tomato')) ORDER BY (m.seller=$1) DESC,m.created_at DESC LIMIT 60`,[id,marketVersion>=2]);
-  const blocked=await pool.query('SELECT f.public_code AS code,f.name FROM social_blocks b JOIN farms f ON f.user_id=b.blocked WHERE b.owner=$1 ORDER BY b.created_at DESC LIMIT 100',[id]);return { friends: friends.rows, blocked:blocked.rows, market: market.rows };
+  const blocked=await pool.query('SELECT f.public_code AS code,f.name FROM social_blocks b JOIN farms f ON f.user_id=b.blocked WHERE b.owner=$1 ORDER BY b.created_at DESC LIMIT 100',[id]);return { friends: friends.rows, blocked:blocked.rows, market: market.rows,referrals:await referralSummary(id) };
 }
 export async function visit(id: string, code: string) {
   if (!codePattern.test(code)) throw new GameError('Código inválido.');
@@ -66,9 +69,10 @@ export async function mutate(user: string, body: any, version?: string|null) {
     }
     if (body.revision !== row.revision) throw new GameError('Sua fazenda mudou em outro aparelho. Sincronize e tente novamente.',409);
     if(now-new Date(row.last_action_at).getTime()<150) throw new GameError('Aguarde um instante entre as ações.',429);
-    const c=body.command;
+    const c=body.command;const blocked=progressionProblem(row.state,c);if(blocked)throw new GameError(blocked);
     if(c.type==='initialize-profile'){
       const result=initializeProfile(row.state,c);if(!result.ok)throw new GameError(result.message,result.existing?409:400);
+      await claimInvitation(db,user,c.referral,now);
       row.name=row.state.playerName;await db.query('UPDATE farms SET name=$2 WHERE user_id=$1',[user,row.name]);row.result=result;
     }else if(c.type==='position') move(row,body.position,now);
     else if(['work','buy','sell','expand',...LIFE_COMMANDS].includes(c.type)) {

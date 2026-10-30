@@ -192,3 +192,8 @@ Escopo detalhado e limites em [VIDA_NO_VALE.md](VIDA_NO_VALE.md).
 0.1 entregou o ciclo jogável e o salvamento local. 0.2 trouxe o cenário e os sprites originais. 0.3 adicionou galinhas animadas, poses de cavar/regar, partículas de água e compras consecutivas. 0.3.1 integrou equipamento e mãos em todos os quadros de caminhada. Fontes, prompts e preparo da arte permanecem versionados.
 
 Nome, identidade definitiva e monetização continuam em aberto. Não há compromisso de prazo para as etapas futuras.
+
+### 0.23.0
+- Implementado: início enxuto e liberações por nível para novas fazendas, preservando contas anteriores.
+- Implementado: convite pessoal, atribuição no cadastro, recompensa de 1.000 moedas após e-mail confirmado e proteção contra repetição.
+- Limite: emails diferentes da mesma pessoa não podem ser identificados com certeza; monitoramento de abuso pode evoluir.

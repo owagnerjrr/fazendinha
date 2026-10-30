@@ -1,3 +1,4 @@
+import {progressionProblem} from './progression';
 import {VisitScene,type VisitData} from './visit-scene';
 import {SKIN_TONES,SHIRT_COLORS} from './content';
 import {atVendor,VENDOR,saleItems,applyVendorSale} from './vendor-sales';
@@ -123,7 +124,7 @@ function inventory() {
   $('choose-equipment').onclick=()=>life.equipment();$('inventory-animals').onclick=()=>life.animals();
 }
 function seedPanel() {
-  openPanel('O que vamos plantar?', `<p>Escolha vegetais, frutas ou flores. Use a mão também para remover pragas quando aparecerem.</p>${cropKeys.map(c => `<div class="item-row"><span class="emoji"><img src="${cropImage(c)}" alt="" /></span><div class="item-info"><strong>${CROPS[c].name}</strong><small>${farm.seeds[c]} sementes · cresce em ${Math.round(CROPS[c].seconds/60)} min após regar</small></div><button class="choose-seed" data-crop="${c}">${selected === c ? 'Selecionada' : 'Escolher'}</button></div>`).join('')}`);
+  openPanel('O que vamos plantar?', `<p>Escolha vegetais, frutas ou flores. Use a mão também para remover pragas quando aparecerem.</p>${cropKeys.map(c => `<div class="item-row"><span class="emoji"><img src="${cropImage(c)}" alt="" /></span><div class="item-info"><strong>${CROPS[c].name}</strong><small>${farm.seeds[c]} sementes · cresce em ${Math.round(CROPS[c].seconds/60)} min após regar</small></div><button class="choose-seed" data-crop="${c}" ${progressionProblem(farm,{type:'buy',crop:c})?'disabled':''}>${progressionProblem(farm,{type:'buy',crop:c})??(selected === c ? 'Selecionada' : 'Escolher')}</button></div>`).join('')}`);
   document.querySelectorAll<HTMLButtonElement>('[data-crop]').forEach(b => b.onclick = () => { selected = b.dataset.crop as Crop; setTool('seed'); closePanel(); });
 }
 function shop(){life.shop();}

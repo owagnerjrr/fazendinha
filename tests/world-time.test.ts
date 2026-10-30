@@ -15,5 +15,5 @@ test('TV persists, sleep requires real rest and morning never alters crop clocks
  const parts=splitLocalFarm(f);const restored=restoreLocalFarm(parts.core,parts.land);assert.deepEqual(restored.calendar,f.calendar);assert.deepEqual(restored.home,f.home);assert.equal(requiresNewClient(f,'3'),true);assert.equal(requiresNewClient(f,'4'),false);
 });
 test('reopening after long offline rest cannot rewind the world calendar or mint energy',()=>{
- const f=newOnlineFarm(1000);f.energy=50;applyCommand(f,{type:'home',action:'sleep'},1000);const absolute=worldTime(f.calendar,4000000).absolute;const before=f.energy;assert.equal(applyCommand(f,{type:'home',action:'wake'},4000000).ok,true);assert.equal(worldTime(f.calendar,4000000).absolute,absolute);assert.ok(f.energy<=80);assert.equal(f.home?.sleep,undefined);assert.ok(before<=f.energy);assert.equal(f.coins,250);
+ const f=newOnlineFarm(1000);f.energy=50;applyCommand(f,{type:'home',action:'sleep'},1000);const absolute=worldTime(f.calendar,4000000).absolute;const before=f.energy;assert.equal(applyCommand(f,{type:'home',action:'wake'},4000000).ok,true);assert.equal(worldTime(f.calendar,4000000).absolute,absolute);assert.ok(f.energy<=80);assert.equal(f.home?.sleep,undefined);assert.ok(before<=f.energy);assert.equal(f.coins,50);
 });

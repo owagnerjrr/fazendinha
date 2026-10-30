@@ -417,3 +417,10 @@ A quantização RGBA anterior eliminava alguns pixels opacos: comparação com o
 Encontrados dois desvios: escolhas anônimas em memória desapareciam no redirecionamento Google, e acceptAccount entrava imediatamente quando o perfil existente já estava completo, sem aplicar uma nova escolha. O fluxo agora pede autenticação antes da seleção. A intenção de escolher volta do Google por setup=character (somente uma rota, sem dados pessoais ou avatar); a seleção ocorre já com a conta carregada. A confirmação em conta existente envia avatar; em conta nova envia initialize-profile. A fazenda só abre após comparar estilo/pele/cabelo/roupa confirmados no snapshot com a escolha. Nome e economia de contas existentes não são reiniciados. Entrada normal continua direta para sessões com perfil completo.
 
 140 testes e build aprovados. Regressões cobrem entrada normal/edição explícita, inicialização, troca isolada de avatar preservando o restante da fazenda e nove modelos serializados. scripts/smoke-avatar.mjs passou em produção com uma identidade QA isolada: conta nova com boné, troca para rabo de cavalo sem mudar moedas/nome/sementes/inventário/animais, novo login preservando avatar e aceitação da rota de retorno OAuth. Credenciais geradas somente em memória; nenhuma conta de jogador alterada. O consentimento pessoal Google e o fluxo visual no navegador não foram repetidos nesta correção, pois a ferramenta de navegador não estava disponível.
+
+## 0.23.0 — níveis e convites
+- 148 testes passando; build de produção concluído.
+- Início reduzido, bloqueios autoritativos, economia de expansão e preservação de fazendas anteriores testados.
+- Migrações aditivas 005/006 validadas no branch isolado `dev-progression-referrals-023`.
+- Crédito real no banco testado com fixtures sintéticas e rollback: aguarda verificação, paga 1.000 uma vez, incrementa revisão e rejeita duplicação de e-mail/autoindicação.
+- Verificação de consentimento Google e recebimento de código em caixa pessoal dependem do usuário; não foram executados em sua conta.

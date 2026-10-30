@@ -1,3 +1,4 @@
+import {invitation,clearInvitation} from './referral-link';
 import {SKIN_CHOICES,HAIR_CHOICES,paletteOptions} from './avatar-options';
 import {WELCOME_DONE_KEY,welcomeDestination,welcomeHTML} from './welcome';
 import {googleSignIn, auth, type CloudFarm } from './cloud';
@@ -7,13 +8,13 @@ import { CHARACTER_PRESETS,PROFILE_DRAFT_KEY,readProfileDraft,normalizePlayerNam
 type Services={cloud:CloudFarm;farm:()=>Farm;preview:(avatar:Avatar)=>string;block:(active:boolean)=>void;entered:()=>void;toast:(s:string)=>void};
 const esc=(s:string)=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
 export function setupJourney(s:Services){
- const root=document.getElementById('journey')!;let draft:ProfileDraft;let busy=false,finishing=false;let editRequested=new URLSearchParams(location.search).get('setup')==='character',editReady=false;
+ invitation();const root=document.getElementById('journey')!;let draft:ProfileDraft;let busy=false,finishing=false;let editRequested=new URLSearchParams(location.search).get('setup')==='character',editReady=false;
  draft=readProfileDraft(null);
  // Old anonymous drafts must not resume registration on a later visit.
  try{localStorage.removeItem(PROFILE_DRAFT_KEY);}catch{}
  function feedback(message:string){const el=document.getElementById('journey-feedback');if(el)el.textContent=message;}
  function show(){root.classList.remove('welcome-screen');root.hidden=false;document.body.classList.add('journey-open');s.block(true);render();}
- function enter(){editRequested=false;editReady=false;const url=new URL(location.href);if(url.searchParams.has('setup')){url.searchParams.delete('setup');history.replaceState(null,'',url);}root.classList.remove('welcome-screen');try{localStorage.setItem(WELCOME_DONE_KEY,'1');localStorage.removeItem(PROFILE_DRAFT_KEY);}catch{}root.hidden=true;root.replaceChildren();document.body.classList.remove('journey-open');s.block(false);s.entered();}
+ function enter(){clearInvitation();editRequested=false;editReady=false;const url=new URL(location.href);if(url.searchParams.has('setup')){url.searchParams.delete('setup');history.replaceState(null,'',url);}root.classList.remove('welcome-screen');try{localStorage.setItem(WELCOME_DONE_KEY,'1');localStorage.removeItem(PROFILE_DRAFT_KEY);}catch{}root.hidden=true;root.replaceChildren();document.body.classList.remove('journey-open');s.block(false);s.entered();}
  function header(title:string){return `<div class="journey-brand">WJ TECNOLOGIA <span>VALE DO SOSSEGO</span></div>${s.cloud.active?`<ol class="journey-steps" aria-label="Sua chegada ao vale">${['Nome','Personagem','Confirmar'].map((n,i)=>`<li ${draft.step===i+1?'aria-current="step"':''}><span>${i+1}</span>${n}</li>`).join('')}</ol>`:''}<h1>${title}</h1>`;}
  async function run(work:()=>Promise<void>){if(busy)return;busy=true;root.querySelectorAll<HTMLButtonElement>('button').forEach(b=>b.disabled=true);try{await work();}catch(e){feedback((e as Error).message);}finally{busy=false;root.querySelectorAll<HTMLButtonElement>('button').forEach(b=>b.disabled=false);}}
  function render(){
@@ -52,7 +53,7 @@ export function setupJourney(s:Services){
    if(action==='choose'){draft={version:1,name:normalizePlayerName(s.farm().playerName)||normalizePlayerName(s.cloud.name)||'Fazendeiro',avatar:{...s.farm().avatar},step:2};editReady=true;show();return;}
    if(action==='complete'){draft.step=normalizePlayerName(draft.name)?2:1;show();return;}
    show();feedback('Salvando seu personagem na conta…');
-   await s.cloud.command(action==='initialize'?{type:'initialize-profile',name:draft.name,avatar:draft.avatar}:{type:'avatar',avatar:draft.avatar});
+   await s.cloud.command(action==='initialize'?{type:'initialize-profile',name:draft.name,avatar:draft.avatar,referral:invitation()}:{type:'avatar',avatar:draft.avatar});
    if(needsInitialProfile(s.farm())||!sameAvatar(s.farm().avatar,draft.avatar))throw new Error('Não foi possível confirmar o personagem escolhido. Tente novamente.');
    enter();s.toast('Personagem salvo na sua conta!');
   }catch(e){show();feedback((e as Error).message);}finally{finishing=false;}
