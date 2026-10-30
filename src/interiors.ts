@@ -1,3 +1,4 @@
+import {closestInReach} from './proximity';
 import {buildBarnShell} from './barn-design';
 import {claimInteractionEvent} from './interaction-event';
 import {display} from './display-settings';
@@ -23,7 +24,7 @@ export class InteriorScene extends Phaser.Scene {
  private houseButton:HTMLButtonElement|null=null;private tvButton:HTMLButtonElement|null=null;
  private room:'house'|'barn'='house';private overview=false;private player!:Phaser.Physics.Arcade.Sprite;private actor!:Phaser.GameObjects.Sprite;private art!:AvatarArt;private keys!:Record<string,Phaser.Input.Keyboard.Key>;private dir=0;private target:{x:number;y:number;run?:()=>void}|null=null;private route:{x:number;y:number}[]=[];private blocks:{x:number;y:number;width:number;height:number}[]=[];private points:RoomPoint[]=[];private barn?:ReturnType<typeof buildBarn>;private animalSignature='';
  constructor(private services:Services){super('Interior');}
- init(data:{room:'house'|'barn'}){this.failed=false;this.bonding=null;this.rest=null;this.homeBusy=false;this.nextUI=0;this.house=undefined;this.breathing.reset();this.room=data.room;this.overview=this.room==='barn';this.target=null;this.route=[];this.blocks=[];this.points=[];this.barn=undefined;this.animalSignature='';}
+ init(data:{room:'house'|'barn'}){this.failed=false;this.bonding=null;this.rest=null;this.homeBusy=false;this.nextUI=0;this.house=undefined;this.breathing.reset();this.room=data.room;this.overview=false;this.target=null;this.route=[];this.blocks=[];this.points=[];this.barn=undefined;this.animalSignature='';}
  create(){try{this.createRoom();}catch(error){this.failRoom(error);}}
  private createRoom(){
   const s=this.services;this.art=new AvatarArt(this);this.cameras.main.setBackgroundColor('#20382f');
@@ -67,7 +68,7 @@ export class InteriorScene extends Phaser.Scene {
  }
  exitRoom(){this.leave();}
  private leave(){if(this.bonding||this.homeBusy||this.services.farm().home?.sleep)return;this.player.setVelocity(0);this.target=null;this.route=[];this.scene.stop();this.scene.wake('Farm');this.services.exit();}
- interact(){if(this.services.modal()||this.bonding||this.homeBusy)return;if(this.rest){this.releaseRest();return;}const nearest=this.points.filter(p=>!p.pointerOnly&&(!p.enabled||p.enabled())).sort((a,b)=>Phaser.Math.Distance.Between(this.player.x,this.player.y,a.x,a.y)-Phaser.Math.Distance.Between(this.player.x,this.player.y,b.x,b.y))[0];if(nearest&&Math.hypot(this.player.x-nearest.x,this.player.y-nearest.y)<(nearest.reach??110))nearest.run();}
+ interact(){if(this.services.modal()||this.bonding||this.homeBusy)return;if(this.rest){this.releaseRest();return;}const nearest=closestInReach(this.player,this.points.filter(p=>!p.pointerOnly&&(!p.enabled||p.enabled())),110);nearest?.run();}
  getActivity(){return this.homeBusy?'Salvando':this.rest?.kind==='sit'?'Sentada no sofá':this.rest?.kind==='sleep'?'Dormindo na cama':this.rest?.kind==='leaving'?'Levantando':this.target?'Caminhando':'Em pé';}
  requestHouseInteraction(kind:string){
   if(this.room!=='house'||this.services.modal()||this.homeBusy||this.services.farm().home?.sleep)return;

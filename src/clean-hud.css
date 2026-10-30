@@ -47,3 +47,9 @@
 #fish-action{position:fixed;z-index:8;bottom:96px;left:50%;transform:translateX(-50%);width:46px;height:46px;border:2px solid #bdac7b;border-radius:50%;background:#38523e;color:#fff1c5;font-size:25px;cursor:pointer}#fish-action.bite{background:#a66f29;border-color:#ffe5a1;box-shadow:0 0 14px #f8d47e88}#fish-action[hidden]{display:none}.journey-open #fish-action{display:none}
 
 .animal-detail .panel-top .eyebrow{display:none}.animal-detail #panel-content>p:not(#life-feedback):nth-of-type(2){display:none}#fish-action img{width:28px;height:28px;pointer-events:none}
+
+/* Touch interaction has one permanent hand control; no contextual action buttons. */
+@media(pointer:coarse),(max-width:800px){
+ #enter-place,#house-action,#house-tv,#fish-action,#exit-interior{display:none!important}
+ .touch-controls{display:block}
+}

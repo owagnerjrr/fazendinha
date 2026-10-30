@@ -1,3 +1,11 @@
+## Controles e câmera no celular 0.14.1
+
+O celeiro passa a abrir com visão próxima seguindo a personagem (zoom 1,05), igual à casa; visão geral continua opcional no controle de zoom. No celular e em dispositivos com ponteiro de toque, os botões separados de entrar, sair, TV e pesca ficam ocultos. A mão principal continua permanente; tocar a mão da barra também a equipa e executa a interação próxima. O controle principal usa a ferramenta equipada para o cultivo e a pesca, e dá prioridade a entradas, animais e construções próximas. Dentro dos cômodos, a mão aciona móveis, animais, equipamentos e saída por proximidade. Para TV, aproxime-se do aparelho; movimentar-se permite levantar do sofá. Contas e dados salvos não foram alterados.
+
+A busca de interação filtra o alcance de cada alvo antes de escolher o mais próximo, evitando que um alvo inacessível impeça outra ação válida. Testes adicionais cobrem essa seleção, baias próximas/distantes, desempate, junto das regressões existentes de entradas e produção. A configuração da hospedagem executa npm test antes de npm run build, para validar a atualização mesmo quando o ambiente local está indisponível.
+
+Limite desta etapa: sem navegador e sem ambiente de execução local disponíveis; testes e compilação serão conferidos pelos logs da hospedagem. Não há nova validação visual em celular físico nesta etapa. A captura enviada pelo jogador identifica a visão geral como causa da escala reduzida.
+
 ## Pesca e interiores 0.14.0
 
 Pesca implementada como comandos econômicos reais: compra de vara permanente por 120 moedas; lançar, aguardar e recolher dentro de 6,5 segundos da fisgada. Espécie e momento são escolhidos pelo servidor na conta online. Local de pesca e deslocamento são validados antes da captura; revisão transacional e recibos impedem duplicação por repetição de pedido. Peixes podem ser vendidos a preços fixos. Migração preserva o inventário, avatar, animais e progresso anterior, e bloqueia clientes antigos quando a fazenda passa a ter dados de pesca. Não há nova configuração externa nem mudança no login Google.
