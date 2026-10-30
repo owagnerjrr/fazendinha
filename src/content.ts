@@ -11,11 +11,12 @@ export const ANIMALS={
  chicken:{name:'Galinha',icon:'🐔',price:90,product:'egg',productName:'Ovo',sellPrice:12,seconds:90},
  cow:{name:'Vaca',icon:'🐄',price:350,product:'milk',productName:'Leite',sellPrice:35,seconds:180},
  goat:{name:'Bode / cabra',icon:'🐐',price:230,product:'goatMilk',productName:'Leite de cabra',sellPrice:26,seconds:150},
+ cat:{name:'Gato',icon:'🐈‍⬛',price:160,product:null,productName:'Companhia',sellPrice:0,seconds:0},
  dog:{name:'Cachorro',icon:'🐕',price:180,product:null,productName:'Proteção',sellPrice:0,seconds:0}
 } as const;
 export type AnimalKind=keyof typeof ANIMALS;
 export type AnimalProduct='egg'|'milk'|'goatMilk';
-export type Animal={id:string;kind:AnimalKind;fedAt:number|null;collectedAt:number;name?:string;wateredAt?:number|null;pettedAt?:number|null;playedAt?:number|null;bornAt?:number;incubationAt?:number|null;housing?:string;sex?:'female'|'male';pendingAt?:number|null;care?:{startedAt:number;cleanedAt:number;illnessAt:number|null;recoveredAt?:number}};
+export type Animal={id:string;kind:AnimalKind;fedAt:number|null;collectedAt:number;color?:'black'|'white'|'ginger'|'gray'|'calico';name?:string;wateredAt?:number|null;pettedAt?:number|null;playedAt?:number|null;bornAt?:number;incubationAt?:number|null;housing?:string;sex?:'female'|'male';pendingAt?:number|null;care?:{startedAt:number;cleanedAt:number;illnessAt:number|null;recoveredAt?:number}};
 export const DECOR={
  cocoaTree:{name:'Árvore do Cacau Encantado',price:120,texture:'cocoaTree',description:'Cacau, flores rosadas e uma história só nossa.'},
  flowerPlanter:{name:'Jardineira florida',price:45,texture:'flowerPlanter',description:'Flores para dar cor aos caminhos.'},

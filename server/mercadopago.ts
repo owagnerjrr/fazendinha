@@ -1,5 +1,5 @@
 import {createHmac,timingSafeEqual} from 'node:crypto';
-import {COIN_PACKS,type PackId} from '../src/store-catalog.js';
+import {PURCHASE_PACKS as COIN_PACKS,type PackId} from '../src/store-catalog.js';
 export type MPConfig={token:string;secret:string;collector:string;mode:'test'|'production';origin:string;api?:'orders'|'legacy';application?:string};
 export class StoreError extends Error{constructor(message:string,public status=400){super(message);}}
 export function paymentConfig(env:NodeJS.ProcessEnv=process.env):MPConfig|null{

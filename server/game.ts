@@ -1,3 +1,4 @@
+import {housingProblem,outdoorBox} from '../src/housing.js';
 import {settleCoinDebt} from '../src/wallet.js';
 import {claimInvitation,settleVerifiedInvitation,referralSummary} from './referrals.js';
 import {progressionProblem} from '../src/progression.js';
@@ -9,7 +10,7 @@ import { requiresNewClient, CLIENT_UPDATE_MESSAGE } from '../src/client-compat.j
 import { initializeProfile } from '../src/profile.js';
 import { LIFE_COMMANDS } from '../src/life-rules.js';
 import { dogProtects } from '../src/content.js';
-import { reserveLot, returnLot, transferLot } from '../src/market.js';
+import { returnLot, transferLot } from '../src/market.js';
 import { createHash } from 'node:crypto';
 import type { PoolClient } from 'pg';
 import { pool } from './db.js';
@@ -36,7 +37,7 @@ export async function snapshot(id: string) {
 export async function community(id: string, marketVersion=1) {
   const friends = await pool.query(`SELECT f.public_code AS code,f.name,r.accepted,(r.recipient=$1) AS incoming FROM friendships r JOIN farms f ON f.user_id=CASE WHEN r.sender=$1 THEN r.recipient ELSE r.sender END WHERE (r.sender=$1 OR r.recipient=$1) AND NOT EXISTS(SELECT 1 FROM social_blocks b WHERE (b.owner=$1 AND b.blocked=f.user_id) OR (b.blocked=$1 AND b.owner=f.user_id)) ORDER BY r.created_at DESC LIMIT 100`,[id]);
   // Older installed PWAs only know crops. Keep their response compatible until they update.
-  const market = await pool.query(`SELECT m.id,m.crop,m.quantity,m.price,(m.seller=$1) AS mine,f.name,f.public_code AS code FROM market_listings m JOIN farms f ON f.user_id=m.seller WHERE m.status='open' AND ($2 OR m.crop IN ('carrot','lettuce','tomato')) ORDER BY (m.seller=$1) DESC,m.created_at DESC LIMIT 60`,[id,marketVersion>=2]);
+  const market = marketVersion===0?{rows:[]}:await pool.query(`SELECT m.id,m.crop,m.quantity,m.price,(m.seller=$1) AS mine,f.name,f.public_code AS code FROM market_listings m JOIN farms f ON f.user_id=m.seller WHERE m.status='open' AND ($2 OR m.crop IN ('carrot','lettuce','tomato')) ORDER BY (m.seller=$1) DESC,m.created_at DESC LIMIT 60`,[id,marketVersion>=2]);
   const blocked=await pool.query('SELECT f.public_code AS code,f.name FROM social_blocks b JOIN farms f ON f.user_id=b.blocked WHERE b.owner=$1 ORDER BY b.created_at DESC LIMIT 100',[id]);return { friends: friends.rows, blocked:blocked.rows, market: market.rows,referrals:await referralSummary(id) };
 }
 export async function visit(id: string, code: string) {
@@ -44,7 +45,7 @@ export async function visit(id: string, code: string) {
   const { rows } = await pool.query(`SELECT f.state,f.name,f.public_code AS code FROM farms f WHERE f.public_code=$2 AND EXISTS(SELECT 1 FROM friendships WHERE accepted AND ((sender=$1 AND recipient=f.user_id) OR (recipient=$1 AND sender=f.user_id)))`,[id,code]);
   if (!rows[0]|| (await pool.query('SELECT 1 FROM social_blocks WHERE (owner=$1 AND blocked=(SELECT user_id FROM farms WHERE public_code=$2)) OR (blocked=$1 AND owner=(SELECT user_id FROM farms WHERE public_code=$2))',[id,code])).rowCount) throw new GameError('A visita precisa de uma amizade aceita.',403);
   upgradeFarm(rows[0].state);
-  return { unlockedPlots:rows[0].state.unlockedPlots, avatar:rows[0].state.avatar, decorations:rows[0].state.decorations, socialRaids:rows[0].state.socialRaids,protected:dogProtects(rows[0].state.animals,Date.now())||rows[0].state.raidProtectionUntil>Date.now(), plots:allPlots(rows[0].state),landOwned:rows[0].state.landOwned,landParcels:rows[0].state.landParcels,buildings:rows[0].state.buildings,animals:rows[0].state.animals.map((a:any)=>({id:a.id,kind:a.kind,name:a.name,housing:a.housing})), name: rows[0].name, code: rows[0].code, now: Date.now() };
+  return { unlockedPlots:rows[0].state.unlockedPlots, avatar:rows[0].state.avatar, decorations:rows[0].state.decorations, socialRaids:rows[0].state.socialRaids,animalRaids:rows[0].state.animalRaids===true,protected:dogProtects(rows[0].state.animals,Date.now())||rows[0].state.raidProtectionUntil>Date.now(), plots:allPlots(rows[0].state),landOwned:rows[0].state.landOwned,landParcels:rows[0].state.landParcels,buildings:rows[0].state.buildings,animals:rows[0].state.animals.map((a:any)=>({id:a.id,kind:a.kind,name:a.name,housing:a.housing})), name: rows[0].name, code: rows[0].code, now: Date.now() };
 }
 function move(row: any, position: any, now: number) {
   if (!position || !Number.isFinite(position.x) || !Number.isFinite(position.y) || position.x<100 || position.x>1480 || position.y<180 || position.y>1090) throw new GameError('Posição inválida.');
@@ -77,8 +78,8 @@ export async function mutate(user: string, body: any, version?: string|null) {
       row.name=row.state.playerName;await db.query('UPDATE farms SET name=$2 WHERE user_id=$1',[user,row.name]);row.result=result;
     }else if(c.type==='position') move(row,body.position,now);
     else if(['work','buy','sell','expand',...LIFE_COMMANDS].includes(c.type)) {
-      if(['cast-line','reel-line','sell','till-ground'].includes(c.type))move(row,body.position,now);
-      if(c.type==='work') {
+      if(['fertilize','cast-line','reel-line','sell','till-ground'].includes(c.type))move(row,body.position,now);
+      if(c.type==='work'||c.type==='fertilize') {
         move(row,body.position,now);
         const point=plotPosition(c.plot,row.state);if(!point)throw new GameError('Canteiro inválido.');
         const {x,y}=point;
@@ -91,14 +92,14 @@ export async function mutate(user: string, body: any, version?: string|null) {
     // Older cached clients may play before seeing the new welcome flow. Preserve that farm too.
     if(c.type!=='position'&&c.type!=='initialize-profile'&&row.state.profileComplete===false)row.state.profileComplete=true;
     settleCoinDebt(row.state);
-    await db.query('UPDATE farms SET state=$2,revision=revision+1,last_action_at=now(),position_at=CASE WHEN $3 THEN now() ELSE position_at END WHERE user_id=$1',[user,row.state,['position','work','cast-line','reel-line','sell','list','till-ground'].includes(c.type)]);
+    await db.query('UPDATE farms SET state=$2,revision=revision+1,last_action_at=now(),position_at=CASE WHEN $3 THEN now() ELSE position_at END WHERE user_id=$1',[user,row.state,['position','work','fertilize','cast-line','reel-line','sell','list','till-ground'].includes(c.type)]);
     await db.query('INSERT INTO action_receipts(user_id,id,hash,result) VALUES($1,$2,$3,$4)',[user,body.id,hash,row.result]);
     await db.query('COMMIT');
     return {...row.result,farm:row.state,revision:row.revision+1,name:row.name,now};
   } catch(error) { await db.query('ROLLBACK'); throw error; } finally { db.release(); }
 }
 async function social(db:PoolClient,user:string,row:any,c:any,now:number) {
-  if(['friend','accept','decline','cancel-friend','unfriend','block','unblock','help','steal'].includes(c.type)) {
+  if(['friend','accept','decline','cancel-friend','unfriend','block','unblock','help','steal','steal-animal'].includes(c.type)) {
     if(typeof c.code!=='string'||!codePattern.test(c.code)) throw new GameError('Código inválido.');
     const target=(await db.query('SELECT * FROM farms WHERE public_code=$1',[c.code])).rows[0];
     if(target)upgradeFarm(target.state);
@@ -120,8 +121,31 @@ async function social(db:PoolClient,user:string,row:any,c:any,now:number) {
     }
     const allowed=await db.query('SELECT 1 FROM friendships WHERE accepted AND ((sender=$1 AND recipient=$2) OR (sender=$2 AND recipient=$1))',[user,target.user_id]);
     if(!allowed.rowCount) throw new GameError('Aceitem a amizade antes de ajudar.',403);
-    if(!Number.isInteger(c.plot)||c.plot<0||(c.plot<24?c.plot>=target.state.unlockedPlots:!plotUsable(target.state,c.plot))) throw new GameError('Canteiro inválido.');
+    if(c.type==='steal-animal'){
+      if(!row.state.animalRaids||!target.state.animalRaids)throw new GameError('Os dois amigos precisam ativar o roubo de animais separadamente.');
+      const animal=target.state.animals.find((a:any)=>a.id===c.animal);
+      if(!row.state.socialRaids||!target.state.socialRaids)throw new GameError('Os dois amigos precisam ativar a brincadeira de roubo.');
+      if(dogProtects(target.state.animals,now)||target.state.raidProtectionUntil>now)throw new GameError('Esta fazenda está protegida.');
+      if(!animal||animal.kind==='dog'||animal.incubationAt!=null||target.state.animals.length<=1)throw new GameError('Este animal não pode ser levado. O último animal sempre fica com o dono.');
+      if(row.state.animals.some((a:any)=>a.id===animal.id))throw new GameError('Este animal já está na sua fazenda.');
+      const space=housingProblem(row.state,animal.kind,'barn');if(space)throw new GameError(space);
+      const habitat=animal.housing&&animal.housing!=='barn'?target.state.buildings?.find((b:any)=>b.id===animal.housing):null;
+      if(animal.housing&&animal.housing!=='barn'&&!habitat)throw new GameError('Instalação não encontrada.');
+      const box=habitat?outdoorBox(habitat):null,animalPoint=box?{x:box.x+box.width/2,y:box.y+box.height+20}:{x:1050,y:795};
+      const live=await db.query("SELECT 1 FROM farm_presence WHERE user_id=$1 AND owner_id=$2 AND updated_at>now()-interval '12 seconds' AND sqrt(power(x-$3,2)+power(y-$4,2))<180",[user,target.user_id,animalPoint.x,animalPoint.y]);if(!live.rowCount)throw new GameError('Visite a fazenda e aproxime-se do celeiro.');
+      if((await db.query('SELECT 1 FROM farm_raids WHERE visitor=$1 AND owner=$2 AND day=$3',[user,target.user_id,new Date(now).toISOString().slice(0,10)])).rowCount)throw new GameError('Você já pegou algo deste amigo hoje.');
+      target.state.animals=target.state.animals.filter((a:any)=>a.id!==animal.id);row.state.animals.push({...animal,housing:'barn'});target.state.raidProtectionUntil=now+86400000;
+      await db.query('INSERT INTO farm_raids(visitor,owner,day,plot) VALUES($1,$2,$3,-1)',[user,target.user_id,new Date(now).toISOString().slice(0,10)]);
+      target.state.visitLog.unshift({name:row.name,action:'levou um animal na brincadeira',at:now});target.state.visitLog=target.state.visitLog.slice(0,20);
+      await db.query('UPDATE farms SET state=$2,revision=revision+1 WHERE user_id=$1',[target.user_id,target.state]);
+      await db.query("INSERT INTO social_notifications(user_id,actor_id,kind) VALUES($1,$2,'visit_steal')",[target.user_id,user]);
+      return{ok:true,message:'Animal levado para seu celeiro. O amigo ganhou 24 horas de proteção.'};
+    }
+    if(!Number.isInteger(c.plot)||c.plot<0||!plotUsable(target.state,c.plot)) throw new GameError('Canteiro inválido.');
     if(!plotUsable(target.state,c.plot))throw new GameError('Este espaço não está disponível para cultivo.');
+    const spot=plotPosition(c.plot,target.state)!;
+    const nearby=await db.query("SELECT 1 FROM farm_presence WHERE user_id=$1 AND owner_id=$2 AND updated_at>now()-interval '12 seconds' AND sqrt(power(x-$3,2)+power(y-$4,2))<=80",[user,target.user_id,spot.x,spot.y]);
+    if(!nearby.rowCount)throw new GameError('Visite a fazenda e aproxime-se do canteiro.');
     const plot=getPlot(target.state,c.plot)!;
     const day=new Date(now).toISOString().slice(0,10);
     if(c.type==='steal'){
@@ -133,6 +157,7 @@ async function social(db:PoolClient,user:string,row:any,c:any,now:number) {
       await db.query('INSERT INTO farm_raids(visitor,owner,day,plot) VALUES($1,$2,$3,$4)',[user,target.user_id,day,c.plot]);
       target.state.visitLog.unshift({name:row.name,action:'pegou 1 produto maduro',at:now});target.state.visitLog=target.state.visitLog.slice(0,20);
       await db.query('UPDATE farms SET state=$2,revision=revision+1 WHERE user_id=$1',[target.user_id,target.state]);
+      await db.query("INSERT INTO social_notifications(user_id,actor_id,kind) VALUES($1,$2,'visit_steal')",[target.user_id,user]);
       return {ok:true,message:'Você pegou 1 produto! O amigo mantém pelo menos 2 e ganha 1 hora de proteção.'};
     }
     const used=await db.query('SELECT 1 FROM farm_help WHERE helper=$1 AND owner=$2 AND day=$3',[user,target.user_id,day]);
@@ -150,15 +175,15 @@ async function social(db:PoolClient,user:string,row:any,c:any,now:number) {
     await db.query('INSERT INTO farm_help(helper,owner,day,plot) VALUES($1,$2,$3,$4)',[user,target.user_id,day,c.plot]);
     target.state.visitLog.unshift({name:row.name,action,at:now});target.state.visitLog=target.state.visitLog.slice(0,20);
     await db.query('UPDATE farms SET state=$2,revision=revision+1 WHERE user_id=$1',[target.user_id,target.state]);
+    await db.query("INSERT INTO social_notifications(user_id,actor_id,kind) VALUES($1,$2,'visit_help')",[target.user_id,user]);
     return {ok:true,message:'Ajuda concluída! +5 XP pela amizade.'};
   }
-  if(c.type==='list') {
-    const count=await db.query("SELECT count(*) FROM market_listings WHERE seller=$1 AND status='open'",[user]);
-    if(Number(count.rows[0].count)>=10) throw new GameError('Limite de 10 ofertas abertas.');
-    const result=reserveLot(row.state,c);if(!result.ok)throw new GameError(result.message);
-    await db.query('INSERT INTO market_listings(seller,crop,quantity,price) VALUES($1,$2,$3,$4)',[user,c.crop,c.quantity,c.price]);
-    return {ok:true,message:'Oferta publicada. Os produtos ficam reservados até a venda ou cancelamento.'};
+  if(c.type==='return-market-reservations'){
+    const reserved=await db.query("SELECT * FROM market_listings WHERE seller=$1 AND status='open' FOR UPDATE",[user]);
+    for(const listing of reserved.rows){const r=returnLot(row.state,listing);if(!r.ok)throw new GameError(r.message);await db.query("UPDATE market_listings SET status='cancelled' WHERE id=$1",[listing.id]);}
+    return{ok:true,message:reserved.rows.length?'Seus produtos reservados voltaram ao inventário.':'Você não tem produtos reservados.'};
   }
+  if(c.type==='list')throw new GameError('A feira foi encerrada. Venda seus produtos no Vartin.');
   if(c.type==='trade'||c.type==='cancel-listing') {
     if(!uuid.test(c.listing)) throw new GameError('Oferta inválida.');
     const listing=(await db.query("SELECT * FROM market_listings WHERE id=$1 AND status='open' FOR UPDATE",[c.listing])).rows[0];

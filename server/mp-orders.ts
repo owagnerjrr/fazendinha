@@ -1,4 +1,4 @@
-import {COIN_PACKS,type PackId} from '../src/store-catalog.js';
+import {PURCHASE_PACKS as COIN_PACKS,type PackId} from '../src/store-catalog.js';
 import {StoreError,type MPConfig} from './mercadopago.js';
 export const providerOrderId=(value:unknown):value is string=>typeof value==='string'&&/^ORD[A-Z0-9]{20,50}$/.test(value);
 /** Monetary strings are parsed without floating point rounding or coercion. */
@@ -12,7 +12,7 @@ export function orderPayload(order:any,email:string,methods:any[]){
  const types=[...new Set<string>(methods.filter(m=>!allowed(m)).map(m=>String(m.payment_type_id)).filter(t=>supported.has(t)&&!methods.some(m=>allowed(m)&&m.payment_type_id===t)).concat(['account_money']))];
  const excludedIds=[...new Set<string>(methods.filter(m=>!allowed(m)&&!methods.some(a=>allowed(a)&&a.id===m.id)).map(m=>String(m.id)))];
  return{type:'online',processing_mode:'manual',total_amount:amount,external_reference:order.id,expiration_time:order.method==='pix'?'PT30M':'P1D',
-  payer:{email},items:[{title:`Fazenda Feliz · ${pack.coins} moedas`,unit_price:amount,quantity:1,external_code:order.package}],
+  payer:{email},items:[{title:`Fazenda Feliz · ${order.package==='f5'?'5 fertilizantes':pack.coins+' moedas'}`,unit_price:amount,quantity:1,external_code:order.package}],
   config:{online:{success_url:back,failure_url:back,pending_url:back,auto_return:'approved',callback_url:order.origin+'/api/mp-webhook',retries:{allowed:false}},payment_method:{max_installments:1,default_installments:1,not_allowed_types:types,not_allowed_ids:excludedIds}}};
 }
 /** Only call with a response obtained from the authenticated Orders API. */

@@ -1,25 +1,22 @@
+import {houseOffset,HOME_THEMES,type HouseDesign} from './home-design';
+import type {Farm} from './farm';
 import {retainLiveFloorNode} from './floor-cache';
 import type {RoomPoint} from './barn-art';
 import type Phaser from 'phaser';
 import type { Obstacle } from './pathfinding';
-export const HOUSE_BOUNDS={x:270,y:220,width:660,height:500};
-export const HOUSE_PROPS=[
- {kind:'lamp',x:303,y:703,width:42,height:70,facing:'south',body:{x:0,y:0,width:0,height:0},access:{x:352,y:685},name:'Luz'},
- {kind:'bed',x:317,y:315,width:74,height:84,facing:'south',body:{x:284,y:271,width:66,height:42},access:{x:376,y:337},name:'Cama'},
- {kind:'wardrobe',x:887,y:315,width:66,height:90,facing:'south',body:{x:857,y:283,width:60,height:30},access:{x:887,y:349},name:'Guarda-roupa'},
- {kind:'tv',x:740,y:326,width:78,height:90,facing:'south',body:{x:705,y:307,width:70,height:18},access:{x:740,y:359},name:'TV'},
- {kind:'sofa',x:740,y:520,width:124,height:78,facing:'north',body:{x:681,y:473,width:118,height:44},access:{x:829,y:497},name:'Sofá'},
- {kind:'coffee',x:740,y:417,width:80,height:42,facing:'south',body:{x:704,y:391,width:72,height:23},access:{x:814,y:414},name:'Mesa de centro'},
- {kind:'table',x:410,y:540,width:94,height:55,facing:'south',body:{x:367,y:510,width:86,height:27},access:{x:484,y:545},name:'Mesa'},
- {kind:'chair',x:410,y:587,width:32,height:40,facing:'north',body:{x:397,y:566,width:26,height:18},access:{x:466,y:587},name:'Cadeira'},
-] as const;
-export const HOUSE_LAMP={x:303,y:703};
-export const HOUSE_SEAT={x:740,y:514};
-export const HOUSE_SLEEP={x:317,y:294};
-export const HOUSE_TV_SCREEN={x:710,y:271,width:39,height:24};
-export const HOUSE_DETAIL_BODIES:Obstacle[]=[{x:286,y:680,width:34,height:21}];
-export const HOUSE_WALLS:Obstacle[]=[{x:258,y:154,width:16,height:580},{x:928,y:154,width:16,height:580},{x:270,y:154,width:660,height:70},{x:270,y:716,width:280,height:16},{x:650,y:716,width:280,height:16}];
+import {HOUSE_PROPS,HOUSE_WALLS,HOUSE_LAMP,HOUSE_DETAIL_BODIES,HOUSE_TV_SCREEN} from './house-layout';
+export {HOUSE_BOUNDS,HOUSE_PROPS,HOUSE_WALLS,HOUSE_LAMP,HOUSE_DETAIL_BODIES,HOUSE_TV_SCREEN,HOUSE_SEAT,HOUSE_SLEEP} from './house-layout';
 type Rect=(color:string,x:number,y:number,w:number,h:number)=>void;
+function drawHomePurchases(scene:Phaser.Scene,design?:HouseDesign,block?:(x:number,y:number,w:number,h:number)=>void){
+ for(const item of design?.items??[]){if(item.stored)continue;const {x,y,kind}=item;if(kind==='bookcase'||kind==='stool')block?.(x-25,y-18,50,18);
+  if(kind==='plant'||kind==='flowers'){scene.add.ellipse(x,y-2,28,8,0x30291e,.18).setDepth(y-.1);scene.add.image(x,y,kind==='plant'?'life-cocoaTree':'life-flowerPlanter').setOrigin(.5,1).setDisplaySize(kind==='plant'?45:30,kind==='plant'?64:36).setDepth(y);continue;}
+  const g=scene.add.graphics().setDepth(kind==='rug'?1.2:y);
+  if(kind==='rug'){rug(scene,x-40,y-28,80,56,[0x487a70,0xc9c5a0,0x7b9a7a]);continue;}
+  if(kind==='painting'){g.fillStyle(0x5e4434).fillRect(x-26,y-44,52,40);g.fillStyle(0xe5c58d).fillRect(x-23,y-41,46,34);g.fillStyle(0x9bbcaf).fillRect(x-20,y-38,40,28);g.fillStyle(0xf4e5a7).fillCircle(x+9,y-31,5);g.fillStyle(0x527d5a).fillTriangle(x-20,y-10,x-4,y-32,x+20,y-10);continue;}
+  if(kind==='bookcase'){g.fillStyle(0x48382b).fillRect(x-29,y-72,58,72);g.fillStyle(0x9f754b).fillRect(x-26,y-69,52,65);for(let row=0;row<3;row++){for(let i=0;i<6;i++){g.fillStyle([0x64866e,0xc48c62,0xd4bb7e,0x6e8399][(i+row)%4]).fillRect(x-22+i*8,y-64+row*20,6,15-(i%2)*3);}g.fillStyle(0xd5b27c).fillRect(x-25,y-47+row*20,50,3);}continue;}
+  g.fillStyle(0x664b34).fillRect(x-14,y-25,5,25).fillRect(x+9,y-25,5,25);g.fillStyle(0xc1a36c).fillRoundedRect(x-20,y-34,40,14,4);g.fillStyle(0xe0c698).fillRect(x-16,y-32,32,2);
+ }
+}
 /** Cached, original pixel furnishings; rich existing furniture is reused without stretching it upside down. */
 function houseTextures(scene:Phaser.Scene){
  const create=(name:string,w:number,h:number,draw:(r:Rect)=>void)=>{const key=`house-${name}`;if(scene.textures.exists(key))return;const cv=document.createElement('canvas');cv.width=w;cv.height=h;const c=cv.getContext('2d')!;c.imageSmoothingEnabled=false;draw((color,x,y,w,h)=>{c.fillStyle=color;c.fillRect(Math.round(x),Math.round(y),w,h);});scene.textures.addCanvas(key,cv);};
@@ -44,35 +41,40 @@ function rug(scene:Phaser.Scene,x:number,y:number,w:number,h:number,colors:[numb
  for(let py=y+17;py<y+h-15;py+=9)for(let px=x+18;px<x+w-16;px+=10){g.fillStyle(colors[1],.22).fillRect(px,py,2,1);}
  g.lineStyle(1,colors[1],.6);const cx=x+w/2,cy=y+h/2;for(const size of [12,22,32])g.strokePoints([{x:cx,y:cy-size},{x:cx+size,y:cy},{x:cx,y:cy+size},{x:cx-size,y:cy}],true);
 }
-export function buildHouse(scene:Phaser.Scene,block:(x:number,y:number,w:number,h:number)=>void,interact:(kind:string)=>void){
- houseTextures(scene);const g=scene.add.graphics().setDepth(0);g.fillStyle(0x342b24).fillRect(258,154,686,580);g.fillStyle(0xd7c59e).fillRect(270,154,660,70);
+export function buildHouse(scene:Phaser.Scene,block:(x:number,y:number,w:number,h:number)=>void,interact:(kind:string)=>void,farm?:Farm){
+ const theme=HOME_THEMES[farm?.houseDesign?.theme??'natural'];
+ const offset=(kind:keyof typeof import('./home-design').BASE_HOME)=>farm?houseOffset(farm,kind):{x:0,y:0};
+ const props=HOUSE_PROPS.map(p=>{const d=offset(p.kind);return{...p,x:p.x+d.x,y:p.y+d.y,body:{...p.body,x:p.body.x+d.x,y:p.body.y+d.y},access:{x:p.access.x+d.x,y:p.access.y+d.y}};});
+ const lamp=props.find(p=>p.kind==='lamp')!,bed=offset('bed'),sofa=offset('sofa'),tv=offset('tv');
+ houseTextures(scene);const g=scene.add.graphics().setDepth(0);g.fillStyle(0x342b24).fillRect(258,154,686,580);g.fillStyle(theme.wall).fillRect(270,154,660,70);
  for(let y=159;y<188;y+=9)for(let x=280;x<922;x+=14){g.fillStyle(0xaaa87a,.5).fillRect(x,y,2,3);g.fillStyle(0xe8d7b3,.9).fillRect(x-2,y+1,2,1).fillRect(x+2,y+1,2,1);}
- scene.add.tileSprite(270,224,660,492,'house-floor').setOrigin(0).setDepth(.1);
+ scene.add.tileSprite(270,224,660,492,'house-floor').setOrigin(0).setDepth(.1).setTint(farm?.houseDesign?.theme&&farm.houseDesign.theme!=='natural'?theme.floor:0xffffff);
  const trim=scene.add.graphics().setDepth(1);trim.fillStyle(0x765333).fillRect(278,189,644,26);for(let x=280;x<922;x+=26){trim.fillStyle(0xaf8b56).fillRect(x,191,23,22);trim.fillStyle(0xcaae74).fillRect(x+1,191,21,1);trim.fillStyle(0x8c693f).fillRect(x+20,194,2,17);}trim.fillStyle(0xe0c18a).fillRect(278,186,644,3);trim.fillStyle(0x4e3928).fillRect(270,215,660,11).fillRect(270,224,8,492).fillRect(922,224,8,492).fillRect(270,708,280,10).fillRect(650,708,280,10);trim.fillStyle(0xba945a).fillRect(278,217,644,2).fillRect(550,708,100,18);trim.fillStyle(0xd3b77e).fillRect(555,711,90,2);
  for(const x of [335,845])scene.add.image(x,211,'life-window').setOrigin(.5,1).setDisplaySize(47,57).setDepth(221);
  rug(scene,280,233,154,133,[0x3f5a60,0xa4b4a0,0x6c8b83]);rug(scene,647,340,192,220,[0x374e3d,0xb2b384,0x66805c]);rug(scene,554,552,64,115,[0x766142,0xc8aa78,0x9c8055]);
- const points:RoomPoint[]=HOUSE_PROPS.filter(p=>p.kind!=='lamp').map(p=>{const key=['bed','wardrobe','tv'].includes(p.kind)?`life-${p.kind}`:p.kind==='sofa'?'house-sofa-back':`house-${p.kind}`;scene.add.ellipse(p.x+2,p.y-3,p.width*.95,12,0x30291e,.24).setDepth(p.y-.2);scene.add.image(p.x,p.y,key).setOrigin(.5,1).setDisplaySize(p.width,p.height).setDepth(p.kind==='sofa'?p.y-50:p.y);block(p.body.x,p.body.y,p.body.width,p.body.height);return {kind:p.kind,...p.access,hitX:p.x,hitY:p.y-p.height/2,radius:Math.max(18,p.width*.45),name:p.name,run:()=>interact(p.kind)};});
- points.push({kind:'lamp' as any,x:352,y:685,hitX:303,hitY:670,radius:30,name:'Luz',run:()=>interact('lamp')});
- scene.add.image(HOUSE_LAMP.x,HOUSE_LAMP.y,'house-lamp').setOrigin(.5,1).setDepth(HOUSE_LAMP.y);for(const b of HOUSE_DETAIL_BODIES)block(b.x,b.y,b.width,b.height);
+ const points:RoomPoint[]=props.filter(p=>p.kind!=='lamp').map(p=>{const key=['bed','wardrobe','tv'].includes(p.kind)?`life-${p.kind}`:p.kind==='sofa'?'house-sofa-back':`house-${p.kind}`;scene.add.ellipse(p.x+2,p.y-3,p.width*.95,12,0x30291e,.24).setDepth(p.y-.2);scene.add.image(p.x,p.y,key).setOrigin(.5,1).setDisplaySize(p.width,p.height).setDepth(p.kind==='sofa'?p.y-50:p.y);block(p.body.x,p.body.y,p.body.width,p.body.height);return {kind:p.kind,...p.access,hitX:p.x,hitY:p.y-p.height/2,radius:Math.max(18,p.width*.45),name:p.name,run:()=>interact(p.kind)};});
+ points.push({kind:'lamp' as any,x:lamp.access.x,y:lamp.access.y,hitX:lamp.x,hitY:lamp.y-33,radius:30,name:'Luz',run:()=>interact('lamp')});
+ scene.add.image(lamp.x,lamp.y,'house-lamp').setOrigin(.5,1).setDepth(lamp.y);for(const b of HOUSE_DETAIL_BODIES)block(b.x+offset('lamp').x,b.y+offset('lamp').y,b.width,b.height);
  scene.add.image(502,258,'life-flowerPlanter').setOrigin(.5,1).setDisplaySize(31,34).setDepth(258);
  const art=scene.add.graphics().setDepth(221);art.fillStyle(0x5c3e28).fillRect(477,167,66,44);art.fillStyle(0xc5a16a).fillRect(480,170,60,38);art.fillStyle(0x89a99b).fillRect(484,174,52,30);art.fillStyle(0xdcd7a5).fillCircle(523,182,5);art.fillStyle(0x567958).fillTriangle(484,204,510,180,536,204);art.fillStyle(0x86a171).fillTriangle(503,204,524,191,536,204);
  art.fillStyle(0x64472d).fillRect(582,210,68,6);art.fillStyle(0xc09a60).fillRect(580,209,72,2);for(let i=0;i<5;i++){art.fillStyle([0x718c7b,0x9b6653,0xc9af75][i%3]).fillRect(586+i*8,191-i%2*3,6,18+i%2*3);art.fillStyle(0xe4d1a0).fillRect(587+i*8,195,4,1);}
  // Folded linen curtains, wall shelves and fresh flowers enrich the room without occupying walking space.
  const textile=scene.add.graphics().setDepth(222);
  for(const x of [335,845]){textile.fillStyle(0x583e2b).fillRect(x-37,153,74,3);for(const side of [-1,1]){const left=x+side*30-7;textile.fillStyle(0x4e7773).fillRect(left,157,14,48);textile.fillStyle(0x8eaaa0).fillRect(left+2,158,3,45);textile.fillStyle(0x345954).fillRect(left+10,160,2,43);textile.fillStyle(0xd6b778).fillRect(left,187,14,3);}}
- scene.add.image(740,397,'life-flowerPlanter').setDisplaySize(22,25).setOrigin(.5,1).setDepth(419);
- const pillows=scene.add.graphics().setDepth(471);for(const x of [699,780]){pillows.fillStyle(0x394b35).fillRect(x-9,458,18,16);pillows.fillStyle(0xd8c394).fillRect(x-8,457,16,14);pillows.fillStyle(0x9d7952).fillRect(x-5,459,2,10);pillows.fillStyle(0xf0deba).fillRect(x-7,458,13,1);}
- const light=retainLiveFloorNode(scene.add.graphics().setDepth(10));light.fillStyle(0xf3cc82,.09).fillEllipse(HOUSE_LAMP.x,HOUSE_LAMP.y-20,94,85);for(const x of [335,845]){light.fillStyle(0xf5dfa6,.055).fillTriangle(x-20,225,x+21,225,x+90,430);}
+ scene.add.image(740+offset('coffee').x,397+offset('coffee').y,'life-flowerPlanter').setDisplaySize(22,25).setOrigin(.5,1).setDepth(419);
+ const pillows=scene.add.graphics().setPosition(0,sofa.y).setDepth(471+sofa.y);for(const x of [699+sofa.x,780+sofa.x]){pillows.fillStyle(0x394b35).fillRect(x-9,458,18,16);pillows.fillStyle(0xd8c394).fillRect(x-8,457,16,14);pillows.fillStyle(0x9d7952).fillRect(x-5,459,2,10);pillows.fillStyle(0xf0deba).fillRect(x-7,458,13,1);}
+ const light=retainLiveFloorNode(scene.add.graphics().setDepth(10));light.fillStyle(0xf3cc82,.09).fillEllipse(lamp.x,lamp.y-20,94,85);for(const x of [335,845]){light.fillStyle(0xf5dfa6,.055).fillTriangle(x-20,225,x+21,225,x+90,430);}
  const overlay=(key:string,sourceKey:string,w:number,h:number,cut:number,x:number,y:number,depth:number)=>{
   if(!scene.textures.exists(key)){const cv=document.createElement('canvas');cv.width=w;cv.height=h;const c=cv.getContext('2d')!;c.imageSmoothingEnabled=false;const image=scene.textures.get(sourceKey).getSourceImage() as HTMLImageElement;c.drawImage(image,0,image.height*cut/h,image.width,image.height*(h-cut)/h,0,cut,w,h-cut);scene.textures.addCanvas(key,cv);}
   return scene.add.image(x,y,key).setOrigin(.5,1).setDepth(depth);
  };
- overlay('house-sofa-rail','house-sofa-back',124,78,50,740,520,521);
- overlay('house-bed-cover','life-bed',74,84,34,317,315,317);
- const screen=scene.add.graphics().setDepth(327);
+ overlay('house-sofa-rail','house-sofa-back',124,78,50,740+sofa.x,520+sofa.y,521+sofa.y);
+ overlay('house-bed-cover','life-bed',74,84,34,317+bed.x,315+bed.y,317+bed.y);
+ drawHomePurchases(scene,farm?.houseDesign,block);
+ const screen=scene.add.graphics().setDepth(327+tv.y);
  let lastFrame=-1;
  return Object.assign(points,{updateHome(home:{tvOn:boolean;lightsOn?:boolean}|undefined,time:number,sleeping:boolean,reduced:boolean){
   light.setVisible(home?.lightsOn!==false);const frame=home?.tvOn?(reduced?0:Math.floor(time/250)%24):-2;if(frame===lastFrame)return;lastFrame=frame;screen.clear();if(!home?.tvOn)return;
-  const {x,y,width:w,height:h}=HOUSE_TV_SCREEN;screen.fillStyle(0x80b8bd).fillRect(x,y,w,h);screen.fillStyle(0xe7e4aa).fillRect(x+w-9,y+3,4,4);screen.fillStyle(0x436c48).fillTriangle(x,y+h,x+15,y+9,x+w,y+h);screen.fillStyle(0x769c58).fillRect(x,y+h-6,w,6);screen.fillStyle(0xf0e8bf).fillRect(x+2+Math.max(0,frame)%12,y+4,7,2);screen.fillStyle(0xacc97b).fillRect(x+5,y+h-3,w-10,1);
+  const {width:w,height:h}=HOUSE_TV_SCREEN,x=HOUSE_TV_SCREEN.x+tv.x,y=HOUSE_TV_SCREEN.y+tv.y;screen.fillStyle(0x80b8bd).fillRect(x,y,w,h);screen.fillStyle(0xe7e4aa).fillRect(x+w-9,y+3,4,4);screen.fillStyle(0x436c48).fillTriangle(x,y+h,x+15,y+9,x+w,y+h);screen.fillStyle(0x769c58).fillRect(x,y+h-6,w,6);screen.fillStyle(0xf0e8bf).fillRect(x+2+Math.max(0,frame)%12,y+4,7,2);screen.fillStyle(0xacc97b).fillRect(x+5,y+h-3,w-10,1);
  }});
 }

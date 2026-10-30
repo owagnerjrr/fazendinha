@@ -1,5 +1,7 @@
 import type { Farm } from './farm.js';
 export function requiresNewClient(farm:Farm,version:string|null|undefined):boolean {
+ if(version==='10')return false;
+ if(farm.animals.some(a=>a.kind==='cat')||farm.houseDesign||farm.fertilizers||farm.fertilizerDebt)return true;
  if(version==='9')return false;
  if(version==='8')return !!farm.wardrobe?.equipped;
  if(version==='7')return true;

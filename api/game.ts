@@ -1,3 +1,4 @@
+import {presence,notifications,acknowledge} from '../server/social-live.js';
 import { identity } from '../server/auth.js';
 import { requiresNewClient, CLIENT_UPDATE_MESSAGE } from '../src/client-compat.js';
 import { community, ensureFarm, GameError, mutate, snapshot, visit } from '../server/game.js';
@@ -5,16 +6,17 @@ const json=(value:unknown,status=200)=>Response.json(value,{status,headers:{'Cac
 async function handle(request:Request) {
   try {
     const user=await identity(request);
-    await ensureFarm(user.id,user.name,['5','6','7','8','9'].includes(request.headers.get('X-Farm-Version')??''));
+    await ensureFarm(user.id,user.name,['5','6','7','8','9','10'].includes(request.headers.get('X-Farm-Version')??''));
     const url=new URL(request.url);
     // Cached clients from before the new species cannot render their animal kinds safely.
     // Refuse their requests before mutating data and ask them to update the app.
-    if(request.headers.get('X-Farm-Version')!=='9'){
+    if(request.headers.get('X-Farm-Version')!=='10'){
       const existing=await snapshot(user.id);
       if(requiresNewClient(existing.farm,request.headers.get('X-Farm-Version')))return json({error:CLIENT_UPDATE_MESSAGE},409);
     }
     if(request.method==='GET') {
-      if(url.searchParams.has('community')) return json(await community(user.id,url.searchParams.get('marketVersion')==='2'?2:1));
+      if(url.searchParams.has('notifications'))return json(await notifications(user.id,url.searchParams.get('notifications')==='history'));
+      if(url.searchParams.has('community')) return json(await community(user.id,url.searchParams.get('friendsOnly')==='1'?0:url.searchParams.get('marketVersion')==='2'?2:1));
       if(url.searchParams.has('visit')) return json(await visit(user.id,url.searchParams.get('visit')!));
       return json(await snapshot(user.id));
     }
@@ -22,6 +24,8 @@ async function handle(request:Request) {
     if(!request.headers.get('content-type')?.startsWith('application/json')) return json({error:'Envie JSON.'},415);
     const raw=await request.text(); if(raw.length>4096) return json({error:'Pedido muito grande.'},413);
     let body; try { body=JSON.parse(raw); } catch { return json({error:'JSON inválido.'},400); }
+    if(url.searchParams.has('presence'))return json(await presence(user.id,body));
+    if(url.searchParams.has('notifications'))return json(await acknowledge(user.id,body));
     return json(await mutate(user.id,body,request.headers.get('X-Farm-Version')));
   } catch(error) {
     if(error instanceof Error && error.message==='UNAUTHORIZED') return json({error:'Entre na sua conta para continuar.'},401);

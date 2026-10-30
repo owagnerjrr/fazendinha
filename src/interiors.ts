@@ -1,3 +1,4 @@
+import {houseOffset} from './home-design';
 import {outfitSleeveColor} from './outfit-art';
 import {appearanceOf} from './wardrobe';
 import {closestInReach} from './proximity';
@@ -37,7 +38,7 @@ export class InteriorScene extends Phaser.Scene {
   const block=(x:number,y:number,w:number,h:number)=>{const z=this.add.zone(x+w/2,y+h/2,w,h);group.add(z);(z.body as Phaser.Physics.Arcade.StaticBody).setSize(w,h);this.blocks.push({x,y,width:w,height:h});};
   if(this.room==='house'){
    for(const b of HOUSE_WALLS)block(b.x,b.y,b.width,b.height);
-   this.house=buildHouse(this,block,kind=>this.useHouse(kind));this.points.push(...this.house);
+   this.house=buildHouse(this,block,kind=>this.useHouse(kind),s.farm());this.points.push(...this.house);
 
   }else{
    block(145,130,20,690);block(1035,130,20,690);block(150,130,900,90);block(150,807,380,18);block(670,807,380,18);
@@ -79,7 +80,7 @@ export class InteriorScene extends Phaser.Scene {
  requestHouseInteraction(kind:string){
   if(this.room!=='house'||this.services.modal()||this.homeBusy||this.services.farm().home?.sleep)return;
   if(this.rest){this.releaseRest();return;}
-  const prop=HOUSE_PROPS.find(p=>p.kind===kind);if(!prop)return;const route=findPath(this.player,prop.access,this.blocks);if(!route.length){this.services.toast('Não há passagem livre até o móvel.');return;}
+  const point=this.house?.find(p=>p.kind===kind);if(!point)return;const prop={access:{x:point.x,y:point.y}};const route=findPath(this.player,prop.access,this.blocks);if(!route.length){this.services.toast('Não há passagem livre até o móvel.');return;}
   this.route=route;this.target={...prop.access,run:()=>this.useHouse(kind)};
  }
  private useHouse(kind:string){
@@ -98,8 +99,8 @@ export class InteriorScene extends Phaser.Scene {
  private releaseRest(){if(!this.rest||this.rest.kind==='leaving'||this.services.farm().home?.sleep||this.homeBusy)return;if(this.rest.kind==='sit'&&this.services.farm().home?.tvOn)void this.services.home?.({type:'home',action:'tv',on:false}).catch(e=>this.services.toast(e.message));this.rest={kind:'leaving',start:this.time.now,from:{x:this.actor.x,y:this.actor.y}};}
  private restFrame(time:number,phase:number){
   const rest=this.rest;if(!rest)return;
-  const destination=rest.kind==='sit'?HOUSE_SEAT:rest.kind==='sleep'?HOUSE_SLEEP:{x:this.player.x,y:this.player.y-2};const t=Math.min(1,(time-rest.start)/600),ease=t*t*(3-2*t);
-  this.actor.setTexture(this.art.idleKey(rest.kind==='sleep'?'pose-sleep':'pose-sit',appearanceOf(this.services.farm())),rest.kind==='leaving'?0:phase).setOrigin(.5,1).setScale(1.08).setPosition(rest.from.x+(destination.x-rest.from.x)*ease,rest.from.y+(destination.y-rest.from.y)*ease).setDepth(rest.kind==='sleep'?316:520);
+  const destination=rest.kind==='sit'?{x:HOUSE_SEAT.x+houseOffset(this.services.farm(),'sofa').x,y:HOUSE_SEAT.y+houseOffset(this.services.farm(),'sofa').y}:rest.kind==='sleep'?{x:HOUSE_SLEEP.x+houseOffset(this.services.farm(),'bed').x,y:HOUSE_SLEEP.y+houseOffset(this.services.farm(),'bed').y}:{x:this.player.x,y:this.player.y-2};const t=Math.min(1,(time-rest.start)/600),ease=t*t*(3-2*t);
+  this.actor.setTexture(this.art.idleKey(rest.kind==='sleep'?'pose-sleep':'pose-sit',appearanceOf(this.services.farm())),rest.kind==='leaving'?0:phase).setOrigin(.5,1).setScale(1.08).setPosition(rest.from.x+(destination.x-rest.from.x)*ease,rest.from.y+(destination.y-rest.from.y)*ease).setDepth(rest.kind==='sleep'?316+houseOffset(this.services.farm(),'bed').y:520+houseOffset(this.services.farm(),'sofa').y);
   if(rest.kind==='leaving'&&t>=1){this.rest=null;this.actor.setDepth(this.player.y);}
  }
  private updateHouseControls(){
@@ -108,7 +109,7 @@ export class InteriorScene extends Phaser.Scene {
   if(this.homeBusy){this.houseButton.textContent='Salvando…';return;}
   if(f.home?.sleep){this.houseButton.textContent=`Dormindo… ${Math.max(0,Math.ceil((SLEEP_MS-this.services.now()+f.home.sleep.startedAt)/1000))}s`;return;}
   if(this.rest){this.houseButton.textContent='Levantar do sofá · E / Usar';if(this.tvButton&&this.rest.kind==='sit'){this.tvButton.hidden=false;this.tvButton.disabled=this.homeBusy;this.tvButton.textContent=f.home?.tvOn?'Desligar TV':'Ligar TV';}return;}
-  const near=HOUSE_PROPS.filter(p=>['bed','sofa','tv'].includes(p.kind)).sort((a,b)=>Math.hypot(a.access.x-this.player.x,a.access.y-this.player.y)-Math.hypot(b.access.x-this.player.x,b.access.y-this.player.y))[0];
+  const near=HOUSE_PROPS.map(p=>{const d=houseOffset(this.services.farm(),p.kind);return{...p,access:{x:p.access.x+d.x,y:p.access.y+d.y}};}).filter(p=>['bed','sofa','tv'].includes(p.kind)).sort((a,b)=>Math.hypot(a.access.x-this.player.x,a.access.y-this.player.y)-Math.hypot(b.access.x-this.player.x,b.access.y-this.player.y))[0];
   if(!near||Math.hypot(near.access.x-this.player.x,near.access.y-this.player.y)>72){this.houseButton.hidden=true;return;}
   this.houseButton.textContent=near.kind==='bed'?'Deitar e dormir · E / Usar':near.kind==='sofa'?'Sentar no sofá · E / Usar':f.home?.tvOn?'Desligar TV · E / Usar':'Ligar TV · E / Usar';
  }

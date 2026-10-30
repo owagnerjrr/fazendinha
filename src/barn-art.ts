@@ -1,3 +1,4 @@
+import {catArt,catTexture} from './cat-art';
 import {nearestPenAnimal} from './barn-interaction';
 import {barnDetails,decorateBarnPen} from './barn-design';
 import {AnimalIndicators} from './animal-indicators';
@@ -17,7 +18,7 @@ export function buildBarn(scene:Phaser.Scene,farm:Farm,block:Block,animals:(id?:
  const returning=new Map<string,{x:number;y:number;start:number}>();
  let gateState:number|null=null;let visitor:{x:number;y:number}|undefined;
  let care:{id:string;type:'pet-animal'|'play-animal';start:number;from:{x:number;y:number};pen:BarnPen}|null=null;
- barnMaterials(scene);barnDetails(scene);dogArt(scene);livestockArt(scene);const pens=barnLayout(farm.animals);
+ barnMaterials(scene);barnDetails(scene);dogArt(scene);catArt(scene);livestockArt(scene);const pens=barnLayout(farm.animals);
  const board=(x:number,y:number,w:number,h:number,depth:number,vertical=false)=>{const tile=scene.add.tileSprite(x,y,vertical?h:w,vertical?w:h,'barn-rail').setOrigin(.5).setDepth(depth);if(vertical)tile.setRotation(Math.PI/2);return tile;};
  scene.add.tileSprite(531,250,137,550,'barn-stone').setOrigin(0).setDepth(1);const aisle=scene.add.graphics().setDepth(1.1);aisle.fillStyle(0x403a2b,.12);aisle.fillRect(531,250,9,550).fillRect(659,250,9,550);aisle.lineStyle(2,0xbca16a,.5);aisle.lineBetween(538,260,538,782);aisle.lineBetween(661,260,661,782);
  // Reuse the original equipment sprite at a scale consistent with the player.
@@ -62,6 +63,7 @@ export function buildBarn(scene:Phaser.Scene,farm:Farm,block:Block,animals:(id?:
   for(const a of actors){const pose=animalPose(a.pen,a.index,time),kind=a.pen.animals[a.index].kind;
    if(pose.dog&&scene.textures.exists('dog-walk')&&scene.textures.exists('dog-rest'))a.sprite.setTexture(dogTexture(pose.dog.walking,pose.dog.walking?pose.dog.frame:(pose.dog.resting?4:0)+pose.dog.facing));
    else if(pose.walking&&scene.textures.exists(`walk-${kind}`))a.sprite.setTexture(`walk-${kind}`,pose.frame);else a.sprite.setTexture(`life-${kind}${pose.blink?'-blink':''}`);
+   if(kind==='cat')a.sprite.setTexture(catTexture(a.pen.animals[a.index].color),pose.walking?pose.frame:0);
    if(care&&a.pen.animals[a.index].id===care.id){
     const elapsed=time-care.start,t=Math.min(1,elapsed/1000),ease=t*t*(3-2*t),edge=a.pen.side==='left'?a.pen.x+a.pen.width-22:a.pen.x+22;
     pose.x=care.from.x+(edge-care.from.x)*ease;pose.y=care.from.y+((visitor?.y??a.pen.access.y)-care.from.y)*ease;pose.flip=a.pen.side==='right';
@@ -78,6 +80,6 @@ function ensureBlink(scene:Phaser.Scene,kind:AnimalKind){
  const key=`life-${kind}-blink`;if(scene.textures.exists(key))return;
  const source=scene.textures.get(`life-${kind}`).getSourceImage() as HTMLImageElement;
  const canvas=document.createElement('canvas');canvas.width=source.width;canvas.height=source.height;const c=canvas.getContext('2d')!;c.drawImage(source,0,0);
- const eye:Record<AnimalKind,[number,number]>={rooster:[.72,.40],chick:[.72,.40],cow:[.72,.42],goat:[.72,.39],chicken:[.80,.35],dog:[.67,.34]};const [px,py]=eye[kind],x=Math.round(px*source.width),y=Math.round(py*source.height),fur=c.getImageData(Math.max(0,x-5),y,1,1).data;
+ const eye:Record<AnimalKind,[number,number]>={cat:[.72,.40],rooster:[.72,.40],chick:[.72,.40],cow:[.72,.42],goat:[.72,.39],chicken:[.80,.35],dog:[.67,.34]};const [px,py]=eye[kind],x=Math.round(px*source.width),y=Math.round(py*source.height),fur=c.getImageData(Math.max(0,x-5),y,1,1).data;
  c.fillStyle=`rgb(${fur[0]},${fur[1]},${fur[2]})`;c.fillRect(x-3,y-3,6,6);c.fillStyle='#3c2c20';c.fillRect(x-3,y,6,1);scene.textures.addCanvas(key,canvas);
 }
