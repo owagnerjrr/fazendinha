@@ -34,7 +34,7 @@ export class DogCompanions {
    if(dog.stuck>45){dog.route=[];dog.nextRoute=now+500;dog.stuck=0;}
    while(dog.route.length&&Math.hypot(dog.route[0].x-dog.sprite.x,dog.route[0].y-dog.sprite.y)<8)dog.route.shift();
    const target=dog.route[0];if(target){const vx=target.x-dog.sprite.x,vy=target.y-dog.sprite.y,len=Math.hypot(vx,vy),speed=distance>150?170:95;dog.sprite.setVelocity(vx/Math.max(1,len)*speed,vy/Math.max(1,len)*speed);}else dog.sprite.setVelocity(0);
-   dog.actor.setPosition(Math.round(dog.sprite.x),Math.round(dog.sprite.y)).setDepth(dog.sprite.y).setAlpha(1).setBlendMode(Phaser.BlendModes.NORMAL).setDisplaySize(ANIMAL_SIZE.dog.width,ANIMAL_SIZE.dog.height);dog.shadow.setPosition(dog.sprite.x,dog.sprite.y-2).setDepth(dog.sprite.y-.2);dog.name.setText(animal.name??'').setPosition(dog.sprite.x,dog.sprite.y-35).setDepth(dog.sprite.y+1).setVisible(!!animal.name);
+   dog.actor.setPosition(Math.round(dog.sprite.x),Math.round(dog.sprite.y)).setDepth(dog.sprite.y).setAlpha(1).setBlendMode(Phaser.BlendModes.NORMAL).setDisplaySize(ANIMAL_SIZE.dog.width,ANIMAL_SIZE.dog.height);dog.shadow.setPosition(dog.sprite.x,dog.sprite.y-2).setDepth(dog.sprite.y-.2);dog.name.setText(animal.name??'').setPosition(dog.sprite.x,dog.sprite.y-35).setDepth(dog.sprite.y+1).setVisible(false);
   });
  }
 }

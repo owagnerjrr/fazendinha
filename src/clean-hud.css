@@ -28,3 +28,15 @@
  .exit-interior{left:10px;top:72px}.interior-view{left:10px;top:122px}.enter-place{bottom:94px;font-size:12px}.house-action{bottom:94px;font-size:12px;min-height:42px}.house-tv{bottom:145px;font-size:12px}.game-menu{padding:16px}
 }
 @media(max-height:560px){.touch-controls{bottom:90px}.world-clock{height:44px}.balance,.menu-toggle{height:44px}.enter-place,.house-action{bottom:84px}.house-tv{bottom:132px}.bottom-ui{bottom:8px}.tool,.bag-button{height:46px}.tool-icon{height:28px}.game-menu{padding:14px}.game-menu .quest-card{display:block}}
+
+/* Discovery mode: no instructions or labels over the world. Accessible names remain. */
+.tool>span:nth-child(2){display:none}.tool{height:46px}.tool-icon{height:100%}
+#enter-place,#exit-interior,#interior-view,#house-action,#house-tv,#touch-action{font-size:0;width:44px;min-width:44px;height:44px;min-height:44px;padding:0;display:grid;place-items:center}
+#enter-place::before{content:'↪';font:26px system-ui}#exit-interior::before{content:'↩';font:24px system-ui}#interior-view::before{content:'⤢';font:24px system-ui}#house-tv::before{content:'▣';font:25px system-ui}
+#house-action,#touch-action{background-image:url('/assets/v2/hand.svg');background-size:27px;background-position:center;background-repeat:no-repeat}
+#touch-action{width:66px;height:66px;border-radius:50%;background-size:32px}.bag-button{height:46px}
+@media(max-height:560px){.tool,.bag-button{height:42px}}
+
+#house-action{display:none!important}
+.game-menu .quest-card{display:none!important}
+@media(min-width:900px){#interior-view{display:none}}

@@ -1,3 +1,5 @@
+0.13.1 — Removidas legendas de ações, baias, terrenos, saída e nomes flutuantes. Barra com ícones e controles acessíveis; exploração e interações sem instruções automáticas.
+
 0.13.0 — Simplificação da interface principal: menu lateral com opções existentes, barra de ferramentas compacta e avisos por proximidade. Contas, progresso, regras e ações de jogo preservados.
 
 0.12.6 — Corrigida a passada horizontal do cachorro: patas dianteiras/traseiras alternadas, amplitude visível na escala do jogo e cadência externa por distância.

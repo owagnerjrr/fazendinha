@@ -60,10 +60,9 @@ export function buildHouse(scene:Phaser.Scene,block:(x:number,y:number,w:number,
  };
  overlay('house-sofa-rail','house-sofa-back',124,78,50,740,520,521);
  overlay('house-bed-cover','life-bed',74,84,45,317,315,317);
- const screen=scene.add.graphics().setDepth(327),zz=scene.add.text(350,235,'Z z z',{fontFamily:'monospace',fontSize:'14px',color:'#f9edc6',stroke:'#304436',strokeThickness:3}).setDepth(5001).setVisible(false);
+ const screen=scene.add.graphics().setDepth(327);
  let lastFrame=-1;
  return Object.assign(points,{updateHome(home:{tvOn:boolean}|undefined,time:number,sleeping:boolean,reduced:boolean){
-  zz.setVisible(sleeping);if(sleeping)zz.setY(233+(reduced?0:Math.sin(time/700)*2));
   const frame=home?.tvOn?(reduced?0:Math.floor(time/250)%24):-2;if(frame===lastFrame)return;lastFrame=frame;screen.clear();if(!home?.tvOn)return;
   const {x,y,width:w,height:h}=HOUSE_TV_SCREEN;screen.fillStyle(0x80b8bd).fillRect(x,y,w,h);screen.fillStyle(0xe7e4aa).fillRect(x+w-9,y+3,4,4);screen.fillStyle(0x436c48).fillTriangle(x,y+h,x+15,y+9,x+w,y+h);screen.fillStyle(0x769c58).fillRect(x,y+h-6,w,6);screen.fillStyle(0xf0e8bf).fillRect(x+2+Math.max(0,frame)%12,y+4,7,2);screen.fillStyle(0xacc97b).fillRect(x+5,y+h-3,w-10,1);
  }});

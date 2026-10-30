@@ -1,3 +1,11 @@
+## Interface 0.13.1 — exploração sem instruções automáticas
+
+Removidos do cenário os avisos de regar/colher/tratar, nomes e descrições de terrenos, placas de baias/equipamentos/título do celeiro, indicação escrita de saída, legenda de interação sob a personagem e nomes flutuantes dos cães. A missão com instrução de primeira colheita também sai do menu, sem alterar a recompensa automática. O estado de sono é comunicado pela pose, sem texto flutuante. Informações sobre necessidades, produção, nomes e ações permanecem nos painéis acessados pelo jogador.
+
+Ferramentas e botões contextuais usam somente ícones. Entrar, sair, alternar visão e TV continuam com nomes acessíveis a leitores de tela; teclado, toque nos objetos, cuidados e produção mantêm seus caminhos anteriores. A ação duplicada da casa foi ocultada, preservando E, clique/toque no móvel e o controle móvel de interação. Mensagens de transação e falha continuam, sem instrução automática de navegação.
+
+101 testes de regressão aprovados e compilação de produção concluída. Inspeção local com dados fictícios no jogo real: fazenda sem legendas da horta e barra só com ícones; casa sem legenda de saída ou dicas junto à personagem; clique no sofá levou à pose sentada, e o ícone da TV mudou o estado de ligada/desligada; celeiro abriu sem placas, nomes de baias ou legenda sob a personagem. Captura em `screenshots/sem-legendas-0.13.1.jpg`. Nenhum dado de jogador ou regra de conta foi modificado. A conferência não substitui teste em aparelhos físicos.
+
 ## Interface 0.13.0 — menos informação permanente
 
 A tela de jogo mantém relógio/calendário, moedas, menu e ferramentas compactas com inventário. Identidade da fazenda, missão inicial, conta, cuidados, progressão, amigos, instalação, ajuda, desempenho e estado do salvamento foram reunidos no menu lateral, usando os mesmos controles e funções existentes. A missão concluída deixa de aparecer. O seletor de sementes só fica visível com Plantar selecionado. Dicas genéricas, assinatura e versão não ficam sobre o cenário.

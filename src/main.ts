@@ -82,7 +82,7 @@ function syncUI() {
   $('quest-card').hidden=farm.questClaimed;
   $('coins').textContent = farm.coins.toLocaleString('pt-BR');
   $('seed-name').textContent = CROPS[selected].name; $('seed-icon').innerHTML = `<img src="${cropImage(selected)}" alt="" />`;
-  $('seed-count').textContent = `${farm.seeds[selected]} sementes`;
+  $('seed-count').textContent = `×${farm.seeds[selected]}`;
   $('bag-count').textContent = String(cropKeys.reduce((sum, c) => sum + farm.inventory[c], 0)+Object.values(farm.products).reduce((a,b)=>a+b,0));
   if (!farm.questClaimed) { $('quest-text').textContent='Colha sua primeira plantação.'; $('quest-progress').textContent='0 / 1 colheita'; $('quest-fill').style.width='0%'; }
   if (farm.questClaimed) { $('quest-text').textContent = 'A primeira colheita a gente nunca esquece.'; $('quest-progress').textContent = 'Capítulo concluído'; $('quest-fill').style.width = '100%'; }
@@ -111,7 +111,7 @@ function seedPanel() {
   document.querySelectorAll<HTMLButtonElement>('[data-crop]').forEach(b => b.onclick = () => { selected = b.dataset.crop as Crop; setTool('seed'); closePanel(); });
 }
 function shop(){life.shop();}
-function help() { openPanel('Um novo começo', `<p>Bem-vindo ao Vale do Sossego. Aqui, um pedacinho de terra já é uma boa história.</p><ol class="controls-list"><li>Escolha a <b>enxada</b> e toque em um canteiro.</li><li>Selecione <b>Plantar</b> e use uma semente.</li><li>Use o <b>regador</b>. O crescimento começa agora.</li><li>Quando estiver pronta, use a <b>mão</b> para colher.</li><li>Abra o <b>celeiro</b> e venda sua colheita.</li></ol><p>No PC, ande com <b>WASD ou setas</b>. Use <b>E</b> para agir perto de um canteiro ou da venda. As teclas <b>1–4</b> trocam a ferramenta. Você também pode clicar no terreno para caminhar. No celular, use o joystick ou toque no mapa.</p><p class="quiet-note"><b>Versão de testes 0.13.0:</b> use Conta para criar sua fazenda online e continuar em outro aparelho. Sem entrar, você joga no teste local deste navegador. Minha fazenda abre seu avatar, os animais e o jardim. Entre na casa e no celeiro para explorar. Use a mão para remover pragas. A conta libera ainda níveis, energia, expansão, amigos e feira. Compras e colheitas online precisam de conexão. As plantas regadas continuam crescendo ao fechar. A arte é provisória e original do projeto.</p><button class="primary" id="start-playing">Vamos plantar</button>`); $('start-playing').onclick = closePanel; }
+function help() { openPanel('Um novo começo', `<p>Bem-vindo ao Vale do Sossego. Aqui, um pedacinho de terra já é uma boa história.</p><ol class="controls-list"><li>Escolha a <b>enxada</b> e toque em um canteiro.</li><li>Selecione <b>Plantar</b> e use uma semente.</li><li>Use o <b>regador</b>. O crescimento começa agora.</li><li>Quando estiver pronta, use a <b>mão</b> para colher.</li><li>Abra o <b>celeiro</b> e venda sua colheita.</li></ol><p>No PC, ande com <b>WASD ou setas</b>. Use <b>E</b> para agir perto de um canteiro ou da venda. As teclas <b>1–4</b> trocam a ferramenta. Você também pode clicar no terreno para caminhar. No celular, use o joystick ou toque no mapa.</p><p class="quiet-note"><b>Versão de testes 0.13.1:</b> use Conta para criar sua fazenda online e continuar em outro aparelho. Sem entrar, você joga no teste local deste navegador. Minha fazenda abre seu avatar, os animais e o jardim. Entre na casa e no celeiro para explorar. Use a mão para remover pragas. A conta libera ainda níveis, energia, expansão, amigos e feira. Compras e colheitas online precisam de conexão. As plantas regadas continuam crescendo ao fechar. A arte é provisória e original do projeto.</p><button class="primary" id="start-playing">Vamos plantar</button>`); $('start-playing').onclick = closePanel; }
 $('inventory').onclick = inventory; $('seed-choice').onclick = seedPanel; $('help').onclick = help;
 document.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach(b => b.onclick = () => setTool(b.dataset.tool as Tool));
 
@@ -297,23 +297,21 @@ class FarmScene extends Phaser.Scene {
   }
   private nextContext=0;
   private contextLabels(){
-    if(!this.player)return;let closest:typeof this.fields[number]|undefined,best=78;
-    for(const f of this.fields){f.label.setVisible(false);if(!f.soil.visible||!f.label.text)continue;const distance=Math.hypot(this.player.x-f.x,this.player.y-f.y);if(distance<best){best=distance;closest=f;}}
-    closest?.label.setVisible(!modal&&!inside);
-    this.landWorld?.hints(this.player,!modal&&!inside);
+    for(const f of this.fields)f.label.setVisible(false);
+    if(this.player)this.landWorld?.hints(this.player,!modal&&!inside);
   }
   navigate(target: Destination) {
     this.stuck = 0;
     if (this.activeWork) { this.queuedDestination = target; return; }
     const obstacles = this.obstacles.getChildren().map(o => { const b=(o as Phaser.GameObjects.Zone).body as Phaser.Physics.Arcade.StaticBody;return {x:b.x,y:b.y,width:b.width,height:b.height}; });
     this.route = findPath(this.player,target,obstacles);
-    if (!this.route.length) { this.destination=null;toast('Não encontrei passagem até esse ponto. Toque em um espaço livre.');return; }
+    if (!this.route.length) { this.destination=null;toast('Passagem bloqueada.');return; }
     this.destination = target;
   }
   useField(id: number) {
     if (this.activeWork || onlineLoading || cloud.busy) return;
     if(id>=24&&!plotUsable(farm,id)){if(!localSaveBlocked)life.land();else toast('Terreno salvo indisponível.');return;}
-    if (Math.hypot(this.player.x-this.fields[id].x,this.player.y-this.fields[id].y)>70) {toast('Aproxime-se do canteiro.');return;}
+    if (Math.hypot(this.player.x-this.fields[id].x,this.player.y-this.fields[id].y)>70) {toast('Fora de alcance.');return;}
     this.focusedField = id;
     const check = cloud.active ? applyCommand(structuredClone(farm) as OnlineFarm,{type:'work',plot:id,tool,crop:selected},Date.now()+cloud.offset) : act(structuredClone(farm), id, tool, selected);
     if (!check.ok) { toast(check.message); return; }
@@ -395,7 +393,7 @@ class FarmScene extends Phaser.Scene {
     const target = choosePlot(farm, available, this.player, tool, selected, this.focusedField, Date.now() + cloud.offset);
     if (target !== null) this.useField(target);
     else if(tool==='water') { const offsets={up:[0,-40],down:[0,40],left:[-40,0],right:[40,0]};const [dx,dy]=offsets[this.direction];this.waterGround({x:this.player.x+dx,y:this.player.y+dy}); }
-    else toast('Aproxime-se de um canteiro, da venda ou do celeiro.');
+
   }
   update(time: number, delta: number) {
     if (!this.player) return;
@@ -417,7 +415,7 @@ class FarmScene extends Phaser.Scene {
         if (target.field !== undefined) this.useField(target.field); else if (target.shop) shop(); else if (target.barn) enterInterior('barn');else if(target.house)enterInterior('house');else if(target.building){const b=farm.buildings?.find(b=>b.id===target.building);if(b?.kind==='shed')life.equipment();else if(b&&['coop','pasture'].includes(b.kind))life.enclosure(b.id);else if(b)openPanel('Coreto do jardim','<p>Seu cantinho para descansar e aproveitar a fazenda.</p>');}target.run?.();
       } else { vx = dx / distance; vy = dy / distance; }
       if (Math.hypot(this.player.x - this.previous.x, this.player.y - this.previous.y) < .15) this.stuck += delta; else this.stuck = 0;
-      if (this.stuck > 700) { this.destination = null; this.stuck = 0; this.route=[];toast('O caminho ficou bloqueado. Toque em outro ponto.'); }
+      if (this.stuck > 700) { this.destination = null; this.stuck = 0; this.route=[];toast('Passagem bloqueada.'); }
     }
     this.previous = { x: this.player.x, y: this.player.y };
     const length = Math.hypot(vx, vy), speed = 160;
@@ -442,7 +440,7 @@ stick.addEventListener('pointerdown', e => { if (stickPointer !== null) return; 
 stick.addEventListener('pointermove', moveStick);
 const releaseStick = (e: PointerEvent) => { if (e.pointerId !== stickPointer) return; stickPointer = null; joystick = { x: 0, y: 0 }; knob.style.transform = ''; };
 stick.addEventListener('pointerup', releaseStick); stick.addEventListener('pointercancel', releaseStick); stick.addEventListener('lostpointercapture', releaseStick);
-$('enter-place').onclick = () => { if(!scene?.enterNearbyPlace()&&!inside&&!modal)toast('Aproxime-se da porta para entrar.'); };
+$('enter-place').onclick = () => { if(!scene?.enterNearbyPlace()&&!inside&&!modal)toast('Fora de alcance.'); };
 $('touch-action').onclick = () => inside ? (game.scene.getScene('Interior') as InteriorScene).interact() : scene?.interactNearest();
 cloud.onStatus=message=>{ $('save-status').textContent=message;$('save-dot').style.background=message.includes('sincronizado')?'#c4da8c':'#e69f69'; };
 cloud.onSnapshot=(snapshot,initial)=>{ farm=snapshot.farm;if(initial&&scene?.player){scene.finishCurrentWork();scene.cancelMovement();scene.player.setPosition(farm.player.x,farm.player.y);}syncUI();scene?.paintFields(); };
@@ -457,7 +455,7 @@ function finishInteriorExit(){entranceLockedUntil=performance.now()+600;currentI
 function recoverInterior(error:Error,room:'house'|'barn'){
  game.scene.stop('Interior');game.scene.wake('Farm');finishInteriorExit();
  openPanel('Não foi possível abrir o cômodo',`<p>A fazenda foi recuperada e seu progresso foi mantido.</p><p>Detalhe da falha:</p><pre id="room-error-detail" style="white-space:pre-wrap;overflow-wrap:anywhere"></pre><button class="primary" id="retry-room">Tentar entrar novamente</button><button class="secondary" id="continue-farm">Continuar na fazenda</button>`);
- $('room-error-detail').textContent=`v0.13.0 · ${room==='barn'?'Celeiro':'Casa'} · ${error.name}: ${error.message}`;
+ $('room-error-detail').textContent=`v0.13.1 · ${room==='barn'?'Celeiro':'Casa'} · ${error.name}: ${error.message}`;
  $('retry-room').onclick=()=>{closePanel();entranceLockedUntil=0;enterInterior(room);};$('continue-farm').onclick=closePanel;
 }
 function enterInterior(room:'house'|'barn'){

@@ -4,19 +4,19 @@ import Phaser from 'phaser';
 import {LAND_SITES,BUILDINGS,type LandSite} from './plots';
 import type {Farm} from './farm';
 export class LandWorld{
- private labels:{text:Phaser.GameObjects.Text;outline:Phaser.GameObjects.Graphics;x:number;y:number;owned:boolean}[]=[];
+ private labels:{outline:Phaser.GameObjects.Graphics;x:number;y:number;owned:boolean}[]=[];
  private signature='';private objects:Phaser.GameObjects.GameObject[]=[];private bodies:Phaser.GameObjects.Zone[]=[];
  constructor(private scene:Phaser.Scene,private obstacles:Phaser.Physics.Arcade.StaticGroup){buildingTextures(scene);barnMaterials(scene);coopTexture(scene);}
  update(f:Farm){const signature=JSON.stringify([f.landParcels,f.landOwned,f.buildings]);if(signature===this.signature)return false;this.signature=signature;for(const o of this.objects)o.destroy();for(const z of this.bodies)z.destroy();this.objects=[];this.bodies=[];this.labels=[];
  for(const [id,p] of Object.entries(LAND_SITES)){
   const owned=(f.landParcels??(f.landOwned?[{site:'west'}]:[])).some(v=>v.site===id),g=this.scene.add.graphics().setDepth(.8);this.objects.push(g);g.lineStyle(1,owned?0xd4ba7f:0x99b876,owned?.75:.4);g.strokeRect(p.x-21,p.y-21,162,122);if(owned){g.fillStyle(0xab8d52,.14);g.fillRect(p.x-20,p.y-20,160,120);}
-  const label=this.scene.add.text(p.x+60,p.y-37,owned?p.name:'Terreno disponível · venda',{fontFamily:'monospace',fontSize:'9px',color:'#f4e5ba',backgroundColor:'#354f35dd',padding:{x:4,y:3}}).setOrigin(.5).setDepth(3);this.objects.push(label);label.setVisible(false);g.setVisible(owned);this.labels.push({text:label,outline:g,x:p.x+60,y:p.y+40,owned});
+  g.setVisible(owned);this.labels.push({outline:g,x:p.x+60,y:p.y+40,owned});
  }
  for(const b of f.buildings??[]){if(['coop','pasture'].includes(b.kind)){this.habitat(b);continue;}const p=LAND_SITES[b.site],x=p.x+b.col*40+20,y=p.y+b.row*40+58;this.objects.push(this.scene.add.ellipse(x,y-3,76,21,0x243525,.3).setDepth(y-.3));this.objects.push(this.scene.add.image(x,y,`land-${b.kind}`).setOrigin(.5,1).setDepth(y));
   const z=this.scene.add.zone(x,y-20,66,36);this.obstacles.add(z);(z.body as Phaser.Physics.Arcade.StaticBody).setSize(66,36);this.bodies.push(z);
  }
  return true;}
- hints(player:{x:number;y:number},enabled:boolean){let closest:typeof this.labels[number]|undefined,best=125;for(const l of this.labels){l.text.setVisible(false);l.outline.setVisible(l.owned);const distance=Math.hypot(player.x-l.x,player.y-l.y);if(enabled&&distance<best){best=distance;closest=l;}}if(closest){closest.text.setVisible(true);closest.outline.setVisible(true);}}
+ hints(player:{x:number;y:number},enabled:boolean){let closest:typeof this.labels[number]|undefined,best=125;for(const l of this.labels){l.outline.setVisible(l.owned);const distance=Math.hypot(player.x-l.x,player.y-l.y);if(enabled&&distance<best){best=distance;closest=l;}}if(closest){closest.outline.setVisible(true);}}
  buildingAt(f:Farm,p:{x:number;y:number}){return f.buildings?.find(b=>{if(['coop','pasture'].includes(b.kind)){const q=outdoorBox(b);return p.x>q.x&&p.x<q.x+q.width&&p.y>q.y-30&&p.y<q.y+q.height;}const s=LAND_SITES[b.site],x=s.x+b.col*40+20,y=s.y+b.row*40+58;return Math.abs(p.x-x)<42&&p.y<y+8&&p.y>y-94;});}
  access(b:NonNullable<Farm['buildings']>[number]){if(['coop','pasture'].includes(b.kind)){const q=outdoorBox(b);return{x:q.x+q.width/2,y:q.y+q.height+20};}const s=LAND_SITES[b.site];return{x:s.x+b.col*40+20,y:s.y+b.row*40+85};}
  private habitat(b:NonNullable<Farm['buildings']>[number]){const q=outdoorBox(b),{x,y,width:w,height:h}=q;
