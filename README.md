@@ -1,3 +1,5 @@
+Correção 0.12.4: cache do piso preserva indicadores vivos e ovos, mantendo posições individuais e recuperando o desenho original se a captura falhar. Acabamento gráfico do celeiro retomado.
+
 Correção 0.12.3: restauração da apresentação anterior do celeiro e recuperação de falhas durante criação/atualização de interiores, com mensagem de diagnóstico e nova tentativa sem apagar dados.
 
 Correção 0.12.2: entrada por E não repete o comando no interior; caminhada dos cães usa silhuetas estáveis, opacas e quadros com margem transparente.

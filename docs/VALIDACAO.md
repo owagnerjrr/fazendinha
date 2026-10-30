@@ -1,3 +1,13 @@
+## Correção 0.12.4 — cache do celeiro
+
+A causa foi reproduzida no jogo compilado: o cache antigo destruía imagens ocultas de necessidades e produtos dos animais, criadas na profundidade zero. Na atualização seguinte, o acesso a `scene.sys` dessas imagens falhava. O caminho antes exclusivo de WebGL foi exercitado em Canvas para reproduzir a mesma falha de ciclo de vida.
+
+O cache agora preserva objetos dinâmicos explicitamente, ignora imagens ocultas/inativas e captura cada objeto na sua posição relativa ao cômodo. Os originais só são removidos após captura bem-sucedida; falhas mantêm o cenário original. Canvas e WebGL usam a mesma seleção e captura. O acabamento gráfico do celeiro foi restaurado, mantendo a correção anterior dos quadros do cachorro.
+
+Validação: 98 testes automatizados aprovados e build de produção concluído (PWA c9b36fa061e3). No jogo compilado, com dados locais fictícios: entrada com E, atualizações sucessivas sem erro, saída pelo botão, reentrada com E, painel de necessidades e coleta de um ovo da galinha interna (inventário 0 → 1). Registro em `screenshots/celeiro-cache-0.12.4.jpg`. O navegador remoto usa Canvas e baixa frequência de quadros; não valida desempenho em GPU WebGL nem 60 FPS em aparelhos físicos. Não houve teste físico de celular nesta correção.
+
+Não há migração ou alteração nas regras de salvamento, economia ou autenticação. A inspeção online foi somente agregada e de leitura; nenhum progresso real foi alterado.
+
 > Atualização 0.4: a conta online, as regras e o escopo social estão descritos em [ONLINE.md](ONLINE.md). As descrições abaixo da versão local 0.3 são históricas.
 
 # Validação da versão 0.1

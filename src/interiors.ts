@@ -1,3 +1,4 @@
+import {buildBarnShell} from './barn-design';
 import {claimInteractionEvent} from './interaction-event';
 import {display} from './display-settings';
 import {bakeFloor} from './static-layer';
@@ -26,16 +27,8 @@ export class InteriorScene extends Phaser.Scene {
  create(){try{this.createRoom();}catch(error){this.failRoom(error);}}
  private createRoom(){
   const s=this.services;this.art=new AvatarArt(this);this.cameras.main.setBackgroundColor('#20382f');
-  const g=this.add.graphics();
   if(this.room==='barn'){
-   barnMaterials(this);this.add.tileSprite(160,220,880,586,'barn-floor').setOrigin(0).setDepth(.5);
-   g.fillStyle(0xc3b183);g.fillRect(150,140,900,80);g.fillStyle(0x624b36);g.fillRect(150,210,900,14);g.fillRect(150,140,14,680);g.fillRect(1036,140,14,680);g.fillRect(150,806,380,14);g.fillRect(670,806,380,14);g.fillStyle(0x9b7b4e);g.fillRect(530,790,140,35);
-   for(const x of [170,460,740,1030])this.add.tileSprite(x,180,84,15,'barn-board').setRotation(Math.PI/2).setDepth(225);
-   this.add.tileSprite(600,213,900,15,'barn-board').setDepth(226);
-   const wall=this.add.graphics().setDepth(224);wall.fillStyle(0x725334);wall.fillRect(164,190,872,19);wall.fillStyle(0x9d7a48);wall.fillRect(164,190,872,3);for(let x=170;x<1036;x+=28){wall.fillStyle(0x997b51);wall.fillRect(x,195,24,11);wall.fillStyle(0xb19465);wall.fillRect(x+1,195,22,1);}wall.fillStyle(0x453520,.2);wall.fillRect(164,214,872,9);
-   const light=this.add.graphics().setDepth(2);for(const x of [325,880]){light.fillStyle(0xf5d58d,.055);light.fillTriangle(x-23,225,x+25,225,x+125,500);}
-   for(const x of [215,505,695,985]){this.add.image(x,210,'barn-lantern').setOrigin(.5,1).setDepth(225);const glow=this.add.graphics().setDepth(2);for(const [radius,alpha] of [[55,.035],[35,.045],[18,.05]])glow.fillStyle(0xf5c474,alpha).fillEllipse(x,220,radius*2,radius*1.3);}
-   for(const x of [325,880])this.add.image(x,204,'life-window').setOrigin(.5,1).setDisplaySize(54,60).setDepth(220);
+   barnMaterials(this);buildBarnShell(this);
   }
   const group=this.physics.add.staticGroup();
   const block=(x:number,y:number,w:number,h:number)=>{const z=this.add.zone(x+w/2,y+h/2,w,h);group.add(z);(z.body as Phaser.Physics.Arcade.StaticBody).setSize(w,h);this.blocks.push({x,y,width:w,height:h});};
