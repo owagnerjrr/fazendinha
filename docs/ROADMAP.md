@@ -1,3 +1,5 @@
+0.19.2 — Rosto escuro com sombras recoloridas junto à pele. Seleção visual sem legendas/campo Estilo, quatro tons de pele e cabelo sem acobreado; índices antigos preservados ao abrir a edição.
+
 0.19.1 — Substituída a montagem por cabeças separadas pela preservação do sprite completo. Recoloração de pele mais restrita, sem atingir botas; estilos com escala consistente, limpeza de fragmentos, clipping por quadro e capuz noturno redesenhado em torno do rosto original.
 
 0.19.0 — Corrigida a união de cabeça/pescoço/corpo dos avatares personalizados. Modelos sem nomes prontos; novo capuz noturno preto/rosa original e roupa preta no cadastro e guarda-roupa.

@@ -4,12 +4,12 @@ export const PROFILE_DRAFT_KEY='wj-profile-draft-v1';
 export type ProfileDraft={version:1;name:string;avatar:Avatar;step:1|2|3};
 export const CHARACTER_PRESETS:{id:string;description:string;avatar:Avatar}[]=[
  {id:'lia',description:'Menina · afro com coques',avatar:{style:'puffs',skin:4,hair:0,shirt:2}},
- {id:'caio',description:'Menino · cabelo crespo',avatar:{style:'crop',skin:5,hair:0,shirt:1}},
+ {id:'caio',description:'Menino · cabelo crespo',avatar:{style:'crop',skin:4,hair:0,shirt:1}},
  {id:'rosa',description:'Menina · tranças',avatar:{style:'braids',skin:3,hair:1,shirt:4}},
- {id:'leo',description:'Menino · cabelo curto',avatar:{style:'short',skin:1,hair:1,shirt:3}},
+ {id:'leo',description:'Menino · cabelo curto',avatar:{style:'short',skin:0,hair:1,shirt:3}},
  {id:'ana',description:'Menina · chapéu de palha',avatar:{...DEFAULT_AVATAR}},
  {id:'night',description:'Capuz noturno · preto e rosa',avatar:{style:'hood',skin:0,hair:0,shirt:6}},
- {id:'rui',description:'Menino · cabelo curto',avatar:{style:'crop',skin:2,hair:2,shirt:5}},
+ {id:'rui',description:'Menino · cabelo curto',avatar:{style:'crop',skin:2,hair:1,shirt:5}},
 ];
 export function normalizePlayerName(value:unknown):string|null {
  if(typeof value!=='string'||/[\u0000-\u001f\u007f]/.test(value))return null;

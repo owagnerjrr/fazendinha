@@ -370,3 +370,10 @@ A substituição de cabeça apagava 40 linhas e removia parte do corpo. O recort
 A revisão anterior ainda deformava a composição. A nova versão preserva o corpo e o rosto do sprite nativo; não usa mais as cabeças v5 redimensionadas. Cabelos são aplicados na mesma grade, sem alterar a identidade salva. Recoloração de pele exige tons de pêssego e não muda botas/madeira; bordas passam a alfa binário e componentes de menos de oito pixels são retirados, preservando ferramentas maiores. Toda decoração é limitada à célula do quadro para impedir invasão de sprites vizinhos. Capuz redesenhado com curvas em degraus, orelhas e coração rosa ao redor do rosto original.
 
 132 testes e build aprovados. Teste específico verifica remoção de halo/fragmento sem apagar corpo ou ferramenta separada. Fixture real de AvatarArt ampliado com escolha dos quatro quadros; conferidos sete modelos em quatro direções na caminhada e último quadro de ação da enxada. Aparência de cadastro e economia continuam usando os mesmos IDs e índices. Sem migração, exclusão de contas ou alteração do progresso; sem teste físico de celular.
+
+
+## Aparência simplificada 0.19.2 — 30/10/2026
+
+O rosto original tem sombras laranja/marrons que escapavam à regra de recoloração de realces claros. A região delimitada do rosto agora recolore esses meios-tons com a mesma paleta de pele e contraste moderado, preservando olhos/contornos. Inspeção visual em quatro direções conferiu rostos escuros sem manchas alaranjadas anteriores.
+
+Cadastro e guarda-roupa têm seleção por imagem, sem legendas ou seletor Estilo. Tons visíveis: Claro, Moreno, Castanho e Negro. Acobreado removido do cabelo. IDs numéricos de saves antigos não são deslocados: seleções legadas são mantidas ocultas até a pessoa escolher outra cor, sem alteração automática da conta. Presets novos usam apenas as opções visíveis. 134 testes e build aprovados, incluindo opções permitidas e preservação de índices antigos. Sem migração ou novo login pessoal.

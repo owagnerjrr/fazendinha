@@ -37,7 +37,10 @@ export class AvatarArt {
    for(let y=0;y<h;y++)for(let x=0;x<w;x++){
     const i=(y*w+x)*4;if(p[i+3]<180)continue;const r=p[i],g=p[i+1],b=p[i+2];let target:number[]|null=null,shade=1;
     if(y>top+23&&y<h-8&&Math.abs(x-cx)<23&&g>r*1.08&&g>b*1.1){target=shirt;shade=Math.max(.35,Math.min(1.3,(r+g+b)/180));}
-    // Peach skin only: brown boots, trousers, hair and outlines are never skin.
+    // The native face includes orange/brown shadow pixels, not just peach highlights.
+    // Recolor that bounded face region together, preserving eyes and outlines.
+    else if(y>top+21&&y<top+34&&Math.abs(x-(cx+(row===1?-3:row===2?3:0)))<9&&row!==3&&r>125&&g>55&&r>g*1.15&&b<g*1.1){target=skin;shade=Math.max(.72,Math.min(1.12,(r+g+b)/540));}
+    // Outside the face, recolor only peach skin so boots remain brown.
     else if(y>top+15&&y<h-13&&Math.abs(x-cx)<23&&r>200&&g>125&&g<r*.84&&b>85&&b<g*.85){target=skin;shade=Math.max(.5,Math.min(1.15,(r+g+b)/565));}
     else if(y>top+16&&y<top+31&&Math.abs(x-cx)<20&&r>65&&r<180&&g<r*.55&&b<65){target=hair;shade=Math.max(.4,Math.min(1.1,r/125));}
     if(target){p[i]=Math.min(255,target[0]*shade);p[i+1]=Math.min(255,target[1]*shade);p[i+2]=Math.min(255,target[2]*shade);}
