@@ -1,3 +1,5 @@
+0.19.4 — Cadastro sem conta é temporário em memória: recarregar começa novamente pela abertura, sem retomar nome/personagem. Rascunhos anônimos antigos deixam de ser usados; progresso das contas segue no servidor.
+
 0.19.3 — Abertura sempre aparece sem sessão ativa, mesmo com rascunho ou save local antigo. Continuar meu cadastro retoma nome/personagem; contas conectadas continuam entrando direto.
 
 0.19.2 — Rosto escuro com sombras recoloridas junto à pele. Seleção visual sem legendas/campo Estilo, quatro tons de pele e cabelo sem acobreado; índices antigos preservados ao abrir a edição.

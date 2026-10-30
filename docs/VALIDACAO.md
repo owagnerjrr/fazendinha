@@ -382,3 +382,10 @@ Cadastro e guarda-roupa têm seleção por imagem, sem legendas ou seletor Estil
 ## Retorno à abertura 0.19.3 — 30/10/2026
 
 Removido o desvio automático para personagem por haver rascunho e o desvio local antigo para a fazenda sem sessão ativa. Sem sessão, o ponto de entrada é sempre a abertura; o botão Continuar meu cadastro retoma as escolhas. Conta conectada com perfil completo continua entrando direto; perfil incompleto conectado mantém sua conclusão. Nome/personagem salvos e fazendas não são apagados. 134 testes e build aprovados; regressão cobre rascunho e saves antigos sem sessão.
+
+
+## Cadastro temporário 0.19.4 — 30/10/2026
+
+Nome, personagem e etapa de cadastro não são mais gravados em localStorage. Rascunhos antigos de cadastro são descartados ao iniciar; saves da fazenda e contas não são excluídos. As escolhas duram somente enquanto a página está aberta; recarregar sem sessão volta à abertura, com novo formulário vazio. O redirecionamento Google também encerra essa escolha temporária; perfil de conta incompleta é preenchido após autenticar. Perfil concluído continua salvo pelo comando autenticado initialize-profile no servidor.
+
+134 testes e build aprovados. Nenhum cadastro anônimo é restaurado ou gravado; botão Continuar meu cadastro removido. Sessão ativa com perfil completo continua entrando diretamente. Sem novo login pessoal.

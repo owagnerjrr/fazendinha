@@ -513,7 +513,7 @@ function finishInteriorExit(){entranceLockedUntil=performance.now()+600;currentI
 function recoverInterior(error:Error,room:'house'|'barn'){
  game.scene.stop('Interior');game.scene.wake('Farm');finishInteriorExit();
  openPanel('Não foi possível abrir o cômodo',`<p>A fazenda foi recuperada e seu progresso foi mantido.</p><p>Detalhe da falha:</p><pre id="room-error-detail" style="white-space:pre-wrap;overflow-wrap:anywhere"></pre><button class="primary" id="retry-room">Tentar entrar novamente</button><button class="secondary" id="continue-farm">Continuar na fazenda</button>`);
- $('room-error-detail').textContent=`v0.19.3 · ${room==='barn'?'Celeiro':'Casa'} · ${error.name}: ${error.message}`;
+ $('room-error-detail').textContent=`v0.19.4 · ${room==='barn'?'Celeiro':'Casa'} · ${error.name}: ${error.message}`;
  $('retry-room').onclick=()=>{closePanel();entranceLockedUntil=0;enterInterior(room);};$('continue-farm').onclick=closePanel;
 }
 function enterInterior(room:'house'|'barn'){
