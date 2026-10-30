@@ -507,3 +507,8 @@ Para repetir o QA visual: iniciar Vite e executar `node scripts/qa-store-browser
 
 ### Assinatura de Orders — correção de maiúsculas
 A simulação oficial chegou e retornou 401. Revisão do SDK oficial atual confirmou que data.id deve preservar maiúsculas/minúsculas; o validador anterior convertia IDs alfanuméricos para minúsculas. Corrigido o manifesto e o tratamento de espaços nos componentes do cabeçalho, com comparação em tempo constante preservada. 180 testes passam, incluindo recusa de ID alterado e compatibilidade do formato atual do SDK. Ainda é necessária nova simulação oficial após o deploy; o segredo não foi substituído.
+
+## 0.25.2 — pesca e ferramenta ativa
+Consulte FISHING_0_25_2.md. Teste de regressão cobre linha antiga fora do rio sem bloqueio/aviso e empunhadura limitada nas quatro direções.
+
+195 testes e build aprovados. Navegador com fazenda fixture: desktop e celular verificaram linha antiga longe do rio, botão principal sem trocar para Mão e lançamento na ponte; zero erros JavaScript. Capturas conferidas. Sem telefone físico ou transações reais.
