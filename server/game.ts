@@ -15,7 +15,7 @@ import { createHash } from 'node:crypto';
 import type { PoolClient } from 'pg';
 import { pool } from './db.js';
 import { applyCommand, newOnlineFarm, replenish, type OnlineFarm } from '../src/online-rules.js';
-import { getPlot, allPlots, upgradeFarm, hasPests, remaining, CROPS, type Crop } from '../src/farm.js';
+import { soilTime, getPlot, allPlots, upgradeFarm, hasPests, remaining, CROPS, type Crop } from '../src/farm.js';
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const codePattern = /^[A-Z0-9]{10}$/;
 export class GameError extends Error { constructor(message: string, public status = 400) { super(message); } }
@@ -160,23 +160,25 @@ async function social(db:PoolClient,user:string,row:any,c:any,now:number) {
       await db.query("INSERT INTO social_notifications(user_id,actor_id,kind) VALUES($1,$2,'visit_steal')",[target.user_id,user]);
       return {ok:true,message:'Você pegou 1 produto! O amigo mantém pelo menos 2 e ganha 1 hora de proteção.'};
     }
-    const used=await db.query('SELECT 1 FROM farm_help WHERE helper=$1 AND owner=$2 AND day=$3',[user,target.user_id,day]);
-    if(used.rowCount) throw new GameError('Você já ajudou esta fazenda hoje. Volte amanhã!');
+    const mode=c.mode??'water';if(!['hoe','plant','water','clean'].includes(mode))throw new GameError('Ajuda inválida.');
+    const used=await db.query('SELECT 1 FROM farm_help WHERE helper=$1 AND owner=$2 AND day=$3 AND plot=$4 AND mode=$5',[user,target.user_id,day,c.plot,mode]);
+    const helpXp=used.rowCount?0:5; // Repeat useful care, but award XP once per plot/action/day.
     let action='regou uma plantação';
-    if(c.mode==='plant'){
+    if(mode==='hoe'){if(plot.crop||plot.tilled)throw new GameError('Escolha terra vazia que ainda não foi preparada.');plot.tilled=true;plot.tilledAt=soilTime(target.state,now);action='preparou a terra';
+    }else if(mode==='plant'){
       if(plot.crop||!Object.hasOwn(CROPS,c.crop)||row.state.seeds[c.crop as Crop]<1)throw new GameError('Canteiro ocupado ou semente indisponível.');
       row.state.seeds[c.crop as Crop]--;plot.tilled=true;plot.crop=c.crop;plot.growthDurationMs=CROPS[c.crop as Crop].seconds*1000;plot.wateredAt=null;plot.pestAt=null;plot.stolen=0;if(target.state.careVersion)plot.care={startedAt:now,lastWateredAt:null,growthMs:0,checkpointAt:now,illnessAt:null};action='plantou uma semente';
-    }else if(c.mode==='clean'){
+    }else if(mode==='clean'){
       if(!hasPests(plot,now))throw new GameError('Esta plantação não tem pragas.');settlePlant(plot,now);plot.pestAt=null;action='removeu pragas';
     }else{
-      if(!plot.crop||plot.wateredAt!==null&&plantNeeds(plot,now).water>80)throw new GameError('Escolha uma plantação precisando de água.');if(plot.care){settlePlant(plot,now);plot.care.lastWateredAt=now;plot.care.checkpointAt=now;}plot.wateredAt??=now;
+      if(!plot.crop||plot.wateredAt!==null&&plantNeeds(plot,now).water>=100)throw new GameError('Escolha uma plantação precisando de água.');if(plot.care){settlePlant(plot,now);plot.care.lastWateredAt=now;plot.care.checkpointAt=now;}plot.wateredAt??=now;
     }
-    row.state.xp+=5;
-    await db.query('INSERT INTO farm_help(helper,owner,day,plot) VALUES($1,$2,$3,$4)',[user,target.user_id,day,c.plot]);
+    row.state.xp+=helpXp;
+    await db.query('INSERT INTO farm_help(helper,owner,day,plot,mode) VALUES($1,$2,$3,$4,$5) ON CONFLICT DO NOTHING',[user,target.user_id,day,c.plot,mode]);
     target.state.visitLog.unshift({name:row.name,action,at:now});target.state.visitLog=target.state.visitLog.slice(0,20);
     await db.query('UPDATE farms SET state=$2,revision=revision+1 WHERE user_id=$1',[target.user_id,target.state]);
     await db.query("INSERT INTO social_notifications(user_id,actor_id,kind) VALUES($1,$2,'visit_help')",[target.user_id,user]);
-    return {ok:true,message:'Ajuda concluída! +5 XP pela amizade.'};
+    return {ok:true,message:helpXp?'Ajuda concluída! +5 XP pela amizade.':'Ajuda concluída! Seu amigo já pode continuar cuidando da plantação.'};
   }
   if(c.type==='return-market-reservations'){
     const reserved=await db.query("SELECT * FROM market_listings WHERE seller=$1 AND status='open' FOR UPDATE",[user]);

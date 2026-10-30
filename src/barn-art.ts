@@ -55,7 +55,7 @@ export function buildBarn(scene:Phaser.Scene,farm:Farm,block:Block,animals:(id?:
   access(id:string){const a=actors.find(a=>a.pen.animals[a.index].id===id);if(!a)return;const left=a.pen.x+a.pen.width+28,right=a.pen.x-28;return{x:a.pen.side==='left'?left:right,y:Math.max(a.pen.y+22,Math.min(a.pen.y+a.pen.height-16,visitor?.y??a.sprite.y))};},
   beginCare(id:string,type:'pet-animal'|'play-animal',time:number){const a=actors.find(a=>a.pen.animals[a.index].id===id);if(!a)return false;care={id,type,start:time,from:{x:a.sprite.x,y:a.sprite.y},pen:a.pen};return true;},
   endCare(){if(care){const a=actors.find(a=>a.pen.animals[a.index].id===care!.id);if(a)returning.set(care.id,{x:a.sprite.x,y:a.sprite.y,start:scene.time.now});}care=null;},
-  contact(id:string){const a=actors.find(a=>a.pen.animals[a.index].id===id);return a?{x:a.sprite.x,y:a.sprite.y}:undefined;},
+  contact(id:string){const a=actors.find(a=>a.pen.animals[a.index].id===id);if(!a)return;const side=a.pen.side==='left'?1:-1;return{x:a.sprite.x,y:a.sprite.y,headX:a.sprite.x+side*a.sprite.displayWidth*.28,headY:a.sprite.y-a.sprite.displayHeight*.64};},
   update(time:number,current:Farm,now:number,player?:{x:number;y:number}){
   visitor=player;
   if(gateState!==(care?.pen.id??null)){gateState=care?.pen.id??null;for(const pen of pens){const gate=gates.get(pen.id)!;const gateX=pen.side==='left'?pen.x+pen.width-10:pen.x-2;gateLeaves.get(pen.id)?.setVisible(care?.pen.id!==pen.id);gate.clear().lineStyle(2,0xc09759,.65);if(care?.pen.id===pen.id){gate.lineBetween(gateX,pen.y+39,gateX+(pen.side==='left'?-27:27),pen.y+39);}else{gate.strokeRect(gateX,pen.y+39,12,39);gate.lineBetween(gateX,pen.y+42,gateX+12,pen.y+75);}}}
@@ -65,10 +65,10 @@ export function buildBarn(scene:Phaser.Scene,farm:Farm,block:Block,animals:(id?:
    else if(pose.walking&&scene.textures.exists(`walk-${kind}`))a.sprite.setTexture(`walk-${kind}`,pose.frame);else a.sprite.setTexture(`life-${kind}${pose.blink?'-blink':''}`);
    if(kind==='cat')a.sprite.setTexture(catTexture(a.pen.animals[a.index].color),pose.walking?pose.frame:0);
    if(care&&a.pen.animals[a.index].id===care.id){
-    const elapsed=time-care.start,t=Math.min(1,elapsed/1000),ease=t*t*(3-2*t),edge=a.pen.side==='left'?a.pen.x+a.pen.width-22:a.pen.x+22;
+    const elapsed=time-care.start,t=Math.min(1,elapsed/750),ease=t*t*(3-2*t),edge=a.pen.side==='left'?a.pen.x+a.pen.width-8:a.pen.x+8;
     pose.x=care.from.x+(edge-care.from.x)*ease;pose.y=care.from.y+((visitor?.y??a.pen.access.y)-care.from.y)*ease;pose.flip=a.pen.side==='right';
     if(kind==='dog'){pose.flip=false;const dx=edge-care.from.x,row=dx<0?1:2;const playing=care.type==='play-animal'&&elapsed>1100&&!matchMedia('(prefers-reduced-motion: reduce)').matches;const hop=playing?Math.sin((elapsed-1100)/300)*8:0;pose.x+=a.pen.side==='left'?-Math.abs(hop):Math.abs(hop);a.sprite.setTexture(dogTexture(t<1||playing,t<1||playing?row*4+Math.floor(elapsed/160)%4:row));}
-    else if(t>=1){pose.height*=1+Math.sin(elapsed/180)*.025;a.sprite.setTexture(`life-${kind}`);}
+    else if(t>=1){if(kind==='cat')a.sprite.setTexture(catTexture(a.pen.animals[a.index].color),0);else a.sprite.setTexture(`life-${kind}`);}
     pose.eating=false;
    }else if(care){pose.x=a.sprite.x;pose.y=a.sprite.y;pose.eating=false;}
    const back=returning.get(a.pen.animals[a.index].id);if(back&&!care){const t=Math.min(1,(time-back.start)/700);pose.x=back.x+(pose.x-back.x)*t;pose.y=back.y+(pose.y-back.y)*t;if(t>=1)returning.delete(a.pen.animals[a.index].id);}

@@ -12,16 +12,16 @@ test('care changes wellbeing, survives reload, and cannot farm money or restart 
  const f=makeFarm(),hen=f.animals[0],now=100000;hen.fedAt=now;hen.wateredAt=now;hen.collectedAt=now;
  const original={coins:f.coins,feed:f.feed,products:{...f.products},collectedAt:hen.collectedAt};
  assert.equal(applyLife(f,{type:'pet-animal',id:hen.id},now).ok,true);assert.equal(hen.pettedAt,now);
- assert.equal(applyLife(f,{type:'pet-animal',id:hen.id},now+59999).ok,false);assert.equal(hen.pettedAt,now);
+ assert.equal(applyLife(f,{type:'pet-animal',id:hen.id},now+59999).ok,true);assert.equal(hen.pettedAt,now+59999);
  assert.equal(applyLife(f,{type:'play-animal',id:hen.id},now+60000).ok,false);
  assert.equal(animalReady(hen,now+90000),true);
  assert.deepEqual({coins:f.coins,feed:f.feed,products:f.products,collectedAt:hen.collectedAt},original);
- assert.equal(restoreFarm(JSON.stringify(f)).animals[0].pettedAt,now);
+ assert.equal(restoreFarm(JSON.stringify(f)).animals[0].pettedAt,now+59999);
 });
-test('dog play has a shared cooldown with petting, preserves protection and persists',()=>{
+test('dog play and petting do not force rest, preserves protection and persists',()=>{
  const f=makeFarm(),now=200000;f.animals.push({id:'dog',kind:'dog',fedAt:now,wateredAt:now,collectedAt:now});
  assert.equal(applyLife(f,{type:'play-animal',id:'dog'},now).ok,true);
- assert.equal(applyLife(f,{type:'pet-animal',id:'dog'},now+59999).ok,false);
+ assert.equal(applyLife(f,{type:'pet-animal',id:'dog'},now+59999).ok,true);
  assert.equal(dogProtects(f.animals,now+60000),true);
  assert.equal(applyLife(f,{type:'pet-animal',id:'dog'},now+60000).ok,true);
  const saved=restoreFarm(JSON.stringify(f)).animals.find(a=>a.id==='dog')!;assert.equal(saved.playedAt,now);assert.equal(saved.pettedAt,now+60000);

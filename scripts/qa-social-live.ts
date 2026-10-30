@@ -2,10 +2,11 @@
 import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';
 import {pool} from '../server/db';import {mutate} from '../server/game';import {presence,notifications,acknowledge} from '../server/social-live';import {newOnlineFarm} from '../src/online-rules';
 const {PGlite}=await import(process.env.PGLITE_MODULE??'@electric-sql/pglite');const db=new PGlite();
-for(const file of ['001-online.sql','002-life.sql','004-social-chat.sql','007_store.sql','008_store_credit.sql','009_orders_api.sql','010_social_live.sql','011_fertilizer_store.sql'])await db.exec(await readFile(new URL('../migrations/'+file,import.meta.url),'utf8'));
+for(const file of ['001-online.sql','002-life.sql','004-social-chat.sql','007_store.sql','008_store_credit.sql','009_orders_api.sql','010_social_live.sql','011_fertilizer_store.sql','012_friend_plot_help.sql'])await db.exec(await readFile(new URL('../migrations/'+file,import.meta.url),'utf8'));
 const query=async(sql:string,args?:unknown[])=>{const r=await db.query(sql,args);return{...r,rowCount:/^\s*(SELECT|WITH)/i.test(sql)?r.rows.length:r.affectedRows??r.rows.length};};
 const oldQuery=pool.query,oldConnect=pool.connect;pool.query=query as any;pool.connect=(async()=>({query,release(){}})) as any;
 const visitor=newOnlineFarm(Date.now()),owner=newOnlineFarm(Date.now());visitor.socialRaids=owner.socialRaids=true;visitor.animalRaids=owner.animalRaids=true;
+owner.careVersion=1;owner.careStartedAt=Date.now();
 owner.animals=[{id:'hen1',kind:'chicken',fedAt:null,collectedAt:0},{id:'hen2',kind:'chicken',fedAt:null,collectedAt:0},{id:'black-cat',kind:'cat',color:'black',fedAt:null,collectedAt:0}];
 await query('INSERT INTO farms(user_id,public_code,name,state) VALUES($1,$2,$3,$4),($5,$6,$7,$8),($9,$10,$11,$12)',['qa-visitor','QAVISIT001','QA Visitante',visitor,'qa-owner','QAOWNER001','QA Dono',owner,'qa-outsider','QAOTHER001','QA Outro',newOnlineFarm(Date.now())]);
 try{
@@ -24,6 +25,16 @@ try{
  await command('qa-visitor',{type:'animal-raids-setting',enabled:true});
  const helped=await command('qa-visitor',{type:'help',code:'QAOWNER001',plot:0,mode:'plant',crop:'carrot'});assert.equal(helped.ok,true);assert.equal(helped.farm.seeds.carrot,5);
  const planted=(await query("SELECT state FROM farms WHERE user_id='qa-owner'")).rows[0].state;assert.equal(planted.plots[0].crop,'carrot');assert.ok((await notifications('qa-owner')).events.some((e:any)=>e.kind==='visit_help'));
+ await command('qa-visitor',{type:'help',code:'QAOWNER001',plot:0,mode:'water'});
+ await assert.rejects(command('qa-visitor',{type:'help',code:'QAOWNER001',plot:0,mode:'water'}),/precisando de água/);
+ const xpBeforeRepeat=(await query("SELECT state FROM farms WHERE user_id='qa-visitor'")).rows[0].state.xp;
+ await query("UPDATE farms SET state=jsonb_set(state,'{plots,0,care,lastWateredAt}',$1::jsonb) WHERE user_id='qa-owner'",[String(Date.now()-3*3600000)]);
+ await command('qa-visitor',{type:'help',code:'QAOWNER001',plot:0,mode:'water'});
+ assert.equal((await query("SELECT state FROM farms WHERE user_id='qa-visitor'")).rows[0].state.xp,xpBeforeRepeat);
+ await command('qa-visitor',{type:'help',code:'QAOWNER001',plot:1,mode:'hoe'});
+ await command('qa-visitor',{type:'help',code:'QAOWNER001',plot:1,mode:'plant',crop:'carrot'});
+ await command('qa-visitor',{type:'help',code:'QAOWNER001',plot:1,mode:'water'});
+ assert.ok((await query("SELECT state FROM farms WHERE user_id='qa-owner'")).rows[0].state.plots.slice(0,2).every((p:any)=>p.wateredAt!==null));
  await assert.rejects(command('qa-visitor',{type:'steal-animal',code:'QAOWNER001',animal:'black-cat'}),/celeiro/);
  await query("UPDATE farm_presence SET updated_at=now()-interval '4 seconds' WHERE user_id='qa-visitor'");await presence('qa-visitor',{code:'QAOWNER001',x:1050,y:795,direction:0});
  const stolen=await command('qa-visitor',{type:'steal-animal',code:'QAOWNER001',animal:'black-cat'});assert.equal(stolen.farm.animals[0].color,'black');assert.equal(stolen.farm.coins,50);

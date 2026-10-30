@@ -67,8 +67,6 @@ export function applyLife(f:Farm,c:any,now:number):{ok:boolean;message:string;ca
   if(c.type==='water-animal'){if(a.wateredAt!==undefined&&a.wateredAt!==null&&now>=a.wateredAt&&now-a.wateredAt<86400000)return fail('Este animal já tem água por 24 horas.');a.wateredAt=now;return {ok:true,message:'Água fresca disponível por 24 horas!'};}
   if(c.type==='pet-animal'||c.type==='play-animal'){
    if(c.type==='play-animal'&&a.kind!=='dog')return fail('Este animal prefere carinho tranquilo.');
-   const last=Math.max(a.pettedAt??-Infinity,a.playedAt??-Infinity);
-   if(now-last<60000)return fail('Deixe seu animal descansar um pouco antes de outra interação.');
    a.pettedAt=now;if(c.type==='play-animal')a.playedAt=now;
    return {ok:true,message:''};
   }
