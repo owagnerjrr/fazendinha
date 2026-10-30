@@ -1,3 +1,5 @@
+0.12.5 — Texturas individuais do cachorro e transição entre caminhada/repouso estabilizada. Sem alterações de contas ou regras da criação. Validação e limites em VALIDACAO.md.
+
 0.12.4: isolada falha de ciclo de vida no cache do piso; indicadores dos animais preservados. Acabamento do celeiro 0.12.1 retomado com cache corrigido e verificável também no renderizador Canvas.
 
 0.12.3: desenho do celeiro restaurado à base 0.12.0 após relato de travamento; cuidados e caminhada corrigida mantidos. Falhas de interiores agora recuperam a fazenda e exibem detalhe para diagnóstico.

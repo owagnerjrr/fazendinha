@@ -16,3 +16,15 @@ export function dogFollowRoute(start:Point,owner:Point,index:number,obstacles:Ob
  for(const target of candidates){const route=findPath(start,target,obstacles);if(route.length)return route;}
  return [];
 }
+
+export type DogGait={facing:DogFacing;distance:number;frame:number;lastMovedAt:number};
+/** Physics can skip a render tick. Keep a standing/walking silhouette through brief pauses. */
+export function dogAppearance(state:DogGait,dx:number,dy:number,now:number){
+ const moved=Math.hypot(dx,dy);
+ if(moved>.04){state.distance+=moved;state.facing=dogFacing(dx,dy);state.frame=dogFrame(state.facing,state.distance);state.lastMovedAt=now;}
+ const idle=Math.max(0,now-state.lastMovedAt);
+ if(idle<1200)return{walking:true,frame:idle<180?state.frame:state.facing*4};
+ // The supplied seated rear pose faces forward: retain the rear standing pose until sleep.
+ if(state.facing===3&&idle<10000)return{walking:true,frame:12};
+ return{walking:false,frame:(idle>=10000?4:0)+state.facing};
+}

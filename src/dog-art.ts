@@ -18,20 +18,30 @@ export function dogWalkPixels(pose:Uint8ClampedArray,width:number,height:number,
  }
  return out;
 }
-export const DOG_WALK_TEXTURE='dog-walk-stable';
-export const DOG_REST_TEXTURE='dog-rest-stable';
+/** Every pose owns a texture: no neighbouring atlas region can enter the rendered quad. */
+export const DOG_WALK_TEXTURE='dog-walk-single-v2';
+export const DOG_REST_TEXTURE='dog-rest-single-v2';
+export function dogTexture(walking:boolean,frame:number){return `${walking?DOG_WALK_TEXTURE:DOG_REST_TEXTURE}-${frame}`;}
+/** Align the opaque silhouette to one shared centre and ground line without resampling. */
+export function anchorDogPixels(source:Uint8ClampedArray,width:number,height:number){
+ const pixels=cleanDogPixels(source,width,height),out=new Uint8ClampedArray(pixels.length);let min=width,max=-1,bottom=-1;
+ for(let y=0;y<height;y++)for(let x=0;x<width;x++)if(pixels[(y*width+x)*4+3]){min=Math.min(min,x);max=Math.max(max,x);bottom=Math.max(bottom,y);}
+ if(bottom<0)return out;const dx=Math.floor((width-1-min-max)/2),dy=height-2-bottom;
+ for(let y=0;y<height;y++)for(let x=0;x<width;x++){const i=(y*width+x)*4,nx=x+dx,ny=y+dy;if(pixels[i+3]&&nx>=0&&nx<width&&ny>=0&&ny<height)out.set(pixels.subarray(i,i+4),(ny*width+nx)*4);}
+ return out;
+}
 export function dogArt(scene:Phaser.Scene){
- const stride=56,pad=4,size=48;
- for(const mode of ['walk','rest'] as const){const name=mode==='walk'?DOG_WALK_TEXTURE:DOG_REST_TEXTURE;if(scene.textures.exists(name))continue;
+ const size=48;
+ for(const mode of ['walk','rest'] as const){
   const source=scene.textures.get(`dog-${mode}`).getSourceImage() as HTMLImageElement,rows=mode==='walk'?4:2;
-  const canvas=document.createElement('canvas');canvas.width=stride*4;canvas.height=stride*rows;const c=canvas.getContext('2d')!;c.imageSmoothingEnabled=false;
+  if(scene.textures.exists(dogTexture(mode==='walk',rows*4-1)))continue;
   const sample=document.createElement('canvas');sample.width=size;sample.height=size;const b=sample.getContext('2d')!;b.imageSmoothingEnabled=false;
   for(let row=0;row<rows;row++)for(let col=0;col<4;col++){
+   const key=dogTexture(mode==='walk',row*4+col);if(scene.textures.exists(key))continue;
    b.clearRect(0,0,size,size);b.drawImage(source,(mode==='walk'?0:col)*size,row*size,size,size,0,0,size,size);
-   const frame=b.getImageData(0,0,size,size);frame.data.set(mode==='walk'?dogWalkPixels(frame.data,size,size,col):cleanDogPixels(frame.data,size,size));
-   c.putImageData(frame,col*stride+pad,row*stride+pad);
+   const frame=b.getImageData(0,0,size,size),anchored=anchorDogPixels(frame.data,size,size);frame.data.set(mode==='walk'?dogWalkPixels(anchored,size,size,col):anchored);
+   const canvas=document.createElement('canvas');canvas.width=size;canvas.height=size;canvas.getContext('2d')!.putImageData(frame,0,0);
+   scene.textures.addCanvas(key,canvas)!.setFilter(1);
   }
-  const atlas=scene.textures.addCanvas(name,canvas)!;atlas.setFilter(1);
-  for(let i=0;i<4*rows;i++)atlas.add(i,0,(i%4)*stride+pad,Math.floor(i/4)*stride+pad,size,size);
  }
 }

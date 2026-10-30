@@ -1,3 +1,11 @@
+## Correção 0.12.5 — animação do cachorro
+
+A revisão identificou uma troca instantânea entre pose de caminhada e pose sentada sempre que um tick de renderização não registrava deslocamento da física. O acompanhante agora mantém a silhueta da caminhada em pausas curtas, estabiliza em pé após 180 ms e só senta após 1,2 s sem movimento; deita após 10 s. Olhando para trás, permanece em pé até deitar, pois a arte sentada disponível não tem vista traseira.
+
+Os 16 passos e 8 repousos usam texturas independentes de 48×48, pixels opacos e alinhamento comum ao chão, compartilhados por celeiro e área externa. Isso elimina a amostragem de quadros vizinhos do atlas. A cama do cão fica na camada do piso: antes ela ocultava parte do corpo quando o cão andava sobre ela, conforme a ordenação por profundidade. Nenhuma regra de alimentação, proteção, produção, conta ou salvamento foi modificada.
+
+100 testes aprovados e build TypeScript/Vite/PWA concluído. O teste de regressão alterna movimento e ticks sem deslocamento a 120 Hz, verifica que o cão não senta durante o trajeto e confere parada, repouso e retomada. A prévia renderizou os 24 quadros isolados com alfa 0/255; o cenário real usou fazenda fictícia local. Conferidas entrada e reentrada no celeiro após o ajuste de profundidade da cama; captura em `screenshots/cachorro-0.12.5.jpg`. O navegador remoto usa Canvas e baixa frequência de quadros: o relato visual do usuário em WebGL/aparelho físico ainda requer confirmação após esta atualização.
+
 ## Correção 0.12.4 — cache do celeiro
 
 A causa foi reproduzida no jogo compilado: o cache antigo destruía imagens ocultas de necessidades e produtos dos animais, criadas na profundidade zero. Na atualização seguinte, o acesso a `scene.sys` dessas imagens falhava. O caminho antes exclusivo de WebGL foi exercitado em Canvas para reproduzir a mesma falha de ciclo de vida.

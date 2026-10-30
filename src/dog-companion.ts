@@ -1,10 +1,10 @@
 import Phaser from 'phaser';
-import {dogArt,DOG_WALK_TEXTURE,DOG_REST_TEXTURE} from './dog-art';
+import {dogArt,dogTexture} from './dog-art';
 import type {Farm} from './farm';
 import {ANIMAL_SIZE} from './barn-layout';
-import {dogFollowRoute,dogFacing,dogFrame,type DogFacing} from './dog-motion';
+import {dogFollowRoute,dogAppearance,type DogGait} from './dog-motion';
 import type {Point,Obstacle} from './pathfinding';
-type Dog={actor:Phaser.GameObjects.Image;sprite:Phaser.Physics.Arcade.Sprite;shadow:Phaser.GameObjects.Ellipse;name:Phaser.GameObjects.Text;route:Point[];nextRoute:number;stoppedAt:number;facing:DogFacing;last:Point;distance:number;stuck:number};
+type Dog={actor:Phaser.GameObjects.Image;sprite:Phaser.Physics.Arcade.Sprite;shadow:Phaser.GameObjects.Ellipse;name:Phaser.GameObjects.Text;route:Point[];nextRoute:number;gait:DogGait;last:Point;stuck:number};
 /** Owned visual companions. Feeding, water and protection stay authoritative on the server. */
 export class DogCompanions {
  private dogs=new Map<string,Dog>();private obstacleCache:Obstacle[]|null=null;private obstacleCount=-1;private nextPlan=0;
@@ -19,16 +19,16 @@ export class DogCompanions {
    let dog=this.dogs.get(animal.id);
    if(!dog){
     const route=dogFollowRoute(this.player,this.player,index,obstacles),spawn=route.at(-1);if(!spawn)return;
-    const sprite=this.scene.physics.add.sprite(spawn.x,spawn.y,DOG_REST_TEXTURE,0).setOrigin(.5,1).setDisplaySize(ANIMAL_SIZE.dog.width,ANIMAL_SIZE.dog.height).setCollideWorldBounds(true).setVisible(false);
+    const sprite=this.scene.physics.add.sprite(spawn.x,spawn.y,dogTexture(true,0)).setOrigin(.5,1).setDisplaySize(ANIMAL_SIZE.dog.width,ANIMAL_SIZE.dog.height).setCollideWorldBounds(true).setVisible(false);
     (sprite.body as Phaser.Physics.Arcade.Body).setSize(30,12).setOffset(9,34);
     this.scene.physics.add.collider(sprite,this.obstacles);this.scene.physics.add.collider(sprite,this.player);
     for(const other of this.otherAnimals)this.scene.physics.add.collider(sprite,other);for(const other of this.dogs.values())this.scene.physics.add.collider(sprite,other.sprite);
-    const actor=this.scene.add.image(spawn.x,spawn.y,DOG_REST_TEXTURE,0).setOrigin(.5,1).setDisplaySize(ANIMAL_SIZE.dog.width,ANIMAL_SIZE.dog.height);
-    dog={actor,sprite,shadow:this.scene.add.ellipse(spawn.x,spawn.y-2,22,6,0x203726,.28),name:this.scene.add.text(spawn.x,spawn.y-37,'',{fontFamily:'monospace',fontSize:'9px',color:'#fff4d6',backgroundColor:'#334a37c9',padding:{x:3,y:2}}).setOrigin(.5),route:[],nextRoute:now+index*130,stoppedAt:now,facing:0,last:{...spawn},distance:0,stuck:0};this.dogs.set(animal.id,dog);
+    const actor=this.scene.add.image(spawn.x,spawn.y,dogTexture(true,0)).setOrigin(.5,1).setDisplaySize(ANIMAL_SIZE.dog.width,ANIMAL_SIZE.dog.height);
+    dog={actor,sprite,shadow:this.scene.add.ellipse(spawn.x,spawn.y-2,22,6,0x203726,.28),name:this.scene.add.text(spawn.x,spawn.y-37,'',{fontFamily:'monospace',fontSize:'9px',color:'#fff4d6',backgroundColor:'#334a37c9',padding:{x:3,y:2}}).setOrigin(.5),route:[],nextRoute:now+index*130,gait:{lastMovedAt:now,facing:0,distance:0,frame:0},last:{...spawn},stuck:0};this.dogs.set(animal.id,dog);
    }
    const dx=dog.sprite.x-dog.last.x,dy=dog.sprite.y-dog.last.y,moved=Math.hypot(dx,dy),distance=Math.hypot(this.player.x-dog.sprite.x,this.player.y-dog.sprite.y);
-   if(moved>.04){dog.distance+=moved;dog.facing=dogFacing(dx,dy);dog.stoppedAt=now;dog.stuck=0;dog.actor.setTexture(DOG_WALK_TEXTURE,dogFrame(dog.facing,dog.distance));}
-   else {dog.actor.setTexture(DOG_REST_TEXTURE,(now-dog.stoppedAt>10000?4:0)+dog.facing);if(dog.route.length)dog.stuck++;}
+   const look=dogAppearance(dog.gait,dx,dy,now);dog.actor.setTexture(dogTexture(look.walking,look.frame));
+   if(moved>.04)dog.stuck=0;else if(dog.route.length)dog.stuck++;
    dog.last={x:dog.sprite.x,y:dog.sprite.y};
    if(distance>90&&now>=dog.nextRoute&&planned<1&&now>=this.nextPlan){dog.route=dogFollowRoute(dog.sprite,this.player,index,obstacles);dog.nextRoute=now+1300+index*30;planned++;this.nextPlan=now+150;}
    if(dog.stuck>45){dog.route=[];dog.nextRoute=now+500;dog.stuck=0;}
