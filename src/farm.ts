@@ -1,3 +1,4 @@
+import {restoreFishing,sellFish,type FishingState} from './fishing.js';
 import {completeCare} from './care-migration.js';
 import {grownMs,plantNeeds,settlePlant,PLANT_CARE} from './plant-care.js';
 import {LEGACY_CLOCK_START,type Calendar,type HomeState} from './world-time.js';
@@ -13,9 +14,9 @@ export const CROPS = {
   sunflower: { name: 'Girassol', icon: '🌻', seconds: 200, seedPrice: 24, sellPrice: 40, yield: 3 },
 } as const;
 export type Crop = keyof typeof CROPS;
-export type Tool = 'hand' | 'hoe' | 'seed' | 'water';
+export type Tool = 'hand' | 'hoe' | 'seed' | 'water' | 'rod';
 export type Plot = { id: number; tilled: boolean; crop: Crop | null; wateredAt: number | null; pestAt?:number|null; stolen?:number;care?:{startedAt:number;lastWateredAt:number|null;growthMs:number;checkpointAt:number;illnessAt:number|null} };
-export type Farm = { version: 1; careVersion?:1;careStartedAt?:number;supplies?:{medicine:number;plantMedicine:number;bedding:number}; calendar?:Calendar;home?:HomeState; profileComplete?:boolean; playerName?:string; landOwned?:boolean; landParcels?:LandParcel[]; buildings?:LandBuilding[]; coins: number; seeds: Record<Crop, number>; inventory: Record<Crop, number>; plots: Plot[]; harvests: number; questClaimed: boolean; player: { x: number; y: number }; avatar:Avatar; animals:Animal[]; products:Record<AnimalProduct,number>; feed:number; decorations:Decoration[]; socialRaids:boolean; raidProtectionUntil:number; visitLog:{name:string;action:string;at:number}[] };
+export type Farm = { version: 1; fishing?:FishingState; careVersion?:1;careStartedAt?:number;supplies?:{medicine:number;plantMedicine:number;bedding:number}; calendar?:Calendar;home?:HomeState; profileComplete?:boolean; playerName?:string; landOwned?:boolean; landParcels?:LandParcel[]; buildings?:LandBuilding[]; coins: number; seeds: Record<Crop, number>; inventory: Record<Crop, number>; plots: Plot[]; harvests: number; questClaimed: boolean; player: { x: number; y: number }; avatar:Avatar; animals:Animal[]; products:Record<AnimalProduct,number>; feed:number; decorations:Decoration[]; socialRaids:boolean; raidProtectionUntil:number; visitLog:{name:string;action:string;at:number}[] };
 const crops = Object.keys(CROPS) as Crop[];
 export const SAVE_KEY = 'wj-fazendinha-v1';
 export const makeFarm = (now=Date.now()): Farm => ({ version: 1, calendar:{startedAt:now,offsetMinutes:0}, landParcels:[],buildings:[],coins: 250, seeds: Object.fromEntries(crops.map(c=>[c,8])) as Record<Crop,number>, inventory: Object.fromEntries(crops.map(c=>[c,0])) as Record<Crop,number>, plots: Array.from({ length: 24 }, (_, id) => ({ id, tilled: false, crop: null, wateredAt: null })), harvests: 0, questClaimed: false, player: { x: 710, y: 650 }, avatar:{...DEFAULT_AVATAR}, animals:[{id:'starter-hen',kind:'chicken',fedAt:null,collectedAt:0}], products:{egg:0,milk:0,goatMilk:0},feed:5,decorations:[],socialRaids:false,raidProtectionUntil:0,visitLog:[] });
@@ -76,7 +77,7 @@ export function sellAll(farm: Farm) {
   let total = 0;
   for (const crop of crops) { total += farm.inventory[crop] * CROPS[crop].sellPrice; farm.inventory[crop] = 0; }
   for(const product of ['egg','milk','goatMilk'] as AnimalProduct[]){const price=Object.values(ANIMALS).find(a=>a.product===product)!.sellPrice;total+=(farm.products?.[product]??0)*price;if(farm.products)farm.products[product]=0;}
-  farm.coins += total; return total;
+  total+=sellFish(farm);farm.coins += total; return total;
 }
 export function restoreFarm(raw: string | null): Farm {
   if (!raw) return makeFarm();
@@ -93,7 +94,7 @@ export function restoreFarm(raw: string | null): Farm {
 }
 
 export function upgradeFarm<T extends Farm>(data:T):T {
- data.calendar??={startedAt:LEGACY_CLOCK_START,offsetMinutes:0};
+ restoreFishing(data);data.calendar??={startedAt:LEGACY_CLOCK_START,offsetMinutes:0};
  data.landParcels??=data.landOwned?[{site:'west',startId:24}]:[];data.buildings??=[];
  data.avatar=validAvatar(data.avatar)?data.avatar:{...DEFAULT_AVATAR};data.animals??=[{id:'starter-hen',kind:'chicken',fedAt:null,collectedAt:0}];data.products??={egg:0,milk:0,goatMilk:0};data.feed??=5;data.decorations??=[];data.socialRaids??=false;data.raidProtectionUntil??=0;data.visitLog??=[];for(const c of crops){data.seeds[c]??=0;data.inventory[c]??=0;}completeCare(data,CROPS);return data;
 }

@@ -37,6 +37,7 @@ export function buildBarnShell(scene:Phaser.Scene){
  scene.add.tileSprite(340,808,370,18,'barn-beam').setDepth(820);scene.add.tileSprite(860,808,370,18,'barn-beam').setDepth(820);
  g.fillStyle(0x665039).fillRect(530,790,140,34);g.fillStyle(0xbd9b62).fillRect(536,791,128,27);g.fillStyle(0xe0c38a).fillRect(536,791,128,3);g.fillStyle(0x7d5b37).fillRect(536,812,128,5);
  for(const x of [325,880]){scene.add.image(x,205,'life-window').setOrigin(.5,1).setDisplaySize(53,61).setDepth(224);g.fillStyle(0x4a3624,.15).fillEllipse(x+10,218,86,12);}
+ for(const x of [269,933])scene.add.image(x,220,'life-flowerPlanter').setDisplaySize(22,26).setOrigin(.5,1).setDepth(228);
  scene.add.image(600,164,'barn-horseshoe').setDepth(228);
  for(const x of [216,501,699,985]){scene.add.image(x,219,'barn-lantern').setOrigin(.5,1).setDepth(228);for(const [radius,alpha] of [[65,.035],[42,.045],[22,.06]])g.fillStyle(0xffcc78,alpha).fillEllipse(x,234,radius*2,radius*1.4);}
  // Light is drawn once onto the floor cache, never a full-screen dark overlay.

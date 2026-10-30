@@ -116,7 +116,7 @@ export class InteriorScene extends Phaser.Scene {
   const bond=this.bonding;if(bond&&bond.phase!=='arriving'){vx=0;vy=0;this.target=null;this.route=[];}
   const len=Math.hypot(vx,vy);this.player.setVelocity(len?vx/Math.max(1,len)*145:0,len?vy/Math.max(1,len)*145:0);if(len>.1)this.dir=Math.abs(vx)>Math.abs(vy)?vx<0?1:2:vy<0?3:0;
   const phase=this.breathing.frame(time,len>.1,!!bond,!display.breathing),idle=len<=.1&&!bond;
-  const tool=bond?'hand':s.tool(),base=tool==='hand'?'farmer-v2':`carry-${tool}`,key=idle?this.art.idleKey(base,s.farm().avatar):this.art.key(base,s.farm().avatar),frame=this.dir*4+(len>.1?Math.floor(time/140)%4:phase);this.actor.setTexture(key,frame).setScale(1.08).setOrigin(.5,tool==='hand'?62/64:100/112).setPosition(this.player.x,this.player.y-2).setDepth(this.player.y);
+  const tool=bond?'hand':s.tool(),base=tool==='hand'||tool==='rod'?'farmer-v2':`carry-${tool}`,key=idle?this.art.idleKey(base,s.farm().avatar):this.art.key(base,s.farm().avatar),frame=this.dir*4+(len>.1?Math.floor(time/140)%4:phase);this.actor.setTexture(key,frame).setScale(1.08).setOrigin(.5,base==='farmer-v2'?62/64:100/112).setPosition(this.player.x,this.player.y-2).setDepth(this.player.y);
   this.restFrame(time,phase);this.house?.updateHome(s.farm().home,time,this.rest?.kind==='sleep',this.reduced.matches);if(time>=this.nextUI){this.updateHouseControls();this.nextUI=time+100;}
   this.barn?.update(time,s.farm(),s.now(),this.player);this.gesture.clear();
   if(bond){

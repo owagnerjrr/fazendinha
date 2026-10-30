@@ -1,3 +1,5 @@
+Atualização 0.14.0: materiais e decoração dos interiores, passada de oito quadros para os animais, cuidados individuais compactos, vendedor Vartin e pesca na ponte. Compre a vara por 120 moedas na aba Pesca da venda, equipe-a e recolha a linha quando a boia sinalizar a fisgada. Lambari, Piaba, Mandi, Pacu e Tilápia ficam no inventário e podem ser vendidos. Progresso anterior preservado.
+
 Correção 0.13.2: no celeiro, interagir com uma baia abre somente os cuidados do animal mais próximo; clicar no animal abre seu próprio painel. A lista completa fica no menu Meus animais.
 
 Correção 0.13.1: exploração sem dicas escritas sobre o cenário, na fazenda, na casa e no celeiro. Ferramentas e ações de proximidade usam ícones; informações detalhadas continuam nos painéis do menu.

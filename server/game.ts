@@ -69,6 +69,7 @@ export async function mutate(user: string, body: any, version?: string|null) {
       row.name=row.state.playerName;await db.query('UPDATE farms SET name=$2 WHERE user_id=$1',[user,row.name]);row.result=result;
     }else if(c.type==='position') move(row,body.position,now);
     else if(['work','buy','sell','expand',...LIFE_COMMANDS].includes(c.type)) {
+      if(['cast-line','reel-line'].includes(c.type))move(row,body.position,now);
       if(c.type==='work') {
         move(row,body.position,now);
         const point=plotPosition(c.plot,row.state);if(!point)throw new GameError('Canteiro inválido.');
@@ -81,7 +82,7 @@ export async function mutate(user: string, body: any, version?: string|null) {
     row.result??={ok:true,message:'Posição salva.'};
     // Older cached clients may play before seeing the new welcome flow. Preserve that farm too.
     if(c.type!=='position'&&c.type!=='initialize-profile'&&row.state.profileComplete===false)row.state.profileComplete=true;
-    await db.query('UPDATE farms SET state=$2,revision=revision+1,last_action_at=now(),position_at=CASE WHEN $3 THEN now() ELSE position_at END WHERE user_id=$1',[user,row.state,c.type==='position'||c.type==='work']);
+    await db.query('UPDATE farms SET state=$2,revision=revision+1,last_action_at=now(),position_at=CASE WHEN $3 THEN now() ELSE position_at END WHERE user_id=$1',[user,row.state,['position','work','cast-line','reel-line'].includes(c.type)]);
     await db.query('INSERT INTO action_receipts(user_id,id,hash,result) VALUES($1,$2,$3,$4)',[user,body.id,hash,row.result]);
     await db.query('COMMIT');
     return {...row.result,farm:row.state,revision:row.revision+1,name:row.name,now};

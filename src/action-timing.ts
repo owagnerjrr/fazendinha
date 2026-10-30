@@ -3,6 +3,7 @@ import type { Tool } from './farm';
 export type Direction = 'down' | 'left' | 'right' | 'up';
 export const DIRECTION_ROW: Record<Direction, number> = { down: 0, left: 1, right: 2, up: 3 };
 export const ACTIONS = {
+  rod: {duration:800,impact:400},
   hoe: { duration: 840, impact: 390 },
   water: { duration: 1450, impact: 490 },
   seed: { duration: 540, impact: 240 },

@@ -1,11 +1,13 @@
+import {applyFishing,FISHING_COMMANDS} from './fishing.js';
 import {applyHusbandry,HUSBANDRY_COMMANDS} from './husbandry-rules.js';
 import {housingProblem} from './housing.js';
 import {applyHome} from './world-time.js';
 import { ANIMALS, DECOR, DECOR_SLOTS, animalReady, animalHydrated, validAvatar, type AnimalKind, type DecorationKind } from './content.js';
 import { LAND_PRICE, ORIGINAL_PLOTS, EXTRA_PLOTS, LAND_SITES, BUILDINGS, parcels, buildProblem, type LandSite, type BuildingKind } from './plots.js';
 import type { Farm } from './farm.js';
-export const LIFE_COMMANDS=[...HUSBANDRY_COMMANDS,'home','avatar','buy-land','build-land','buy-animal','buy-feed','feed-animal','water-animal','pet-animal','play-animal','rename-animal','start-incubation','hatch-chick','mature-chick','collect-animal','buy-decor','move-decor','raids-setting'] as const;
+export const LIFE_COMMANDS=[...FISHING_COMMANDS,...HUSBANDRY_COMMANDS,'home','avatar','buy-land','build-land','buy-animal','buy-feed','feed-animal','water-animal','pet-animal','play-animal','rename-animal','start-incubation','hatch-chick','mature-chick','collect-animal','buy-decor','move-decor','raids-setting'] as const;
 export function applyLife(f:Farm,c:any,now:number):{ok:boolean;message:string} {
+ if((FISHING_COMMANDS as readonly string[]).includes(c.type))return applyFishing(f,c,now);
  const fail=(message:string)=>({ok:false,message});
  if(f.careVersion&&(HUSBANDRY_COMMANDS as readonly string[]).includes(c.type))return applyHusbandry(f,c,now);
  if(c.type==='home')return applyHome(f,c,now);

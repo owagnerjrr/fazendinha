@@ -1,3 +1,5 @@
+0.14.0 — Pesca funcional com compra permanente de vara, cinco espécies, fisgada temporizada, inventário e venda; regras compartilhadas com validação de servidor, revisão e recibos existentes. Vartin atrás da venda; ponte sem árvores bloqueando a passagem. Corredor de ardósia, detalhes de interiores e caminhada de oito quadros para bovinos, caprinos e aves. Cuidados individuais com gerenciamento recolhível.
+
 0.13.2 — Cuidados individuais no celeiro: seleção por proximidade na baia, alcance menor e preservação da coleta por clique nos produtos.
 
 0.13.1 — Removidas legendas de ações, baias, terrenos, saída e nomes flutuantes. Barra com ícones e controles acessíveis; exploração e interações sem instruções automáticas.

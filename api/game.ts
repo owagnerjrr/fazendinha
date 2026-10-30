@@ -5,11 +5,11 @@ const json=(value:unknown,status=200)=>Response.json(value,{status,headers:{'Cac
 async function handle(request:Request) {
   try {
     const user=await identity(request);
-    await ensureFarm(user.id,user.name,request.headers.get('X-Farm-Version')==='5');
+    await ensureFarm(user.id,user.name,['5','6'].includes(request.headers.get('X-Farm-Version')??''));
     const url=new URL(request.url);
     // Cached clients from before the new species cannot render their animal kinds safely.
     // Refuse their requests before mutating data and ask them to update the app.
-    if(request.headers.get('X-Farm-Version')!=='5'){
+    if(request.headers.get('X-Farm-Version')!=='6'){
       const existing=await snapshot(user.id);
       if(requiresNewClient(existing.farm,request.headers.get('X-Farm-Version')))return json({error:CLIENT_UPDATE_MESSAGE},409);
     }

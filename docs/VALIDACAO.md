@@ -1,3 +1,13 @@
+## Pesca e interiores 0.14.0
+
+Pesca implementada como comandos econômicos reais: compra de vara permanente por 120 moedas; lançar, aguardar e recolher dentro de 6,5 segundos da fisgada. Espécie e momento são escolhidos pelo servidor na conta online. Local de pesca e deslocamento são validados antes da captura; revisão transacional e recibos impedem duplicação por repetição de pedido. Peixes podem ser vendidos a preços fixos. Migração preserva o inventário, avatar, animais e progresso anterior, e bloqueia clientes antigos quando a fazenda passa a ter dados de pesca. Não há nova configuração externa nem mudança no login Google.
+
+107 testes aprovados: compra única, equipamento/proximidade obrigatórios, captura única, recolhimento antecipado, perda/cancelamento, cinco espécies, restauração, venda única e compatibilidade de clientes; regressões existentes de contas, economia, produção e movimento incluídas. Build TypeScript/Vite/PWA aprovado. Na prévia real do jogo, com dados fictícios: compra da vara, captura de Piaba, inventário mantido após recarregar e venda por 6 moedas. Tela de 390×844 conferida com vara, controles de toque e retorno de peixe escapado. Casa e celeiro renderizaram com piso de ardósia e detalhes decorativos; respiração preservada. Animações usam oito quadros opacos sem sobrepor o sprite anterior; cachorro mantém sua arte isolada. Painel de cuidados reduzido e opções de nome/transferência em Mais opções.
+
+Limites: validação de servidor conferida por regras/testes e build, sem mutação de contas reais nesta etapa. Viewport móvel no navegador remoto não substitui aparelho físico; não foi medida taxa de quadros em celular. A pesca usa um ponto na ponta da ponte, com vara simples e cinco espécies; não inclui iscas, aquário ou pesca em outros rios.
+
+Conferência adicional no jogo real em viewport móvel: toque no portão levou a personagem pelo corredor até a galinha Flor e abriu somente seu painel compacto; coleta acrescentou um ovo e desabilitou a repetição. Vartin foi conferido visualmente atrás do balcão. Captura do celeiro em `screenshots/celeiro-0.14.0.jpg`.
+
 ## Cuidados individuais 0.13.2
 
 O portão da baia abria o painel sem ID e por isso listava todos os animais. Agora resolve um único ID pela distância entre a personagem e as posições atuais dos animais daquela baia. E/controle de interação usa esse portão com alcance de 75 unidades. Clique/toque direto no animal continua selecionando exatamente o animal clicado e levando a personagem ao acesso da baia. Produtos no ninho mantêm coleta por clique; não interceptam E antes do cuidado individual. A lista completa continua em Menu → Minha fazenda → Meus animais. No painel individual, a longa introdução geral foi reduzida ao estoque de ração.

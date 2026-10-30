@@ -1,3 +1,5 @@
+import {FISH,FISH_SPOT,nearFishing,fishingClearance,FISHING_COMMANDS,type Fish} from './fishing';
+import {FishingView} from './fishing-view';
 import {claimInteractionEvent} from './interaction-event';
 import {OutdoorAnimals} from './outdoor-animals';
 import {plantNeeds} from './plant-care';
@@ -78,19 +80,20 @@ function syncUI() {
   $('online-bar').hidden = false;
   $('progression').hidden=!cloud.active;$('community').hidden=!cloud.active;
   if (cloud.active) { const f=farm as OnlineFarm; $('progression').textContent = `Nível ${levelOf(f.xp)} · Energia ${f.energy}/${ECONOMY.energyMax}`; }
+  $('rod-tool').hidden=!farm.fishing?.rod||tool==='seed';
   $('seed-choice').hidden=tool!=='seed';
   $('quest-card').hidden=farm.questClaimed;
   $('coins').textContent = farm.coins.toLocaleString('pt-BR');
   $('seed-name').textContent = CROPS[selected].name; $('seed-icon').innerHTML = `<img src="${cropImage(selected)}" alt="" />`;
   $('seed-count').textContent = `×${farm.seeds[selected]}`;
-  $('bag-count').textContent = String(cropKeys.reduce((sum, c) => sum + farm.inventory[c], 0)+Object.values(farm.products).reduce((a,b)=>a+b,0));
+  $('bag-count').textContent = String(cropKeys.reduce((sum, c) => sum + farm.inventory[c], 0)+Object.values(farm.products).reduce((a,b)=>a+b,0)+Object.values(farm.fishing?.fish??{}).reduce((a,b)=>a+b,0));
   if (!farm.questClaimed) { $('quest-text').textContent='Colha sua primeira plantação.'; $('quest-progress').textContent='0 / 1 colheita'; $('quest-fill').style.width='0%'; }
   if (farm.questClaimed) { $('quest-text').textContent = 'A primeira colheita a gente nunca esquece.'; $('quest-progress').textContent = 'Capítulo concluído'; $('quest-fill').style.width = '100%'; }
   document.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach(b => { const active = b.dataset.tool === tool; b.classList.toggle('active', active); b.setAttribute('aria-pressed', String(active)); });
 }
-function setTool(next: Tool) { tool = next; syncUI(); const hints: Record<Tool, string> = { hand: 'Toque em uma planta pronta para colher.', hoe: 'Toque em um canteiro para preparar a terra.', seed: `Toque na terra preparada para plantar ${CROPS[selected].name.toLowerCase()}.`, water: 'Toque na plantação para regar e iniciar o crescimento.' }; $('hint').textContent = hints[tool]; }
+function setTool(next: Tool) { if(next==='rod'&&!farm.fishing?.rod)return;if(tool==='rod'&&next!=='rod')void scene?.fishingView?.cancel();tool = next; syncUI(); const hints: Record<Tool, string> = {rod:'', hand: 'Toque em uma planta pronta para colher.', hoe: 'Toque em um canteiro para preparar a terra.', seed: `Toque na terra preparada para plantar ${CROPS[selected].name.toLowerCase()}.`, water: 'Toque na plantação para regar e iniciar o crescimento.' }; $('hint').textContent = hints[tool]; }
 function openPanel(title: string, content: string, kind: 'shop' | 'other' = 'other') {
-  activePanel = kind; scene?.finishCurrentWork();
+  dialog.classList.remove('animal-detail');activePanel = kind; scene?.finishCurrentWork();
   modal = true; scene?.cancelMovement(); $('panel-eyebrow').textContent = 'UM POUQUINHO DE VIDA NO CAMPO'; $('panel-content').innerHTML = `<h2>${title}</h2>${content}`; document.body.classList.add('modal-open'); if (!dialog.open) dialog.showModal();
 }
 function closePanel() { dialog.close(); }
@@ -102,7 +105,8 @@ function cropImage(c:Crop){return ['carrot','lettuce','tomato'].includes(c)?`/as
 function inventory() {
   if(onlineLoading){toast('Aguarde a conexão com sua conta.');return;}
   const total = sellAll(structuredClone(farm));
-  openPanel('Seu celeiro', `<p>O que você cultiva com carinho fica guardado aqui. Venda a colheita e prepare o próximo plantio.</p>${cropKeys.map(c => `<div class="item-row"><span class="emoji"><img src="${cropImage(c)}" alt="" /></span><div class="item-info"><strong>${CROPS[c].name}</strong><small>${farm.inventory[c]} unidades · ${CROPS[c].sellPrice} moedas cada</small></div><strong>${farm.inventory[c] * CROPS[c].sellPrice} ◉</strong></div>`).join('')}${(['egg','milk','goatMilk'] as const).map(p=>{const a=Object.values(ANIMALS).find(a=>a.product===p)!;return `<div class="item-row"><div class="item-info"><strong>${a.productName}</strong><small>${farm.products[p]} unidades · ${a.sellPrice} moedas cada</small></div></div>`;}).join('')}<button class="secondary" id="inventory-animals">Cuidar dos animais</button><button class="primary" id="sell-all" ${total === 0 ? 'disabled' : ''}>Vender colheita · ${total} moedas</button><p class="quiet-note">As sementes ficam guardadas separadamente e não são vendidas.</p>`);
+  openPanel('Seu inventário', `<p>O que você cultiva com carinho fica guardado aqui. Venda a colheita e prepare o próximo plantio.</p>${cropKeys.map(c => `<div class="item-row"><span class="emoji"><img src="${cropImage(c)}" alt="" /></span><div class="item-info"><strong>${CROPS[c].name}</strong><small>${farm.inventory[c]} unidades · ${CROPS[c].sellPrice} moedas cada</small></div><strong>${farm.inventory[c] * CROPS[c].sellPrice} ◉</strong></div>`).join('')}${(['egg','milk','goatMilk'] as const).map(p=>{const a=Object.values(ANIMALS).find(a=>a.product===p)!;return `<div class="item-row"><div class="item-info"><strong>${a.productName}</strong><small>${farm.products[p]} unidades · ${a.sellPrice} moedas cada</small></div></div>`;}).join('')}${farm.fishing?.rod?'<div class="item-row"><img class="shop-art" src="/assets/v10/rod.svg" alt=""/><div class="item-info"><strong>Vara de pescar</strong></div><button id="equip-rod">Equipar</button></div>':''}${(Object.keys(FISH) as Fish[]).filter(k=>(farm.fishing?.fish[k]??0)>0).map(k=>`<div class="item-row"><div class="item-info"><strong>${FISH[k].name}</strong><small>${farm.fishing!.fish[k]} peixes · ${FISH[k].price} moedas cada</small></div></div>`).join('')}<button class="secondary" id="inventory-animals">Cuidar dos animais</button><button class="primary" id="sell-all" ${total === 0 ? 'disabled' : ''}>Vender colheita · ${total} moedas</button><p class="quiet-note">As sementes ficam guardadas separadamente e não são vendidas.</p>`);
+  if($('equip-rod'))$('equip-rod').onclick=()=>{setTool('rod');closePanel();};
   $('inventory-animals').onclick=()=>life.animals();
   $('sell-all').onclick = async () => { if (cloud.active) { const b=$<HTMLButtonElement>('sell-all');b.disabled=true;try { const r=await cloud.command({type:'sell'});closePanel();toast(r.message!); }catch(e){toast((e as Error).message);b.disabled=false;} return; } const sold = sellAll(farm); save(); syncUI(); closePanel(); toast(`Colheita vendida: +${sold} moedas. Bom trabalho!`); };
 }
@@ -111,7 +115,7 @@ function seedPanel() {
   document.querySelectorAll<HTMLButtonElement>('[data-crop]').forEach(b => b.onclick = () => { selected = b.dataset.crop as Crop; setTool('seed'); closePanel(); });
 }
 function shop(){life.shop();}
-function help() { openPanel('Um novo começo', `<p>Bem-vindo ao Vale do Sossego. Aqui, um pedacinho de terra já é uma boa história.</p><ol class="controls-list"><li>Escolha a <b>enxada</b> e toque em um canteiro.</li><li>Selecione <b>Plantar</b> e use uma semente.</li><li>Use o <b>regador</b>. O crescimento começa agora.</li><li>Quando estiver pronta, use a <b>mão</b> para colher.</li><li>Abra o <b>celeiro</b> e venda sua colheita.</li></ol><p>No PC, ande com <b>WASD ou setas</b>. Use <b>E</b> para agir perto de um canteiro ou da venda. As teclas <b>1–4</b> trocam a ferramenta. Você também pode clicar no terreno para caminhar. No celular, use o joystick ou toque no mapa.</p><p class="quiet-note"><b>Versão de testes 0.13.2:</b> use Conta para criar sua fazenda online e continuar em outro aparelho. Sem entrar, você joga no teste local deste navegador. Minha fazenda abre seu avatar, os animais e o jardim. Entre na casa e no celeiro para explorar. Use a mão para remover pragas. A conta libera ainda níveis, energia, expansão, amigos e feira. Compras e colheitas online precisam de conexão. As plantas regadas continuam crescendo ao fechar. A arte é provisória e original do projeto.</p><button class="primary" id="start-playing">Vamos plantar</button>`); $('start-playing').onclick = closePanel; }
+function help() { openPanel('Um novo começo', `<p>Bem-vindo ao Vale do Sossego. Aqui, um pedacinho de terra já é uma boa história.</p><ol class="controls-list"><li>Escolha a <b>enxada</b> e toque em um canteiro.</li><li>Selecione <b>Plantar</b> e use uma semente.</li><li>Use o <b>regador</b>. O crescimento começa agora.</li><li>Quando estiver pronta, use a <b>mão</b> para colher.</li><li>Abra o <b>celeiro</b> e venda sua colheita.</li></ol><p>No PC, ande com <b>WASD ou setas</b>. Use <b>E</b> para agir perto de um canteiro ou da venda. As teclas <b>1–5</b> trocam a ferramenta. Compre a vara na aba Pesca da venda e equipe-a para pescar na ponta da ponte. Recolha quando a boia sinalizar a fisgada. Você também pode clicar no terreno para caminhar. No celular, use o joystick ou toque no mapa.</p><p class="quiet-note"><b>Versão de testes 0.14.0:</b> use Conta para criar sua fazenda online e continuar em outro aparelho. Sem entrar, você joga no teste local deste navegador. Minha fazenda abre seu avatar, os animais e o jardim. Entre na casa e no celeiro para explorar. Use a mão para remover pragas. A conta libera ainda níveis, energia, expansão, amigos e feira. Compras e colheitas online precisam de conexão. As plantas regadas continuam crescendo ao fechar. A arte é provisória e original do projeto.</p><button class="primary" id="start-playing">Vamos plantar</button>`); $('start-playing').onclick = closePanel; }
 $('inventory').onclick = inventory; $('seed-choice').onclick = seedPanel; $('help').onclick = help;
 document.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach(b => b.onclick = () => setTool(b.dataset.tool as Tool));
 
@@ -147,6 +151,8 @@ class FarmScene extends Phaser.Scene {
   vignette!: Phaser.GameObjects.Image;
   playerShadow!: Phaser.GameObjects.Ellipse;
   aim!: Phaser.GameObjects.Ellipse;
+  fishingView!:FishingView;
+  vendor?:Phaser.GameObjects.Sprite;
   select!: Phaser.GameObjects.Rectangle;
   constructor() { super('Farm'); }
   preload() {
@@ -176,7 +182,12 @@ class FarmScene extends Phaser.Scene {
     const shadow = (x: number, y: number, w: number, h: number) => this.add.ellipse(x, y, w, h, 0x203726, .24).setDepth(2);
     shadow(415, 445, 214, 46); shadow(1030, 386, 170, 33); shadow(1050, 787, 154, 40);
     this.add.image(408, 451, 'house').setOrigin(.5, 1).setScale(1.35).setDepth(448); block(408, 400, 180, 88);
-    this.add.image(1030, 390, 'shop').setOrigin(.5, 1).setScale(1.25).setDepth(386); block(1030, 350, 130, 65);
+    this.add.image(1030, 390, 'shop').setOrigin(.5, 1).setScale(1.25).setDepth(386);
+    const vendorArt=new AvatarArt(this),vendorAvatar={style:'short' as const,skin:3,hair:1,shirt:3};
+    this.vendor=this.add.sprite(1030,352,vendorArt.idleKey('farmer-v2',vendorAvatar),0).setOrigin(.5,62/64).setScale(.95).setDepth(387);
+    const shopImage=this.textures.get('shop').getSourceImage() as HTMLImageElement;
+    for(const [y,h] of [[0,shopImage.height*.48],[shopImage.height*.69,shopImage.height*.31]])this.add.image(1030,390,'shop').setOrigin(.5,1).setScale(1.25).setCrop(0,y,shopImage.width,h).setDepth(388);
+ block(1030, 350, 130, 65);
     this.add.image(1050, 795, 'barn').setOrigin(.5, 1).setScale(1.15).setDepth(790); block(1050, 752, 128, 80);
     this.add.image(493, 545, 'well').setOrigin(.5, 1).setScale(1.1).setDepth(545); block(493, 530, 44, 25);
     shadow(1120, 995, 150, 32);
@@ -201,18 +212,18 @@ class FarmScene extends Phaser.Scene {
       if (x > 220 && x < 1190 && y > 215 && y < 1000) continue;
       if (x > 680 && x < 820 && y > 930) continue;
       const px = x + (rand?.between(-16, 16) ?? 0), py = y + (rand?.between(-12, 12) ?? 0);
-      if(reservedLandPoint(px,py))continue;
+      if(reservedLandPoint(px,py)||fishingClearance(px,py))continue;
       const key = (x + y) % 3 === 0 ? 'pine' : `tree${(x + y) % 3}`;
       shadow(px + 10, py - 4, 88, 23);
       this.occluders.push(this.add.image(px, py, key).setOrigin(.5, 1).setScale(rand!.realInRange(1.12, 1.4)).setDepth(py));
       block(px, py - 9, 18, 20);
     }
-    for (const [i, [x, y]] of [[190, 840], [330, 790], [535, 860], [940, 940], [1150, 540], [530, 280], [877, 260]].entries()) { if(reservedLandPoint(x,y))continue;shadow(x + 9, y - 2, 95, 24); this.occluders.push(this.add.image(x, y, `tree${i % 3}`).setOrigin(.5, 1).setScale(1.2).setDepth(y)); block(x, y - 9, 18, 20); }
+    for (const [i, [x, y]] of [[190, 840], [330, 790], [535, 860], [940, 940], [1150, 540], [530, 280], [877, 260]].entries()) { if(reservedLandPoint(x,y)||fishingClearance(x,y))continue;shadow(x + 9, y - 2, 95, 24); this.occluders.push(this.add.image(x, y, `tree${i % 3}`).setOrigin(.5, 1).setScale(1.2).setDepth(y)); block(x, y - 9, 18, 20); }
     for (let i = 0; i < 6; i++) { const x = 350 + i * 48; this.add.image(x, 762, 'fence').setOrigin(.5, 1).setDepth(762); block(x, 755, 46, 9); }
     for (let i = 0; i < 4; i++) { this.add.image(350 + i * 48, 889, 'fence').setOrigin(.5, 1).setDepth(889); block(350 + i * 48, 882, 46, 9); }
     this.flock = new ChickenFlock(this,0);
     const windPlants:Phaser.GameObjects.Image[] = this.fields.map(f=>f.plant);
-    for (let i = 0; i < 27; i++) { const x = rand!.between(250, 1190), y = rand!.between(280, 980); if (reservedLandPoint(x,y) || x > 580 && x < 900 && y < 620 || Math.abs(y - 640) < 50 || Math.abs(x - 750) < 50 || (x>200 && x<385 && y>500 && y<665)) continue; const foliage=this.add.image(x, y, i % 3 ? 'bush' : 'rock').setOrigin(.5, 1).setDepth(y);if(i%3)windPlants.push(foliage); }
+    for (let i = 0; i < 27; i++) { const x = rand!.between(250, 1190), y = rand!.between(280, 980); if (fishingClearance(x,y)||reservedLandPoint(x,y) || x > 580 && x < 900 && y < 620 || Math.abs(y - 640) < 50 || Math.abs(x - 750) < 50 || (x>200 && x<385 && y>500 && y<665)) continue; const foliage=this.add.image(x, y, i % 3 ? 'bush' : 'rock').setOrigin(.5, 1).setDepth(y);if(i%3)windPlants.push(foliage); }
     // River bank is solid, with one crossing at the bridge.
     block(1280, 420, 28, 760); block(1280, 1020, 28, 280);
     for (let i = 0; i < 40; i++) {
@@ -248,14 +259,17 @@ class FarmScene extends Phaser.Scene {
     }
     this.atmosphere = new Atmosphere(this,[...this.occluders,...windPlants],ambientDecor);
     this.timeLighting=new TimeLighting(this);
+    this.fishingView=new FishingView(this,()=>farm,()=>Date.now()+cloud.offset,lifeCommand,toast);
     this.resize();
     this.scale.on('resize', this.resize, this);
     this.keys = this.input.keyboard!.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,E,ONE,TWO,THREE,FOUR') as Record<string, Phaser.Input.Keyboard.Key>;
     this.input.keyboard!.addCapture([Phaser.Input.Keyboard.KeyCodes.SPACE, Phaser.Input.Keyboard.KeyCodes.UP, Phaser.Input.Keyboard.KeyCodes.DOWN]);
-    this.input.keyboard!.on('keydown', (e: KeyboardEvent) => { if (modal) return; const tools: Record<string, Tool> = { '1': 'hand', '2': 'hoe', '3': 'seed', '4': 'water' }; if (tools[e.key]) setTool(tools[e.key]); if (e.key.toLowerCase() === 'e' && !inside && !e.repeat && claimInteractionEvent(e)) this.interactNearest(); });
+    this.input.keyboard!.on('keydown', (e: KeyboardEvent) => { if (modal) return; const tools: Record<string, Tool> = { '1': 'hand', '2': 'hoe', '3': 'seed', '4': 'water','5':'rod' }; if(e.key==='Escape'&&farm.fishing?.cast){void this.fishingView.cancel();return;}if (tools[e.key]) setTool(tools[e.key]); if (e.key.toLowerCase() === 'e' && !inside && !e.repeat && claimInteractionEvent(e)) this.interactNearest(); });
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       if (modal) return;
+      if(farm.fishing?.cast){void this.fishingView.use();return;}
       const p = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
+      if(tool==='rod'&&p.x>1300&&p.y>780&&p.y<930){this.navigate({...FISH_SPOT,run:()=>void this.fishingView.use()});return;}
       const animal=this.outdoor.hit(p);if(animal){this.navigate(animal);return;}
       const building=this.landWorld.buildingAt(farm,p);if(building){this.navigate({...this.landWorld.access(building),building:building.id});return;}
       const field = this.fields.find(f => Math.abs(f.x - p.x) < 20 && Math.abs(f.y - p.y) < 20);
@@ -309,6 +323,7 @@ class FarmScene extends Phaser.Scene {
     this.destination = target;
   }
   useField(id: number) {
+    if(tool==='rod')return;
     if (this.activeWork || onlineLoading || cloud.busy) return;
     if(id>=24&&!plotUsable(farm,id)){if(!localSaveBlocked)life.land();else toast('Terreno salvo indisponível.');return;}
     if (Math.hypot(this.player.x-this.fields[id].x,this.player.y-this.fields[id].y)>70) {toast('Fora de alcance.');return;}
@@ -357,7 +372,7 @@ class FarmScene extends Phaser.Scene {
   careHeart(id:string){const p=this.outdoor.contact(id);if(!p)return;const heart=this.add.text(p.x,p.y-45,'♥',{fontFamily:'monospace',fontSize:'18px',color:'#f0a47e',stroke:'#4e4734',strokeThickness:2}).setDepth(p.y+2);this.tweens.add({targets:heart,y:p.y-67,alpha:0,duration:1100,onComplete:()=>heart.destroy()});}
   tendPlot(id:number,next:Tool){const field=this.fields.find(f=>f.id===id);if(!field)return;setTool(next);const blocks=this.obstacles.getChildren().map(o=>{const b=(o as Phaser.GameObjects.Zone).body as Phaser.Physics.Arcade.StaticBody;return{x:b.x,y:b.y,width:b.width,height:b.height};});const target=[[42,10],[-42,10],[0,45],[0,-45]].map(([dx,dy])=>({x:field.x+dx,y:field.y+dy,field:id})).find(p=>findPath(this.player,p,blocks).length);if(target)this.navigate(target);else toast('Não há passagem livre.');}
   renderAvatar(time: number, moving: boolean) {
-    const work = this.activeWork, equipped = work?.clock.tool ?? tool;
+    const work = this.activeWork, equipped = work?.clock.tool ?? (tool==='rod'?'hand':tool);
     const usingActionSheet = !!work && (equipped === 'hoe' || equipped === 'water');
     const elapsed = work?.clock.elapsed(time) ?? 0;
     const idle=!moving&&!work,phase=this.breathing.frame(time,moving,!!work,!display.breathing);
@@ -386,6 +401,7 @@ class FarmScene extends Phaser.Scene {
   enterNearbyPlace(){return this.entranceControl.enter();}
   interactNearest() {
     if (modal || this.activeWork || performance.now()<entranceLockedUntil) return;
+    if(tool==='rod'){if(nearFishing(this.player))void this.fishingView.use();return;}
     if(this.enterNearbyPlace())return;
     const cropDistance=this.fields.filter(f=>farm.plots[f.id]?.crop&&Math.hypot(f.x-this.player.x,f.y-this.player.y)<65).reduce((d,f)=>Math.min(d,Math.hypot(f.x-this.player.x,f.y-this.player.y)),Infinity);
     if(tool==='hand'&&this.outdoor.distance(this.player)<cropDistance&&this.outdoor.interact(this.player))return;
@@ -398,10 +414,13 @@ class FarmScene extends Phaser.Scene {
   update(time: number, delta: number) {
     if (!this.player) return;
     this.timeLighting.update(farm.calendar,Date.now()+cloud.offset);
+    this.vendor?.setFrame(Math.floor(time/600)%3);
+    this.fishingView.update(this.player,this.direction,tool==='rod',modal||inside);
     if(farm.home?.sleep&&!inside&&!modal){enterInterior('house');return;}
     this.entranceControl.update();
     if(time>=this.nextContext){this.nextContext=time+100;this.contextLabels();}
     this.outdoor.update(time);this.flock.update(time, delta); this.dogCompanions.update(farm); this.atmosphere.update(time); this.workEffects.update(time);
+    if(farm.fishing?.cast&&Date.now()+cloud.offset<=farm.fishing.cast.expiresAt){this.cancelMovement();this.direction='right';this.renderAvatar(time,false);return;}
     if (this.activeWork) { this.updateWork(time); this.player.setVelocity(0); this.renderAvatar(time, false); return; }
     if (modal) { this.player.setVelocity(0); this.renderAvatar(time, false); return; }
     let vx = Number(this.keys.D.isDown || this.keys.RIGHT.isDown) - Number(this.keys.A.isDown || this.keys.LEFT.isDown) + joystick.x;
@@ -440,6 +459,7 @@ stick.addEventListener('pointerdown', e => { if (stickPointer !== null) return; 
 stick.addEventListener('pointermove', moveStick);
 const releaseStick = (e: PointerEvent) => { if (e.pointerId !== stickPointer) return; stickPointer = null; joystick = { x: 0, y: 0 }; knob.style.transform = ''; };
 stick.addEventListener('pointerup', releaseStick); stick.addEventListener('pointercancel', releaseStick); stick.addEventListener('lostpointercapture', releaseStick);
+$('fish-action').onclick=()=>{if(!inside&&!modal)void scene.fishingView.use();};
 $('enter-place').onclick = () => { if(!scene?.enterNearbyPlace()&&!inside&&!modal)toast('Fora de alcance.'); };
 $('touch-action').onclick = () => inside ? (game.scene.getScene('Interior') as InteriorScene).interact() : scene?.interactNearest();
 cloud.onStatus=message=>{ $('save-status').textContent=message;$('save-dot').style.background=message.includes('sincronizado')?'#c4da8c':'#e69f69'; };
@@ -447,6 +467,7 @@ cloud.onSnapshot=(snapshot,initial)=>{ farm=snapshot.farm;if(initial&&scene?.pla
 setupOnlineUI(cloud,openPanel,closePanel,toast,()=>farm as OnlineFarm,()=>{farm=restoreLocalFarm(localStorage.getItem(SAVE_KEY),localStorage.getItem(LAND_SAVE_KEY));scene?.cancelMovement();scene?.player.setPosition(farm.player.x,farm.player.y);scene?.paintFields();syncUI();save();},()=>journey.show());
 async function lifeCommand(c:any){
  if(onlineLoading)throw new Error('Aguarde a conexão com sua conta.');
+ if((FISHING_COMMANDS as readonly string[]).includes(c.type)&&c.type!=='buy-rod'){if(inside)throw new Error('Pesca disponível no rio.');if(cloud.active)return cloud.command(c,{x:scene.player.x,y:scene.player.y});farm.player={x:scene.player.x,y:scene.player.y};}
  if(cloud.active)return cloud.command(c);
  const result=c.type==='buy'?{ok:buySeeds(farm,c.crop),message:'+5 sementes guardadas!'}:applyLife(farm,c,Date.now());
  if(!result.ok)throw new Error(result.message||'Moedas insuficientes.');save();syncUI();scene?.paintFields();return result;
@@ -455,7 +476,7 @@ function finishInteriorExit(){entranceLockedUntil=performance.now()+600;currentI
 function recoverInterior(error:Error,room:'house'|'barn'){
  game.scene.stop('Interior');game.scene.wake('Farm');finishInteriorExit();
  openPanel('Não foi possível abrir o cômodo',`<p>A fazenda foi recuperada e seu progresso foi mantido.</p><p>Detalhe da falha:</p><pre id="room-error-detail" style="white-space:pre-wrap;overflow-wrap:anywhere"></pre><button class="primary" id="retry-room">Tentar entrar novamente</button><button class="secondary" id="continue-farm">Continuar na fazenda</button>`);
- $('room-error-detail').textContent=`v0.13.2 · ${room==='barn'?'Celeiro':'Casa'} · ${error.name}: ${error.message}`;
+ $('room-error-detail').textContent=`v0.14.0 · ${room==='barn'?'Celeiro':'Casa'} · ${error.name}: ${error.message}`;
  $('retry-room').onclick=()=>{closePanel();entranceLockedUntil=0;enterInterior(room);};$('continue-farm').onclick=closePanel;
 }
 function enterInterior(room:'house'|'barn'){
