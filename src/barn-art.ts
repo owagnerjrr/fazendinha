@@ -1,3 +1,4 @@
+import {nearestPenAnimal} from './barn-interaction';
 import {barnDetails,decorateBarnPen} from './barn-design';
 import {AnimalIndicators} from './animal-indicators';
 import {livestockArt} from './livestock-art';
@@ -9,12 +10,12 @@ import { barnLayout,animalPose,type BarnPen } from './barn-layout';
 import type { Farm } from './farm';
 type Block=(x:number,y:number,w:number,h:number)=>void;
 export type BarnActor={pen:BarnPen;index:number;sprite:Phaser.GameObjects.Image;shadow:Phaser.GameObjects.Ellipse;point:RoomPoint;indicators:AnimalIndicators;spot:{x:number;y:number}};
-export type RoomPoint={enabled?:()=>boolean;kind?:string;x:number;y:number;hitX?:number;hitY?:number;radius?:number;name?:string;run:()=>void};
+export type RoomPoint={enabled?:()=>boolean;pointerOnly?:boolean;reach?:number;kind?:string;x:number;y:number;hitX?:number;hitY?:number;radius?:number;name?:string;run:()=>void};
 export function buildBarn(scene:Phaser.Scene,farm:Farm,block:Block,animals:(id?:string)=>void,equipment:()=>void,collect?:(id:string)=>void){
  const points:RoomPoint[]=[],actors:BarnActor[]=[],gates=new Map<number,Phaser.GameObjects.Graphics>();
  const gateLeaves=new Map<number,Phaser.GameObjects.Image>();
  const returning=new Map<string,{x:number;y:number;start:number}>();
- let gateState:number|null=null;
+ let gateState:number|null=null;let visitor:{x:number;y:number}|undefined;
  let care:{id:string;type:'pet-animal'|'play-animal';start:number;from:{x:number;y:number};pen:BarnPen}|null=null;
  barnMaterials(scene);barnDetails(scene);dogArt(scene);livestockArt(scene);const pens=barnLayout(farm.animals);
  const board=(x:number,y:number,w:number,h:number,depth:number,vertical=false)=>{const tile=scene.add.tileSprite(x,y,vertical?h:w,vertical?w:h,'barn-rail').setOrigin(.5).setDepth(depth);if(vertical)tile.setRotation(Math.PI/2);return tile;};
@@ -43,8 +44,8 @@ export function buildBarn(scene:Phaser.Scene,farm:Farm,block:Block,animals:(id?:
   for(const edge of [x+3,x+w-3])for(const postY of [y+15,y+h+4])scene.add.image(edge,postY,'barn-post').setOrigin(.5,1).setDepth(y+h+12.5);
   const gateX=pen.side==='left'?x+w-10:x-2;const gateLeaf=scene.add.image(gateX+6,y+81,'barn-gate-leaf').setOrigin(.5,1).setDisplaySize(16,45).setDepth(y+h+12.7);gateLeaves.set(pen.id,gateLeaf);const gate=scene.add.graphics().setDepth(y+h+13);gate.lineStyle(3,0xc09759);gate.strokeRect(gateX,y+39,12,39);gate.lineBetween(gateX,y+42,gateX+12,y+75);gates.set(pen.id,gate);
   if(pen.animals.length){
-   points.push({...pen.access,name:pen.purpose,hitX:gateX+6,hitY:y+58,radius:26,run:()=>animals()});
-   pen.animals.forEach((a,index)=>{ensureBlink(scene,a.kind);const pose=animalPose(pen,index,0);const shadow=scene.add.ellipse(pose.x,pose.y-2,pose.width*.72,pose.width*.21,0x332d20,.35).setDepth(pose.y-.2);const sprite=scene.add.image(pose.x,pose.y,`life-${a.kind}`).setOrigin(.5,1).setDisplaySize(pose.width,pose.height).setDepth(pose.y);const point:RoomPoint={...pen.access,name:a.name??ANIMALS[a.kind].name,hitX:pose.x,hitY:pose.y-pose.height/2,radius:Math.max(15,pose.width*.48),run:()=>animals(a.id)},indicators=new AnimalIndicators(scene),spot={x:pen.x+39+(index%3)*51+(index>=3?5:-5),y:pen.y+25+(index>=3?3:0)};actors.push({pen,index,sprite,shadow,point,indicators,spot});points.push(point);points.unshift({...pen.access,enabled:()=>indicators.product.visible,hitX:spot.x,hitY:spot.y-6,radius:14,name:'Ninho / produto',run:()=>indicators.product.tintTopLeft===0xffffff&&collect?collect(a.id):animals(a.id)});});
+   points.push({...pen.access,name:pen.purpose,hitX:gateX+6,hitY:y+58,radius:26,reach:75,run:()=>{const actor=nearestPenAnimal(actors,pen.id,visitor??pen.access);if(actor)animals(actor.pen.animals[actor.index].id);}});
+   pen.animals.forEach((a,index)=>{ensureBlink(scene,a.kind);const pose=animalPose(pen,index,0);const shadow=scene.add.ellipse(pose.x,pose.y-2,pose.width*.72,pose.width*.21,0x332d20,.35).setDepth(pose.y-.2);const sprite=scene.add.image(pose.x,pose.y,`life-${a.kind}`).setOrigin(.5,1).setDisplaySize(pose.width,pose.height).setDepth(pose.y);const point:RoomPoint={...pen.access,reach:75,name:a.name??ANIMALS[a.kind].name,hitX:pose.x,hitY:pose.y-pose.height/2,radius:Math.max(15,pose.width*.48),run:()=>animals(a.id)},indicators=new AnimalIndicators(scene),spot={x:pen.x+39+(index%3)*51+(index>=3?5:-5),y:pen.y+25+(index>=3?3:0)};actors.push({pen,index,sprite,shadow,point,indicators,spot});points.push(point);points.unshift({...pen.access,pointerOnly:true,reach:75,enabled:()=>indicators.product.visible,hitX:spot.x,hitY:spot.y-6,radius:14,name:'Ninho / produto',run:()=>indicators.product.tintTopLeft===0xffffff&&collect?collect(a.id):animals(a.id)});});
 
   }
  }
@@ -55,6 +56,7 @@ export function buildBarn(scene:Phaser.Scene,farm:Farm,block:Block,animals:(id?:
   endCare(){if(care){const a=actors.find(a=>a.pen.animals[a.index].id===care!.id);if(a)returning.set(care.id,{x:a.sprite.x,y:a.sprite.y,start:scene.time.now});}care=null;},
   contact(id:string){const a=actors.find(a=>a.pen.animals[a.index].id===id);return a?{x:a.sprite.x,y:a.sprite.y}:undefined;},
   update(time:number,current:Farm,now:number,player?:{x:number;y:number}){
+  visitor=player;
   if(gateState!==(care?.pen.id??null)){gateState=care?.pen.id??null;for(const pen of pens){const gate=gates.get(pen.id)!;const gateX=pen.side==='left'?pen.x+pen.width-10:pen.x-2;gateLeaves.get(pen.id)?.setVisible(care?.pen.id!==pen.id);gate.clear().lineStyle(2,0xc09759,.65);if(care?.pen.id===pen.id){gate.lineBetween(gateX,pen.y+39,gateX+(pen.side==='left'?-27:27),pen.y+39);}else{gate.strokeRect(gateX,pen.y+39,12,39);gate.lineBetween(gateX,pen.y+42,gateX+12,pen.y+75);}}}
 
   for(const a of actors){const pose=animalPose(a.pen,a.index,time),kind=a.pen.animals[a.index].kind;

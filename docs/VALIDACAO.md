@@ -1,3 +1,9 @@
+## Cuidados individuais 0.13.2
+
+O portão da baia abria o painel sem ID e por isso listava todos os animais. Agora resolve um único ID pela distância entre a personagem e as posições atuais dos animais daquela baia. E/controle de interação usa esse portão com alcance de 75 unidades. Clique/toque direto no animal continua selecionando exatamente o animal clicado e levando a personagem ao acesso da baia. Produtos no ninho mantêm coleta por clique; não interceptam E antes do cuidado individual. A lista completa continua em Menu → Minha fazenda → Meus animais. No painel individual, a longa introdução geral foi reduzida ao estoque de ração.
+
+102 testes passaram, incluindo seleção entre dois animais da mesma baia após mudança de posição, exclusão de animais de outra baia e baia vazia sem seleção. No jogo real com dados fictícios: entrada no celeiro e E junto à baia dos cães abriu Cuidar do animal somente para Caramelo, embora a fazenda tenha outras espécies. Não houve modificação de progresso, produção, alimentação ou regras de servidor. O painel foi reaberto após acionar carinho, mantendo a seleção de Caramelo. Captura em `screenshots/cuidados-0.13.2.jpg`. A verificação local não substitui teste em aparelho físico.
+
 ## Interface 0.13.1 — exploração sem instruções automáticas
 
 Removidos do cenário os avisos de regar/colher/tratar, nomes e descrições de terrenos, placas de baias/equipamentos/título do celeiro, indicação escrita de saída, legenda de interação sob a personagem e nomes flutuantes dos cães. A missão com instrução de primeira colheita também sai do menu, sem alterar a recompensa automática. O estado de sono é comunicado pela pose, sem texto flutuante. Informações sobre necessidades, produção, nomes e ações permanecem nos painéis acessados pelo jogador.

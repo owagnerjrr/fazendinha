@@ -1,3 +1,5 @@
+0.13.2 — Cuidados individuais no celeiro: seleção por proximidade na baia, alcance menor e preservação da coleta por clique nos produtos.
+
 0.13.1 — Removidas legendas de ações, baias, terrenos, saída e nomes flutuantes. Barra com ícones e controles acessíveis; exploração e interações sem instruções automáticas.
 
 0.13.0 — Simplificação da interface principal: menu lateral com opções existentes, barra de ferramentas compacta e avisos por proximidade. Contas, progresso, regras e ações de jogo preservados.

@@ -67,7 +67,7 @@ export class InteriorScene extends Phaser.Scene {
  }
  exitRoom(){this.leave();}
  private leave(){if(this.bonding||this.homeBusy||this.services.farm().home?.sleep)return;this.player.setVelocity(0);this.target=null;this.route=[];this.scene.stop();this.scene.wake('Farm');this.services.exit();}
- interact(){if(this.services.modal()||this.bonding||this.homeBusy)return;if(this.rest){this.releaseRest();return;}const nearest=this.points.filter(p=>!p.enabled||p.enabled()).sort((a,b)=>Phaser.Math.Distance.Between(this.player.x,this.player.y,a.x,a.y)-Phaser.Math.Distance.Between(this.player.x,this.player.y,b.x,b.y))[0];if(nearest&&Math.hypot(this.player.x-nearest.x,this.player.y-nearest.y)<110)nearest.run();}
+ interact(){if(this.services.modal()||this.bonding||this.homeBusy)return;if(this.rest){this.releaseRest();return;}const nearest=this.points.filter(p=>!p.pointerOnly&&(!p.enabled||p.enabled())).sort((a,b)=>Phaser.Math.Distance.Between(this.player.x,this.player.y,a.x,a.y)-Phaser.Math.Distance.Between(this.player.x,this.player.y,b.x,b.y))[0];if(nearest&&Math.hypot(this.player.x-nearest.x,this.player.y-nearest.y)<(nearest.reach??110))nearest.run();}
  getActivity(){return this.homeBusy?'Salvando':this.rest?.kind==='sit'?'Sentada no sofá':this.rest?.kind==='sleep'?'Dormindo na cama':this.rest?.kind==='leaving'?'Levantando':this.target?'Caminhando':'Em pé';}
  requestHouseInteraction(kind:string){
   if(this.room!=='house'||this.services.modal()||this.homeBusy||this.services.farm().home?.sleep)return;

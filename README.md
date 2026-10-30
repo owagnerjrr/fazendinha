@@ -1,3 +1,5 @@
+Correção 0.13.2: no celeiro, interagir com uma baia abre somente os cuidados do animal mais próximo; clicar no animal abre seu próprio painel. A lista completa fica no menu Meus animais.
+
 Correção 0.13.1: exploração sem dicas escritas sobre o cenário, na fazenda, na casa e no celeiro. Ferramentas e ações de proximidade usam ícones; informações detalhadas continuam nos painéis do menu.
 
 Atualização 0.13.0: interface enxuta com relógio, moedas e ferramentas. Conta, cuidados, missão, desempenho e demais opções ficam no menu ☰. Sementes aparecem ao plantar; avisos do mapa são contextuais.
