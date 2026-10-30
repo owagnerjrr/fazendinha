@@ -247,3 +247,5 @@ Nome, identidade definitiva e monetização continuam em aberto. Não há compro
 - Pendente: assinatura real do webhook, testes oficiais e revisão antes de promover para produção.
 
 - 0.25.2: corrigida linha pendente fora do rio, botão da ferramenta ativa na barra/celular e empunhadura da vara.
+
+- 0.25.3: removida duplicação do item escolhido no espaço da mão na barra.

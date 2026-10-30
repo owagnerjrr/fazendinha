@@ -107,7 +107,7 @@ function syncUI() {
   if(equippedTool==='rod'&&!farm.fishing?.rod)equippedTool='water';
   document.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach(b=>{b.hidden=b.dataset.tool==='rod'&&!farm.fishing?.rod;});
   const icons:Record<Tool,string>={hand:'/assets/v2/hand.svg',hoe:'/assets/v2/icon-hoe.png',seed:'/assets/v2/icon-seed.png',water:'/assets/v2/icon-water.png',rod:'/assets/v10/rod.svg'},names:Record<Tool,string>={hand:'Mão',hoe:'Enxada',seed:'Plantar',water:'Regar',rod:'Pescar'};
-  const action=$('active-tool');action.innerHTML=`<span class="tool-icon"><img src="${icons[tool]}" alt="" /></span><span>${names[tool]}</span><kbd>E</kbd>`;action.setAttribute('aria-label',`Usar: ${names[tool]}`);action.dataset.selectedTool=tool;const touch=$('touch-action');touch.style.backgroundImage=`url("${icons[tool]}")`;touch.setAttribute('aria-label',`Usar: ${names[tool]}`);touch.dataset.selectedTool=tool;
+  const touch=$('touch-action');touch.style.backgroundImage=`url("${icons[tool]}")`;touch.setAttribute('aria-label',`Usar: ${names[tool]}`);touch.dataset.selectedTool=tool;
   $('seed-choice').hidden=tool!=='seed';
   $('quest-card').hidden=farm.questClaimed;
   $('coins').textContent = farm.coins.toLocaleString('pt-BR');
@@ -149,8 +149,8 @@ function goToShop(tab='sell'){
 }
 function help() { openPanel('Um novo começo', `<p>Bem-vindo ao Vale do Sossego. Aqui, um pedacinho de terra já é uma boa história.</p><ol class="controls-list"><li>Escolha a <b>enxada</b> e toque em um canteiro.</li><li>Selecione <b>Plantar</b> e use uma semente.</li><li>Use o <b>regador</b>. O crescimento começa agora.</li><li>Quando estiver pronta, use a <b>mão</b> para colher.</li><li>Vá à <b>venda</b> e use a aba Vender.</li></ol><p>No PC, ande com <b>WASD ou setas</b>. Use <b>E</b> para agir perto de um canteiro ou da venda. As teclas <b>1–5</b> trocam a ferramenta. Compre a vara na aba Pesca da venda e equipe-a para pescar na ponta da ponte. Recolha quando a boia sinalizar a fisgada. Você também pode clicar no terreno para caminhar. No celular, use o joystick ou toque no mapa.</p><p class="quiet-note"><b>Versão de testes 0.15.0:</b> use Conta para criar sua fazenda online e continuar em outro aparelho. Sem entrar, você joga no teste local deste navegador. Minha fazenda abre seu avatar, os animais e o jardim. Entre na casa e no celeiro para explorar. Use a mão para remover pragas. A conta libera ainda níveis, energia, expansão, amigos. Compras e colheitas online precisam de conexão. As plantas regadas continuam crescendo ao fechar. A arte é provisória e original do projeto.</p><button class="primary" id="start-playing">Vamos plantar</button>`); $('start-playing').onclick = closePanel; }
 $('inventory').onclick = inventory; $('seed-choice').onclick = seedPanel; $('help').onclick = help;
-bindPressAction($('active-tool'),useAction);
-document.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach(b => {b.onclick=()=>setTool(b.dataset.tool as Tool);});
+bindPressAction($('active-tool'),()=>{setTool('hand');useAction();});
+document.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach(b => {if(b.dataset.tool!=='hand')b.onclick=()=>setTool(b.dataset.tool as Tool);});
 
 type Destination = {run?:()=>void; x: number; y: number; field?: number; shop?: boolean; barn?: boolean; house?:boolean;building?:string };
 type Work = { clock: ActionClock; field: number; crop: Crop; ground?: Point };
