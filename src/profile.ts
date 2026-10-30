@@ -29,7 +29,7 @@ export function initializeProfile(farm:Farm,input:{name?:unknown;avatar?:unknown
  if(!needsInitialProfile(farm))return {ok:false,existing:true,message:'Esta conta já tem uma fazenda. Seu progresso foi preservado.'};
  const name=normalizePlayerName(input.name);
  if(!name||!validAvatar(input.avatar))return {ok:false,message:'Escolha um nome de até 24 letras/números e um personagem válido.'};
- farm.playerName=name;farm.avatar={...input.avatar};farm.profileComplete=true;
+ farm.playerName=name;farm.avatar={style:input.avatar.style,skin:input.avatar.skin,hair:input.avatar.hair,shirt:input.avatar.shirt};farm.profileComplete=true;
  return {ok:true,message:`Bem-vindo, ${name}! Sua fazenda está salva na conta.`};
 }
 

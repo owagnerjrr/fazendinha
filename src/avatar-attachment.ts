@@ -42,8 +42,11 @@ const RAISED_FOREGROUND=[
  [[66,37],[69,40],[64,54],[62,65],[57,72],[52,77],[49,73],[56,65],[59,54]],
 ] as const;
 function inside(x:number,y:number,points:readonly(readonly number[])[]){let hit=false;for(let i=0,j=points.length-1;i<points.length;j=i++){const a=points[i],b=points[j];if((a[1]>y)!==(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])hit=!hit;}return hit;}
-export function restoreRaisedTool(out:Uint8ClampedArray,source:Uint8ClampedArray,w:number,h:number,base:string,row:number,col:number,skin:number[]){
+export function restoreRaisedTool(out:Uint8ClampedArray,source:Uint8ClampedArray,w:number,h:number,base:string,row:number,col:number,skin:number[],neckY=h){
  if(base!=='hoe-actions'||col!==1)return;
  const polygons:readonly(readonly(readonly number[])[])[]=row===3?[RAISED_FOREGROUND[row],[[32,65],[36,65],[40,75],[36,77],[32,71]]]:[RAISED_FOREGROUND[row]];
- for(let y=0;y<h;y++)for(let x=0;x<w;x++){const i=(y*w+x)*4;if(source[i+3]<180||!polygons.some(p=>inside(x+.5,y+.5,p)))continue;out.set(source.subarray(i,i+4),i);const r=source[i],g=source[i+1],b=source[i+2];if(nativeSkin(r,g,b)){const light=Math.max(.5,Math.min(1.15,(r+g+b)/565));for(let c=0;c<3;c++)out[i+c]=Math.min(255,skin[c]*light);}}
+ for(let y=0;y<h;y++)for(let x=0;x<w;x++){const i=(y*w+x)*4;if(source[i+3]<180||!polygons.some(p=>inside(x+.5,y+.5,p)))continue;out.set(source.subarray(i,i+4),i);const r=source[i],g=source[i+1],b=source[i+2];if(y<neckY&&nativeSkin(r,g,b)){const light=Math.max(.5,Math.min(1.15,(r+g+b)/565));for(let c=0;c<3;c++)out[i+c]=Math.min(255,skin[c]*light);}}
 }
+
+/** Back-facing heads follow the spine rather than alternating shoulder skin highlights. */
+export function alignHeadToSpine(neck:HeadAttachment,w:number,row:number):HeadAttachment{return row===3?{x:w/2,y:neck.y}:neck;}

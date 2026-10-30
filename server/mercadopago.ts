@@ -1,0 +1,34 @@
+import {createHmac,timingSafeEqual} from 'node:crypto';
+import {COIN_PACKS,type PackId} from '../src/store-catalog.js';
+export type MPConfig={token:string;secret:string;collector:string;mode:'test'|'production';origin:string};
+export class StoreError extends Error{constructor(message:string,public status=400){super(message);}}
+export function paymentConfig(env:NodeJS.ProcessEnv=process.env):MPConfig|null{
+ const mode=env.MP_MODE;if(mode==='test'&&!env.MP_APP_ORIGIN)return null;if(mode==='production'&&env.MP_ACCESS_TOKEN?.startsWith('TEST-'))return null;
+ if(!['test','production'].includes(mode??'')||!env.MP_ACCESS_TOKEN||!env.MP_WEBHOOK_SECRET||!/^\d+$/.test(env.MP_COLLECTOR_ID??''))return null;
+ const origin=env.MP_APP_ORIGIN??'https://fazendinha-wj.vercel.app';if(!/^https:\/\/[^/]+$/.test(origin))return null;
+ return{token:env.MP_ACCESS_TOKEN,secret:env.MP_WEBHOOK_SECRET,collector:env.MP_COLLECTOR_ID!,mode:mode as MPConfig['mode'],origin};
+}
+export function salesAllowed(env:NodeJS.ProcessEnv=process.env){const c=paymentConfig(env);if(!c)return false;if(c.mode==='test')return env.VERCEL_ENV!=='production'&&env.MP_TEST_CHECKOUT_ENABLED==='true';return env.MP_SALES_ENABLED==='true'&&env.MP_SANDBOX_VALIDATED==='true'&&env.MP_FEES_ACKNOWLEDGED==='true'&&env.MP_ACCOUNT_VERIFIED==='true';}
+export async function mpRequest(config:MPConfig,path:string,body?:unknown,idempotency?:string,fetcher:typeof fetch=fetch){
+ const r=await fetcher('https://api.mercadopago.com'+path,{method:body?'POST':'GET',headers:{Authorization:`Bearer ${config.token}`,'Content-Type':'application/json',...(idempotency?{'X-Idempotency-Key':idempotency}:{})},body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(12000),cache:'no-store'});
+ const data=await r.json();if(!r.ok)throw new StoreError('O Mercado Pago não concluiu a operação. Consulte o pedido antes de tentar novamente.',502);return data;
+}
+let verified:{key:string;until:number}|undefined;
+export async function verifyCollector(config:MPConfig){const key=config.collector+':'+config.mode+':'+createHmac('sha256','cache').update(config.token).digest('hex');if(verified?.key===key&&verified.until>Date.now())return;const user=await mpRequest(config,'/users/me');if(String(user.id)!==config.collector||user.site_id!=='MLB'||(config.mode==='production'&&user.tags?.includes('test_user'))||(config.mode==='test'&&!config.token.startsWith('TEST-')&&!user.tags?.includes('test_user')))throw new StoreError('A conta recebedora ainda não foi validada.',503);verified={key,until:Date.now()+60000};}
+export function verifyWebhook(headers:Headers,url:URL,secret:string){const id=url.searchParams.get('data.id'),request=headers.get('x-request-id'),signature=headers.get('x-signature')??'';const fields=Object.fromEntries(signature.split(',').map(p=>p.trim().split('=')));if(!id||!/^[a-zA-Z0-9_-]{1,100}$/.test(id)||!request||request.length>200||!/^\d{1,20}$/.test(fields.ts??'')||! /^[a-f0-9]{64}$/i.test(fields.v1??''))return false;
+ const manifest=`id:${id.toLowerCase()};request-id:${request};ts:${fields.ts};`,expected=createHmac('sha256',secret).update(manifest).digest();return timingSafeEqual(expected,Buffer.from(fields.v1,'hex'));
+}
+export function validCPF(value:unknown){if(typeof value!=='string')return false;const s=value.replace(/\D/g,'');if(!/^\d{11}$/.test(s)||/^(\d)\1{10}$/.test(s))return false;for(const len of [9,10]){let sum=0;for(let i=0;i<len;i++)sum+=Number(s[i])*(len+1-i);const digit=(sum*10)%11%10;if(digit!==Number(s[len]))return false;}return true;}
+export function pixPayload(order:any,email:string,cpf:string){const pack=COIN_PACKS[order.package as PackId];return{transaction_amount:pack.cents/100,description:`Fazenda Feliz · ${pack.coins} moedas`,payment_method_id:'pix',external_reference:order.id,date_of_expiration:new Date(order.expires_at).toISOString(),notification_url:order.origin+'/api/mp-webhook',payer:{email,identification:{type:'CPF',number:cpf.replace(/\D/g,'')}},metadata:{order_id:order.id,package:order.package}};}
+export function cardPayload(order:any,email:string,excludedTypes:string[]){const pack=COIN_PACKS[order.package as PackId],back=`${order.origin}/?store=return&order=${order.id}`;return{items:[{id:order.package,title:`Fazenda Feliz · ${pack.coins.toLocaleString('pt-BR')} moedas`,description:'Moedas virtuais para uso dentro do jogo',quantity:1,currency_id:'BRL',unit_price:pack.cents/100,category_id:'games'}],external_reference:order.id,payer:{email},payment_methods:{installments:1,default_installments:1,excluded_payment_types:excludedTypes.map(id=>({id}))},back_urls:{success:back,failure:back,pending:back},auto_return:'approved',notification_url:order.origin+'/api/mp-webhook',expires:true,expiration_date_from:new Date(order.created_at).toISOString(),expiration_date_to:new Date(order.expires_at).toISOString(),statement_descriptor:'FAZENDA FELIZ',metadata:{order_id:order.id}};}
+/** Provider GET response only; never call this with a browser/webhook body as payment proof. */
+export function validatePayment(p:any,order:any,c:MPConfig){
+ const cents=(v:any)=>typeof v==='number'&&Number.isFinite(v)?Math.round(v*100):-1;
+ if(String(p.collector_id)!==order.collector_id||String(p.collector_id)!==c.collector||p.external_reference!==order.id||p.currency_id!=='BRL'||cents(p.transaction_amount)!==order.amount_cents||p.live_mode!==(order.mode==='production')||order.mode!==c.mode||!/^\d+$/.test(String(p.id)))throw new StoreError('Pagamento não corresponde ao pedido.',409);
+ if(order.method==='pix'?p.payment_method_id!=='pix':p.payment_type_id!=='credit_card'||p.installments!==1)throw new StoreError('Forma de pagamento não corresponde ao pedido.',409);
+ const refund=cents(p.transaction_amount_refunded??0);if(refund<0||refund>order.amount_cents||!Number.isFinite(Date.parse(p.date_last_updated)))throw new StoreError('Dados financeiros incompletos.',409);
+ if(p.transaction_details?.total_paid_amount!=null&&cents(p.transaction_details.total_paid_amount)>order.amount_cents)throw new StoreError('Total do pagamento difere do valor anunciado.',409);
+ if(p.status==='refunded'&&refund!==order.amount_cents)throw new StoreError('Reembolso aguardando conciliação.',409);
+ const status=p.status==='authorized'?'in_process':String(p.status);if(!['pending','in_process','approved','rejected','cancelled','refunded','charged_back','in_mediation'].includes(status))throw new StoreError('Situação do pagamento ainda não reconhecida.',409);
+ return{status,refund,updated:p.date_last_updated,fee:(p.fee_details??[]).reduce((s:number,f:any)=>s+Math.max(0,cents(f.amount)),0),net:p.transaction_details?.net_received_amount==null?null:cents(p.transaction_details.net_received_amount),release:p.money_release_date&&Number.isFinite(Date.parse(p.money_release_date))?p.money_release_date:null};
+}

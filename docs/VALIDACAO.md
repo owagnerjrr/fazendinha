@@ -436,3 +436,13 @@ Corrigida a composição das cabeças alternativas: o recorte antigo apagava omb
 A paleta da pele agora alcança os tons pêssego dos braços sem tingir tecido creme ou botas. A identidade de cada avatar, cadastro e progresso permanecem iguais. Sem migração de dados.
 
 155 testes e build de produção aprovados. QA com arte real: caminhada nas quatro direções e quatro quadros do modelo ondulado, quadros de enxada/regador e galeria dos nove modelos. Nenhuma conta pessoal usada no teste visual. A fixture suporta `?model=rui&sheet=1` para conferir todos os quadros juntos.
+
+## 0.24.0 — loja, guarda-roupa e preparação de pagamentos
+
+- Cabeça de costas registrada no eixo da coluna; a caminhada para cima conserva a oscilação vertical, sem alternar o encaixe entre ombros.
+- Loja com Comprar moedas/Roupas, três conjuntos originais, prévia real, compra/equipar/voltar à roupa original e persistência online.
+- Aparência compartilhada no mapa, interiores, visitas, ferramentas, pesca e carinho. Roupas ficam separadas do cadastro do avatar e não podem ser concedidas por um payload de personalização.
+- API de pedidos autenticados, Pix dinâmico via Payments API e cartão à vista no Checkout Pro. Cinco pacotes com preço autoritativo, idempotência, preferência recuperável, leases de criação, consulta de pedidos após reconexão e histórico paginado.
+- Assinatura de notificações e GET oficial antes do crédito; ledger por pagamento, repetição e eventos fora de ordem, reembolsos e contestações. Ajuste de moedas gasto mantém saldo não negativo e dívida explícita, sem apagar itens/progresso.
+- Migrações 007/008 são aditivas e foram testadas em branch isolado. Crédito concorrente real no banco: três chamadas, uma entrega de 10.000, uma revisão e um movimento; pendência, reembolso parcial, chargeback e restauração de disputa também conferidos com fixtures, sem cobrança.
+- **Limite de validação:** não há credenciais Mercado Pago. Vendas ficam indisponíveis, sem simular aprovação real. Homologação no sandbox oficial, conta recebedora e taxas/prazos reais ainda precisam ser validados antes de ativar produção. Consulte `MERCADO_PAGO_SETUP.md`.

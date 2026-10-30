@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {headAttachment,eraseNativeHead,nativeSkin,nativeHeadRegion,restoreRaisedTool} from '../src/avatar-attachment';
+import {headAttachment,eraseNativeHead,nativeSkin,nativeHeadRegion,restoreRaisedTool,alignHeadToSpine} from '../src/avatar-attachment';
 const pixel=(p:Uint8ClampedArray,w:number,x:number,y:number,rgb:number[])=>p.set([...rgb,255],(y*w+x)*4);
 test('neck is registered on the torso, independent of the tilted brim',()=>{const w=48,p=new Uint8ClampedArray(w*64*4);for(let x=20;x<29;x++)pixel(p,w,x,34,[20,88,54]);for(let x=23;x<26;x++)pixel(p,w,x,34,[248,186,133]);assert.deepEqual(headAttachment(p,w,64,5,19),{x:24,y:34});});
 test('head removal preserves every shoulder/body pixel and distant foreground tools',()=>{const w=96,h=112,p=new Uint8ClampedArray(w*h*4).fill(255),old=p.slice();eraseNativeHead(p,w,h,40,48,70,2);for(let y=70;y<h;y++)assert.deepEqual(p.subarray(y*w*4,(y+1)*w*4),old.subarray(y*w*4,(y+1)*w*4));assert.equal(p[(50*w+4)*4+3],255);assert.equal(p[(48*w+48)*4+3],0);assert.equal(p[(63*w+70)*4+3],0);});
@@ -7,3 +7,5 @@ test('warm raised tool cannot pull head registration away from the hat',()=>{con
 test('hands use the chosen skin palette while cream sleeves, wood and boots keep their colors',()=>{for(const color of [[248,186,133],[251,182,122],[243,197,146],[248,218,168],[240,135,82]])assert.equal(nativeSkin(...color as [number,number,number]),true);for(const color of [[251,227,176],[182,135,106],[116,52,37],[22,4,21]])assert.equal(nativeSkin(...color as [number,number,number]),false);});
 
 test('raised tool and hand stay joined in front of the new head; other frames are untouched',()=>{const w=96,h=112,source=new Uint8ClampedArray(w*h*4),out=source.slice();pixel(source,w,32,50,[137,57,35]);pixel(source,w,34,60,[248,186,133]);pixel(source,w,48,45,[220,160,85]);restoreRaisedTool(out,source,w,h,'hoe-actions',0,1,[104,59,41]);assert.equal(out[(50*w+32)*4+3],255);assert.equal(out[(60*w+34)*4+3],255);assert.ok(out[(60*w+34)*4]<125);assert.equal(out[(45*w+48)*4+3],0);const noTool=source.slice();restoreRaisedTool(noTool,source,w,h,'farmer-v2',0,1,[104,59,41]);assert.deepEqual(noTool,source);});
+
+test('walking upward keeps the head centered on the spine across alternating shoulder highlights',()=>{const poses=[{x:21,y:33},{x:25,y:34},{x:23,y:33},{x:26,y:34}];assert.deepEqual(poses.map(p=>alignHeadToSpine(p,48,3)),[{x:24,y:33},{x:24,y:34},{x:24,y:33},{x:24,y:34}]);assert.deepEqual(alignHeadToSpine(poses[0],48,2),poses[0]);});

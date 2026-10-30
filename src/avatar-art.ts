@@ -1,4 +1,5 @@
-import {headAttachment,eraseNativeHead,nativeSkin,nativeHeadRegion,restoreRaisedTool} from './avatar-attachment';
+import {outfitPixels,drawOutfitCap} from './outfit-art';
+import {headAttachment,eraseNativeHead,nativeSkin,nativeHeadRegion,restoreRaisedTool,alignHeadToSpine} from './avatar-attachment';
 import Phaser from 'phaser';
 import {drawPortraitHead} from './avatar-head-art';
 import {drawModelFeatures} from './avatar-features';
@@ -16,7 +17,7 @@ export class AvatarArt {
  destroy(){for(const key of this.keys.values())this.scene.textures.remove(key);this.keys.clear();}
  key(base:string,avatar:Avatar){
   const old=this.previous;
-  if(!old||old.style!==avatar.style||old.skin!==avatar.skin||old.hair!==avatar.hair||old.shirt!==avatar.shirt){for(const key of this.keys.values()){this.scene.textures.remove(key);this.scene.textures.remove(`${key}-source`);}this.keys.clear();this.previous={...avatar};this.generation++;}
+  if(!old||old.style!==avatar.style||old.skin!==avatar.skin||old.hair!==avatar.hair||old.shirt!==avatar.shirt||old.outfit!==avatar.outfit){for(const key of this.keys.values()){this.scene.textures.remove(key);this.scene.textures.remove(`${key}-source`);}this.keys.clear();this.previous={...avatar};this.generation++;}
   if(this.keys.has(base))return this.keys.get(base)!;
   if(base==='pose-sit'||base==='pose-sleep'){
    const source=this.scene.textures.get(this.key('farmer-v2',avatar)).getSourceImage() as HTMLCanvasElement;
@@ -33,11 +34,11 @@ export class AvatarArt {
   const canvas=document.createElement('canvas');canvas.width=w*4;canvas.height=h*4;const ctx=canvas.getContext('2d')!;ctx.imageSmoothingEnabled=false;ctx.drawImage(source,0,0);
   const skin=rgb(SKIN_TONES[avatar.skin]),hair=rgb(HAIR_COLORS[avatar.hair]),shirt=rgb(SHIRT_COLORS[avatar.shirt]);
   for(let row=0;row<4;row++)for(let col=0;col<4;col++){
-   const data=ctx.getImageData(col*w,row*h,w,h),p=data.data;let top=h,cx=w/2,left=w,right=0;
+   const data=ctx.getImageData(col*w,row*h,w,h),p=data.data,original=p.slice();let top=h,cx=w/2,left=w,right=0;
    for(let y=0;y<h*.65;y++)for(let x=Math.max(0,w/2-24);x<Math.min(w,w/2+24);x++){const i=(y*w+x)*4;if(p[i+3]>180&&p[i]>145&&p[i+1]>95&&p[i]>p[i+1]*1.08&&p[i+2]<p[i+1]*.8)top=Math.min(top,y);}
    for(let y=top;y<Math.min(h,top+15);y++)for(let x=0;x<w;x++){const i=(y*w+x)*4;if(p[i+3]>180&&p[i]>145&&p[i+1]>95&&p[i]>p[i+1]*1.08&&p[i+2]<p[i+1]*.8){left=Math.min(left,x);right=Math.max(right,x);}}
    if(left<right)cx=Math.round((left+right)/2);
-   const region=nativeHeadRegion(p,w,h,{x:cx,top}),neck=headAttachment(p,w,h,region.top,region.x);
+   const region=nativeHeadRegion(p,w,h,{x:cx,top}),neck=alignHeadToSpine(headAttachment(p,w,h,region.top,region.x),w,row);
    for(let y=0;y<h;y++)for(let x=0;x<w;x++){
     const i=(y*w+x)*4;if(p[i+3]<180)continue;const r=p[i],g=p[i+1],b=p[i+2];let target:number[]|null=null,shade=1;
     if(y>top+23&&y<h-8&&Math.abs(x-cx)<23&&g>r*1.08&&g>b*1.1){target=shirt;shade=Math.max(.35,Math.min(1.3,(r+g+b)/180));}
@@ -49,9 +50,10 @@ export class AvatarArt {
     else if(y>top+16&&y<top+31&&Math.abs(x-cx)<20&&r>65&&r<180&&g<r*.55&&b<65){target=hair;shade=Math.max(.4,Math.min(1.1,r/125));}
     if(target){p[i]=Math.min(255,target[0]*shade);p[i+1]=Math.min(255,target[1]*shade);p[i+2]=Math.min(255,target[2]*shade);}
    }
+   outfitPixels(p,original,w,h,avatar,neck,row);
    cleanAvatarPixels(p,w,h);ctx.putImageData(data,col*w,row*h);
    // Body pixels remain in the foreground; the replacement head fits behind the collar.
-   const direction=['down','left','right','up'][row],ox=col*w,oy=row*h;
+   const direction=['down','left','right','up'][row],ox=col*w,oy=row*h,foreground=p.slice();
    ctx.save();ctx.beginPath();ctx.rect(ox,oy,w,h);ctx.clip();
    ctx.save();ctx.translate(ox,oy);drawModelFeatures(ctx,avatar,row,neck.x,neck.y-32);ctx.restore();
    if(avatar.style==='hood'){
@@ -59,10 +61,11 @@ export class AvatarArt {
     ctx.clearRect(ox+cx-25,oy+Math.max(0,top-4),50,top+30-Math.max(0,top-4));ctx.save();ctx.translate(ox+cx-20,oy+top-4);drawNightHood(ctx,direction);ctx.restore();
     if(direction!=='up'){ctx.save();ctx.beginPath();ctx.rect(ox+cx-10,oy+top+20,20,13);ctx.clip();ctx.drawImage(face,ox+cx-11,oy+top+19);ctx.restore();}
    }else if(avatar.style!=='classic'){
-    const body=ctx.getImageData(ox,oy,w,h),foreground=body.data.slice();eraseNativeHead(body.data,w,h,region.top,region.x,neck.y,row);ctx.putImageData(body,ox,oy);
+    const body=ctx.getImageData(ox,oy,w,h);eraseNativeHead(body.data,w,h,region.top,region.x,neck.y,row);ctx.putImageData(body,ox,oy);
     ctx.save();ctx.globalCompositeOperation='destination-over';ctx.translate(ox,oy);drawPortraitHead(ctx,this.scene.textures.get('portrait-heads-v9').getSourceImage() as HTMLImageElement,avatar,row,neck.x,neck.y);ctx.restore();
-    const layered=ctx.getImageData(ox,oy,w,h);restoreRaisedTool(layered.data,foreground,w,h,base,row,col,skin);ctx.putImageData(layered,ox,oy);
    }
+   ctx.save();ctx.translate(ox,oy);drawOutfitCap(ctx,avatar,row,neck);ctx.restore();
+   const layered=ctx.getImageData(ox,oy,w,h);restoreRaisedTool(layered.data,foreground,w,h,base,row,col,skin,neck.y);ctx.putImageData(layered,ox,oy);
    ctx.restore();const final=ctx.getImageData(ox,oy,w,h);cleanAvatarPixels(final.data,w,h);ctx.putImageData(final,ox,oy);
   }
   const key=`avatar-${this.instance}-${this.generation}-${base}`;const sourceTexture=this.scene.textures.addCanvas(key,canvas)!;this.scene.textures.addSpriteSheet('',sourceTexture,{frameWidth:w,frameHeight:h});this.keys.set(base,key);return key;

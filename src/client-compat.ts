@@ -1,6 +1,7 @@
 import type { Farm } from './farm.js';
 export function requiresNewClient(farm:Farm,version:string|null|undefined):boolean {
- if(version==='8')return false;
+ if(version==='9')return false;
+ if(version==='8')return !!farm.wardrobe?.equipped;
  if(version==='7')return true;
  if(version==='6')return true;
  if(farm.fishing)return true;

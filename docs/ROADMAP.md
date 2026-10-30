@@ -202,3 +202,8 @@ Nome, identidade definitiva e monetização continuam em aberto. Não há compro
 - Corrigido encaixe cabeça/colo/ombros dos avatares alternativos em movimento.
 - Preservadas sobreposições da mão e da ferramenta; removidos fragmentos do chapéu anterior.
 - Corrigida a correspondência de cor dos braços com a pele escolhida.
+
+### 0.24.0
+- Implementado: loja integrada, guarda-roupa persistente, três conjuntos autorais e correção da cabeça na caminhada para cima.
+- Preparado: integração Pix/Checkout Pro, pedidos, histórico, webhooks assinados, ledger e reversões.
+- Bloqueado por configuração externa: homologação real Mercado Pago e ativação de vendas. Sem credenciais/testes oficiais/taxas aceitas, comprar moedas permanece indisponível.

@@ -1,3 +1,4 @@
+import {applyWardrobe} from './wardrobe.js';
 import {tillGround} from './ground-rules.js';
 import {applyFishing,FISHING_COMMANDS} from './fishing.js';
 import {applyHusbandry,HUSBANDRY_COMMANDS} from './husbandry-rules.js';
@@ -6,14 +7,15 @@ import {applyHome} from './world-time.js';
 import { ANIMALS, DECOR, DECOR_SLOTS, animalReady, animalHydrated, validAvatar, type AnimalKind, type DecorationKind } from './content.js';
 import { LAND_PRICE, ORIGINAL_PLOTS, EXTRA_PLOTS, LAND_SITES, BUILDINGS, parcels, buildProblem, type LandSite, type BuildingKind } from './plots.js';
 import type { Farm } from './farm.js';
-export const LIFE_COMMANDS=['till-ground',...FISHING_COMMANDS,...HUSBANDRY_COMMANDS,'home','avatar','buy-land','build-land','buy-animal','buy-feed','feed-animal','water-animal','pet-animal','play-animal','rename-animal','start-incubation','hatch-chick','mature-chick','collect-animal','buy-decor','move-decor','raids-setting'] as const;
+export const LIFE_COMMANDS=['buy-outfit','equip-outfit','till-ground',...FISHING_COMMANDS,...HUSBANDRY_COMMANDS,'home','avatar','buy-land','build-land','buy-animal','buy-feed','feed-animal','water-animal','pet-animal','play-animal','rename-animal','start-incubation','hatch-chick','mature-chick','collect-animal','buy-decor','move-decor','raids-setting'] as const;
 export function applyLife(f:Farm,c:any,now:number):{ok:boolean;message:string;caught?:import('./fishing.js').Fish} {
+ if(c.type==='buy-outfit'||c.type==='equip-outfit')return applyWardrobe(f,c);
  if(c.type==='till-ground')return tillGround(f,c.position,now);
  if((FISHING_COMMANDS as readonly string[]).includes(c.type))return applyFishing(f,c,now);
  const fail=(message:string)=>({ok:false,message});
  if(f.careVersion&&(HUSBANDRY_COMMANDS as readonly string[]).includes(c.type))return applyHusbandry(f,c,now);
  if(c.type==='home')return applyHome(f,c,now);
- if(c.type==='avatar'){if(!validAvatar(c.avatar))return fail('Escolha um avatar válido.');f.avatar={...c.avatar};return {ok:true,message:'Seu avatar foi atualizado!'};}
+ if(c.type==='avatar'){if(!validAvatar(c.avatar))return fail('Escolha um avatar válido.');f.avatar={style:c.avatar.style,skin:c.avatar.skin,hair:c.avatar.hair,shirt:c.avatar.shirt};return {ok:true,message:'Seu avatar foi atualizado!'};}
  if(c.type==='raids-setting'){if(typeof c.enabled!=='boolean')return fail('Opção inválida.');f.socialRaids=c.enabled;return {ok:true,message:c.enabled?'Brincadeira de roubo ativada com amigos participantes.':'Sua fazenda está fora da brincadeira de roubo.'};}
  if(c.type==='buy-land'){
   const site=(c.site??'west') as LandSite;if(!Object.hasOwn(LAND_SITES,site))return fail('Escolha um terreno válido.');

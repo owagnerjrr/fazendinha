@@ -1,3 +1,5 @@
+import {appearanceOf} from './wardrobe';
+import {outfitSleeveColor} from './outfit-art';
 import type Phaser from 'phaser';import type {Farm} from './farm';import {FISH,FISH_SPOT,nearFishing,fishingTarget,validFishingTarget,type Fish} from './fishing';import {SKIN_TONES,SHIRT_COLORS} from './content';import {castingPose,caughtFishPoint,CAST_MS,CATCH_FLY_MS,CATCH_SHOW_MS} from './fishing-animation';
 function fishTextures(scene:Phaser.Scene){for(const [kind,fish] of Object.entries(FISH)){
  const key=`caught-${kind}`;if(scene.textures.exists(key))continue;const cv=document.createElement('canvas');cv.width=28;cv.height=20;const c=cv.getContext('2d')!;const r=(color:string,x:number,y:number,w:number,h:number)=>{c.fillStyle=color;c.fillRect(x,y,w,h);};
@@ -29,7 +31,7 @@ export class FishingView{
   this.art.setDepth(direction==='up'?player.y-.1:player.y+3);
   const water=cast?.target??this.lastWater;if(cast?.target)this.lastWater=cast.target;
   if(!presentation||now-presentation.startedAt<CATCH_FLY_MS){
-   const avatar=this.farm().avatar,skin=parseInt(SKIN_TONES[avatar.skin].slice(1),16),shirt=parseInt(SHIRT_COLORS[avatar.shirt].slice(1),16),shoulder={x:player.x+side*7,y:player.y-30};
+   const avatar=appearanceOf(this.farm()),skin=parseInt(SKIN_TONES[avatar.skin].slice(1),16),shirt=parseInt(outfitSleeveColor(avatar).slice(1),16),shoulder={x:player.x+side*7,y:player.y-30};
    this.art.lineStyle(5,0x3a3025).lineBetween(shoulder.x,shoulder.y,hand.x,hand.y).lineStyle(4,shirt).lineBetween(shoulder.x,shoulder.y,hand.x,hand.y);
    this.art.lineStyle(3,0x3a2c20).lineBetween(hand.x,hand.y,tip.x,tip.y).lineStyle(2,0xc5a16b).lineBetween(hand.x,hand.y,tip.x,tip.y).lineStyle(4,0x88623d).lineBetween(hand.x,hand.y,hand.x+side*7,hand.y-10).fillStyle(skin).fillRoundedRect(hand.x-3,hand.y-3,6,6,2).lineStyle(1,0xe1bc73).strokeCircle(hand.x+side*5,hand.y-8,3);
   }
@@ -39,7 +41,7 @@ export class FishingView{
   if(presentation){const age=now-presentation.startedAt,grip={x:player.x+21,y:player.y-43},held={x:grip.x,y:grip.y-12},p=caughtFishPoint(water,held,age),holding=age>=CATCH_FLY_MS;
    this.fish.setVisible(true).setPosition(Math.round(p.x),Math.round(p.y)).setRotation(p.rotation).setScale(1.45).setDepth(player.y+5);
    if(!holding){this.line(tip,p,3);const splash=Math.max(0,1-age/650);this.art.lineStyle(2,0xadd6c6,splash).strokeEllipse(water.x,water.y,18+age/16,8+age/40);for(let i=0;i<6;i++)this.art.fillStyle(0xb9ded0,splash).fillRect(water.x+Math.cos(i)*age/24,water.y-Math.sin(i)*12-age/35,2,3);}
-   else{const a=this.farm().avatar,skin=parseInt(SKIN_TONES[a.skin].slice(1),16),shirt=parseInt(SHIRT_COLORS[a.shirt].slice(1),16);this.art.lineStyle(6,shirt).lineBetween(player.x+12,player.y-28,grip.x,player.y-33).lineStyle(5,skin).lineBetween(grip.x,player.y-33,grip.x,grip.y).fillStyle(skin).fillRect(grip.x-3,grip.y-3,6,6);this.speech.setVisible(true).setPosition(player.x,player.y-83).setDepth(player.y+10);}
+   else{const a=appearanceOf(this.farm()),skin=parseInt(SKIN_TONES[a.skin].slice(1),16),shirt=parseInt(outfitSleeveColor(a).slice(1),16);this.art.lineStyle(6,shirt).lineBetween(player.x+12,player.y-28,grip.x,player.y-33).lineStyle(5,skin).lineBetween(grip.x,player.y-33,grip.x,grip.y).fillStyle(skin).fillRect(grip.x-3,grip.y-3,6,6);this.speech.setVisible(true).setPosition(player.x,player.y-83).setDepth(player.y+10);}
   }
  }
  private openAim(){if(this.controls)return;const box=document.createElement('div');box.className='fishing-aim';box.setAttribute('role','dialog');box.setAttribute('aria-label','Lançamento da isca');box.innerHTML='<label>Direção <select id="cast-side"><option value="north">Lateral de cima</option><option value="east" selected>Frente</option><option value="south">Lateral de baixo</option></select></label><label>Alcance <input id="cast-power" type="range" min="1" max="3" value="2" step="1" /></label><button id="cast-confirm">Lançar</button><button id="cast-cancel">×</button>';document.body.append(box);this.controls=box;box.querySelector('#cast-cancel')!.addEventListener('click',()=>{box.remove();this.controls=undefined;});box.querySelector('#cast-confirm')!.addEventListener('click',()=>{this.aimSide=(box.querySelector('#cast-side') as HTMLSelectElement).value as typeof this.aimSide;this.power=Number((box.querySelector('#cast-power') as HTMLInputElement).value);this.configured=true;box.remove();this.controls=undefined;void this.use();});}

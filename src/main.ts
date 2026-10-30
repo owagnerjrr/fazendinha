@@ -1,3 +1,6 @@
+import {outfitSleeveColor} from './outfit-art';
+import {appearanceOf} from './wardrobe';
+import {setupStoreUI} from './store-ui';
 import {progressionProblem} from './progression';
 import {VisitScene,type VisitData} from './visit-scene';
 import {SKIN_TONES,SHIRT_COLORS} from './content';
@@ -89,7 +92,7 @@ function save() {
   catch { $('save-status').textContent = 'Não foi possível salvar'; $('save-dot').style.background = '#e69f69'; }
 }
 function syncUI() {
-  const appearance=JSON.stringify(farm.avatar);if(scene?.previewArt&&appearance!==portraitSignature){portraitSignature=appearance;const el=document.querySelector<HTMLElement>('.farm-mark')!;el.style.backgroundImage=`url(${previewAvatar(farm.avatar)})`;el.style.backgroundSize='43px 57px';el.style.backgroundPosition='center bottom';}
+  const appearance=JSON.stringify(appearanceOf(farm));if(scene?.previewArt&&appearance!==portraitSignature){portraitSignature=appearance;const el=document.querySelector<HTMLElement>('.farm-mark')!;el.style.backgroundImage=`url(${previewAvatar(appearanceOf(farm))})`;el.style.backgroundSize='43px 57px';el.style.backgroundPosition='center bottom';}
   $('account').textContent = cloud.active ? 'Minha conta' : 'Conta';
   $('day-label').textContent=cloud.active?cloud.name:(farm.playerName||'Um novo começo');
   $('online-bar').hidden = false;
@@ -395,7 +398,7 @@ class FarmScene extends Phaser.Scene {
     if (work.clock.finished(time)) { this.activeWork = null; const next=this.queuedDestination;this.queuedDestination=null;if(next)this.navigate(next); }
   }
   buildingAccess(b:NonNullable<Farm['buildings']>[number]){return this.landWorld.access(b);}
-  careHeart(id:string){const p=this.outdoor.contact(id);if(!p)return;const arm=this.add.graphics(),skin=parseInt(SKIN_TONES[farm.avatar.skin].slice(1),16),shirt=parseInt(SHIRT_COLORS[farm.avatar.shirt].slice(1),16);this.direction=p.x<this.player.x?'left':'right';this.tweens.addCounter({from:0,to:1,duration:1400,onUpdate:t=>{const pet=this.outdoor.contact(id);if(!pet)return;const side=pet.x<this.player.x?-1:1,hx=this.player.x+side*Math.min(45,Math.abs(pet.x-this.player.x)),hy=this.player.y-26+Math.sin((t.getValue()??0)*Math.PI*8)*2;arm.clear().setDepth(Math.max(pet.y,this.player.y)+2).lineStyle(6,shirt).lineBetween(this.player.x+side*8,this.player.y-30,this.player.x+side*20,this.player.y-24).lineStyle(4,skin).lineBetween(this.player.x+side*20,this.player.y-24,hx,hy).fillStyle(skin).fillRoundedRect(hx-4,hy-3,8,5,2);},onComplete:()=>arm.destroy()});const heart=this.add.text(p.x,p.y-45,'♥',{fontFamily:'monospace',fontSize:'18px',color:'#f0a47e',stroke:'#4e4734',strokeThickness:2}).setDepth(p.y+2);this.tweens.add({targets:heart,y:p.y-67,alpha:0,duration:1100,onComplete:()=>heart.destroy()});}
+  careHeart(id:string){const p=this.outdoor.contact(id);if(!p)return;const arm=this.add.graphics(),skin=parseInt(SKIN_TONES[farm.avatar.skin].slice(1),16),shirt=parseInt(outfitSleeveColor(appearanceOf(farm)).slice(1),16);this.direction=p.x<this.player.x?'left':'right';this.tweens.addCounter({from:0,to:1,duration:1400,onUpdate:t=>{const pet=this.outdoor.contact(id);if(!pet)return;const side=pet.x<this.player.x?-1:1,hx=this.player.x+side*Math.min(45,Math.abs(pet.x-this.player.x)),hy=this.player.y-26+Math.sin((t.getValue()??0)*Math.PI*8)*2;arm.clear().setDepth(Math.max(pet.y,this.player.y)+2).lineStyle(6,shirt).lineBetween(this.player.x+side*8,this.player.y-30,this.player.x+side*20,this.player.y-24).lineStyle(4,skin).lineBetween(this.player.x+side*20,this.player.y-24,hx,hy).fillStyle(skin).fillRoundedRect(hx-4,hy-3,8,5,2);},onComplete:()=>arm.destroy()});const heart=this.add.text(p.x,p.y-45,'♥',{fontFamily:'monospace',fontSize:'18px',color:'#f0a47e',stroke:'#4e4734',strokeThickness:2}).setDepth(p.y+2);this.tweens.add({targets:heart,y:p.y-67,alpha:0,duration:1100,onComplete:()=>heart.destroy()});}
   tendPlot(id:number,next:Tool){const field=this.fields.find(f=>f.id===id);if(!field)return;setTool(next);const blocks=this.obstacles.getChildren().map(o=>{const b=(o as Phaser.GameObjects.Zone).body as Phaser.Physics.Arcade.StaticBody;return{x:b.x,y:b.y,width:b.width,height:b.height};});const target=[[42,10],[-42,10],[0,45],[0,-45]].map(([dx,dy])=>({x:field.x+dx,y:field.y+dy,field:id})).find(p=>findPath(this.player,p,blocks).length);if(target)this.navigate(target);else toast('Não há passagem livre.');}
   renderAvatar(time: number, moving: boolean) {
     const work = this.activeWork, equipped = work?.clock.tool ?? (tool==='rod'?'hand':tool);
@@ -406,13 +409,13 @@ class FarmScene extends Phaser.Scene {
     const bend = work && !usingActionSheet ? Math.sin(Math.min(1, elapsed / ACTIONS[equipped].duration) * Math.PI) : 0;
     const bob = (moving ? Math.sin(time / 65) * .65 : 0) + bend * 1.5;
     if (usingActionSheet) {
-      this.actor.setTexture(this.avatarArt.key(`${equipped}-actions`,farm.avatar), DIRECTION_ROW[this.direction] * 4 + actionFrame(equipped, elapsed)).setOrigin(.5, 100 / 112).setScale(1.08);
+      this.actor.setTexture(this.avatarArt.key(`${equipped}-actions`,appearanceOf(farm)), DIRECTION_ROW[this.direction] * 4 + actionFrame(equipped, elapsed)).setOrigin(.5, 100 / 112).setScale(1.08);
     } else if (equipped !== 'hand') {
       // Hands, grip and equipment are a single authored sprite in every frame.
       // No mirroring/pivot guesses or detached inventory icons during movement.
-      this.actor.setTexture((idle?this.avatarArt.idleKey(`carry-${equipped}`,farm.avatar):this.avatarArt.key(`carry-${equipped}`,farm.avatar)), DIRECTION_ROW[this.direction] * 4 + frame).setOrigin(.5, 100 / 112).setScale(1.08, 1.08 * (1 - bend * .07));
+      this.actor.setTexture((idle?this.avatarArt.idleKey(`carry-${equipped}`,appearanceOf(farm)):this.avatarArt.key(`carry-${equipped}`,appearanceOf(farm))), DIRECTION_ROW[this.direction] * 4 + frame).setOrigin(.5, 100 / 112).setScale(1.08, 1.08 * (1 - bend * .07));
     } else {
-      this.actor.setTexture((idle?this.avatarArt.idleKey('farmer-v2',farm.avatar):this.avatarArt.key('farmer-v2',farm.avatar)),DIRECTION_ROW[this.direction]*4+frame).setOrigin(.5, 62 / 64).setScale(1.08, 1.08 * (1 - bend * .07));
+      this.actor.setTexture((idle?this.avatarArt.idleKey('farmer-v2',appearanceOf(farm)):this.avatarArt.key('farmer-v2',appearanceOf(farm))),DIRECTION_ROW[this.direction]*4+frame).setOrigin(.5, 62 / 64).setScale(1.08, 1.08 * (1 - bend * .07));
     }
     this.actor.setPosition(this.player.x, this.player.y - 2 + bob).setDepth(this.player.y);
     this.playerShadow.setPosition(this.player.x + 1, this.player.y - 3);
@@ -501,6 +504,8 @@ bindPressAction($('touch-action'),useAction);
 cloud.salePosition=()=>!visiting&&!inside&&scene?.player&&atVendor(scene.player)?{x:scene.player.x,y:scene.player.y}:undefined;
 cloud.onStatus=message=>{ $('save-status').textContent=message;$('save-dot').style.background=message.includes('sincronizado')?'#c4da8c':'#e69f69'; };
 cloud.onSnapshot=(snapshot,initial)=>{ farm=snapshot.farm;if(initial&&scene?.player){scene.finishCurrentWork();scene.cancelMovement();scene.player.setPosition(farm.player.x,farm.player.y);}syncUI();scene?.paintFields(); };
+const storeUI=setupStoreUI({cloud,farm:()=>farm,open:openPanel,close:closePanel,toast,preview:previewAvatar});
+$('store').onclick=()=>void storeUI.open();
 const onlineUI=setupOnlineUI(cloud,openPanel,closePanel,toast,()=>farm as OnlineFarm,()=>{if(visiting)(game.scene.getScene('Visit') as VisitScene).leave();farm=restoreLocalFarm(localStorage.getItem(SAVE_KEY),localStorage.getItem(LAND_SAVE_KEY));scene?.cancelMovement();scene?.player.setPosition(farm.player.x,farm.player.y);scene?.paintFields();syncUI();save();},()=>void journey.start(false),startVisit);
 async function lifeCommand(c:any){
  if(onlineLoading)throw new Error('Aguarde a conexão com sua conta.');
@@ -535,7 +540,7 @@ async function bondAnimal(id:string,type:'pet-animal'|'play-animal'){
 }
 life=setupLifeUI({atShop:()=>!inside&&!!scene?.player&&atVendor(scene.player),goShop:goToShop,farm:()=>farm,online:()=>cloud.active,now:()=>Date.now()+cloud.offset,open:openPanel,close:closePanel,command:lifeCommand,enter:enterInterior,equip:setTool,bond:bondAnimal,tendPlot:(id,next)=>{if(inside)(game.scene.getScene('Interior') as InteriorScene).exitRoom();if(!inside)scene.tendPlot(id,next);else toast('Aguarde a personagem se levantar.');},toast,preview:previewAvatar});
 setupInstall(toast);
-journey=setupJourney({cloud,farm:()=>farm,preview:previewAvatar,block:active=>{modal=active;onlineLoading=active;scene?.cancelMovement();},entered:()=>{booting=false;onlineLoading=false;syncUI();},toast});
+journey=setupJourney({cloud,farm:()=>farm,preview:previewAvatar,block:active=>{modal=active;onlineLoading=active;scene?.cancelMovement();},entered:()=>{booting=false;onlineLoading=false;syncUI();void storeUI.resume();},toast});
 setInterval(()=>{if(!document.hidden)void cloud.refresh();},15000);
 window.addEventListener('online',()=>{if(cloud.active)void cloud.retryPending().then(()=>cloud.refresh()).catch(()=>{});});
 window.addEventListener('focus',()=>void cloud.refresh());
@@ -549,7 +554,7 @@ $('frame-rate').onclick=()=>{openPanel('Desempenho e animação',`<p id="perform
  const effects=$<HTMLSelectElement>('effects-setting');effects.value=display.effects;effects.onchange=()=>{display.effects=effects.value as Effects;saveDisplay();};$<HTMLInputElement>('breathing-setting').onchange=e=>{display.breathing=(e.target as HTMLInputElement).checked;saveDisplay();};};
 window.addEventListener('error', event => { $('save-status').textContent = 'Ocorreu um erro. Recarregue para continuar.';if(inside){const room=currentInterior??'barn',error=event.error instanceof Error?event.error:new Error(event.message);queueMicrotask(()=>{recoverInterior(error,room);game.loop.wake();});} });
 // Expose no account state or mutation hooks. The Phaser instance remains module-local.
-game.scene.add('Interior',new InteriorScene({farm:()=>farm,stick:()=>joystick,modal:()=>modal,tool:()=>tool,now:()=>Date.now()+cloud.offset,avatar:()=>life.avatar(),animals:id=>life.animals(id),equipment:()=>life.equipment(),care:lifeCommand,home:lifeCommand,collect:id=>lifeCommand({type:'collect-animal',id}).then(r=>{toast(r.message??'Produto coletado.');return r;}),toast,open:openPanel,exit:finishInteriorExit,failed:recoverInterior}),false);
+game.scene.add('Interior',new InteriorScene({farm:()=>farm,stick:()=>joystick,modal:()=>modal,tool:()=>tool,now:()=>Date.now()+cloud.offset,avatar:()=>life.avatar(),wardrobe:()=>storeUI.open('clothes'),animals:id=>life.animals(id),equipment:()=>life.equipment(),care:lifeCommand,home:lifeCommand,collect:id=>lifeCommand({type:'collect-animal',id}).then(r=>{toast(r.message??'Produto coletado.');return r;}),toast,open:openPanel,exit:finishInteriorExit,failed:recoverInterior}),false);
 $('exit-interior').onclick=()=>{if(visiting){(game.scene.getScene('Visit') as VisitScene).leave();return;}if(inside)(game.scene.getScene('Interior') as InteriorScene).exitRoom();};
 void game;
 

@@ -1,3 +1,4 @@
+import {settleCoinDebt} from '../src/wallet.js';
 import {claimInvitation,settleVerifiedInvitation,referralSummary} from './referrals.js';
 import {progressionProblem} from '../src/progression.js';
 import {atVendor} from '../src/vendor-sales.js';
@@ -89,6 +90,7 @@ export async function mutate(user: string, body: any, version?: string|null) {
     row.result??={ok:true,message:'Posição salva.'};
     // Older cached clients may play before seeing the new welcome flow. Preserve that farm too.
     if(c.type!=='position'&&c.type!=='initialize-profile'&&row.state.profileComplete===false)row.state.profileComplete=true;
+    settleCoinDebt(row.state);
     await db.query('UPDATE farms SET state=$2,revision=revision+1,last_action_at=now(),position_at=CASE WHEN $3 THEN now() ELSE position_at END WHERE user_id=$1',[user,row.state,['position','work','cast-line','reel-line','sell','list','till-ground'].includes(c.type)]);
     await db.query('INSERT INTO action_receipts(user_id,id,hash,result) VALUES($1,$2,$3,$4)',[user,body.id,hash,row.result]);
     await db.query('COMMIT');

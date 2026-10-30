@@ -1,3 +1,5 @@
+import {outfitSleeveColor} from './outfit-art';
+import {appearanceOf} from './wardrobe';
 import {closestInReach} from './proximity';
 import {buildBarnShell} from './barn-design';
 import {claimInteractionEvent} from './interaction-event';
@@ -14,7 +16,7 @@ import { AvatarArt } from './avatar-art';
 import { buildBarn, type RoomPoint } from './barn-art';
 import type { Farm, Tool } from './farm';
 import { findPath } from './pathfinding';
-type Services={farm:()=>Farm;stick:()=>{x:number;y:number};modal:()=>boolean;tool:()=>Tool;now:()=>number;avatar:()=>void;animals:(id?:string)=>void;equipment:()=>void;toast:(s:string)=>void;open:(title:string,html:string)=>void;exit:()=>void;collect?:(id:string)=>Promise<unknown>;home?:(c:{type:'home';action:'tv'|'lights'|'sleep'|'wake';on?:boolean})=>Promise<unknown>;care?:(c:{type:'pet-animal'|'play-animal';id:string})=>Promise<unknown>;failed?:(error:Error,room:'house'|'barn')=>void};
+type Services={farm:()=>Farm;stick:()=>{x:number;y:number};modal:()=>boolean;tool:()=>Tool;now:()=>number;avatar:()=>void;wardrobe?:()=>void;animals:(id?:string)=>void;equipment:()=>void;toast:(s:string)=>void;open:(title:string,html:string)=>void;exit:()=>void;collect?:(id:string)=>Promise<unknown>;home?:(c:{type:'home';action:'tv'|'lights'|'sleep'|'wake';on?:boolean})=>Promise<unknown>;care?:(c:{type:'pet-animal'|'play-animal';id:string})=>Promise<unknown>;failed?:(error:Error,room:'house'|'barn')=>void};
 export class InteriorScene extends Phaser.Scene {
  private failed=false;
  private bonding:{id:string;type:'pet-animal'|'play-animal';phase:'arriving'|'contact'|'saving'|'reacting';start:number;resolve:()=>void;reject:(e:Error)=>void}|null=null;private gesture!:Phaser.GameObjects.Graphics;private reduced=matchMedia('(prefers-reduced-motion: reduce)');
@@ -82,7 +84,7 @@ export class InteriorScene extends Phaser.Scene {
  }
  private useHouse(kind:string){
   const s=this.services;if(this.homeBusy||s.farm().home?.sleep)return;
-  if(kind==='wardrobe'){s.avatar();return;}
+  if(kind==='wardrobe'){(s.wardrobe??s.avatar)();return;}
   if(kind==='sofa'){this.rest={kind:'sit',start:this.time.now,from:{x:this.player.x,y:this.player.y-2}};this.target=null;this.route=[];this.player.setVelocity(0);return;}
   if(kind==='lamp'){if(s.home){this.homeBusy=true;void s.home({type:'home',action:'lights',on:s.farm().home?.lightsOn===false}).catch(e=>s.toast(e.message)).finally(()=>this.homeBusy=false);}return;}
   if(kind==='bed'||kind==='tv'){
@@ -97,7 +99,7 @@ export class InteriorScene extends Phaser.Scene {
  private restFrame(time:number,phase:number){
   const rest=this.rest;if(!rest)return;
   const destination=rest.kind==='sit'?HOUSE_SEAT:rest.kind==='sleep'?HOUSE_SLEEP:{x:this.player.x,y:this.player.y-2};const t=Math.min(1,(time-rest.start)/600),ease=t*t*(3-2*t);
-  this.actor.setTexture(this.art.idleKey(rest.kind==='sleep'?'pose-sleep':'pose-sit',this.services.farm().avatar),rest.kind==='leaving'?0:phase).setOrigin(.5,1).setScale(1.08).setPosition(rest.from.x+(destination.x-rest.from.x)*ease,rest.from.y+(destination.y-rest.from.y)*ease).setDepth(rest.kind==='sleep'?316:520);
+  this.actor.setTexture(this.art.idleKey(rest.kind==='sleep'?'pose-sleep':'pose-sit',appearanceOf(this.services.farm())),rest.kind==='leaving'?0:phase).setOrigin(.5,1).setScale(1.08).setPosition(rest.from.x+(destination.x-rest.from.x)*ease,rest.from.y+(destination.y-rest.from.y)*ease).setDepth(rest.kind==='sleep'?316:520);
   if(rest.kind==='leaving'&&t>=1){this.rest=null;this.actor.setDepth(this.player.y);}
  }
  private updateHouseControls(){
@@ -122,7 +124,7 @@ export class InteriorScene extends Phaser.Scene {
   const bond=this.bonding;if(bond&&bond.phase!=='arriving'){vx=0;vy=0;this.target=null;this.route=[];}
   const len=Math.hypot(vx,vy);this.player.setVelocity(len?vx/Math.max(1,len)*145:0,len?vy/Math.max(1,len)*145:0);if(len>.1)this.dir=Math.abs(vx)>Math.abs(vy)?vx<0?1:2:vy<0?3:0;
   const phase=this.breathing.frame(time,len>.1,!!bond,!display.breathing),idle=len<=.1&&!bond;
-  const tool=bond?'hand':s.tool(),base=tool==='hand'||tool==='rod'?'farmer-v2':`carry-${tool}`,key=idle?this.art.idleKey(base,s.farm().avatar):this.art.key(base,s.farm().avatar),frame=this.dir*4+(len>.1?Math.floor(time/140)%4:phase);this.actor.setTexture(key,frame).setScale(1.08).setOrigin(.5,base==='farmer-v2'?62/64:100/112).setPosition(this.player.x,this.player.y-2).setDepth(this.player.y);
+  const tool=bond?'hand':s.tool(),base=tool==='hand'||tool==='rod'?'farmer-v2':`carry-${tool}`,key=idle?this.art.idleKey(base,appearanceOf(s.farm())):this.art.key(base,appearanceOf(s.farm())),frame=this.dir*4+(len>.1?Math.floor(time/140)%4:phase);this.actor.setTexture(key,frame).setScale(1.08).setOrigin(.5,base==='farmer-v2'?62/64:100/112).setPosition(this.player.x,this.player.y-2).setDepth(this.player.y);
   this.restFrame(time,phase);this.house?.updateHome(s.farm().home,time,this.rest?.kind==='sleep',this.reduced.matches);if(time>=this.nextUI){this.updateHouseControls();this.nextUI=time+100;}
   this.barn?.update(time,s.farm(),s.now(),this.player);this.gesture.clear();
   if(bond){
@@ -131,7 +133,7 @@ export class InteriorScene extends Phaser.Scene {
     bond.phase='saving';void (s.care?.({type:bond.type,id:bond.id})??Promise.reject(new Error('Cuidados indisponíveis.'))).then(()=>{if(this.bonding===bond){bond.phase='reacting';bond.start=this.time.now;}}).catch(e=>{if(this.bonding===bond)this.finishBond(e);});
    }
    if(bond.phase==='contact'||bond.phase==='reacting'){
-    const elapsed=time-bond.start,side=this.dir===1?-1:1,wave=this.reduced.matches?0:Math.round(Math.sin(elapsed/140)*2),skin=parseInt(SKIN_TONES[s.farm().avatar.skin].slice(1),16),shirt=parseInt(SHIRT_COLORS[s.farm().avatar.shirt].slice(1),16);
+    const elapsed=time-bond.start,side=this.dir===1?-1:1,wave=this.reduced.matches?0:Math.round(Math.sin(elapsed/140)*2),skin=parseInt(SKIN_TONES[s.farm().avatar.skin].slice(1),16),shirt=parseInt(outfitSleeveColor(appearanceOf(s.farm())).slice(1),16);
     const animal=this.barn?.contact(bond.id);if(animal&&Math.hypot(animal.x-this.player.x,animal.y-this.player.y)<80){const hx=animal.x+(this.dir===1?9:-9),hy=animal.y-25+wave,shoulder={x:this.player.x+side*8,y:this.player.y-29},elbow={x:shoulder.x+(hx-shoulder.x)*.5,y:shoulder.y+4};this.gesture.setDepth(Math.max(this.player.y,animal.y)+2).lineStyle(7,0x392c22).lineBetween(shoulder.x,shoulder.y,elbow.x,elbow.y).lineBetween(elbow.x,elbow.y,hx,hy).lineStyle(5,shirt).lineBetween(shoulder.x,shoulder.y,elbow.x,elbow.y).lineStyle(4,skin).lineBetween(elbow.x,elbow.y,hx,hy).fillStyle(skin).fillRoundedRect(hx-4,hy-3,8,5,2);}
     const pet=this.barn?.contact(bond.id);if(pet&&bond.type==='play-animal'){this.gesture.fillStyle(0xcaae63).fillCircle(pet.x-side*12,pet.y-6,3);}
     if(bond.phase==='reacting'&&elapsed>2100)this.finishBond();
