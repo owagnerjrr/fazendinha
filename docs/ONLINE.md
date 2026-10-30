@@ -1,3 +1,11 @@
+## Social 0.17.0
+
+Google está habilitado com credenciais compartilhadas do Neon: funciona para a beta, exibindo Neon na autorização; produção com identidade própria exige um OAuth Client Google configurado pelo proprietário. Nenhuma senha Gmail é coletada. O SDK oficial trata o verifier OAuth e o proxy repassa query/cookies no mesmo domínio. `auth-status` valida disponibilidade em execução, sem depender de variável de build. A fazenda online existente nunca é substituída por escolhas de novo cadastro.
+
+`004-social-chat.sql` cria somente social_blocks e friend_messages/índices; farms e o conteúdo dos saves não são reescritos. Chat exige JWT e conta válida, amizade aceita, ausência de bloqueio nas duas direções e código público do destinatário. Endpoints não recebem sender do cliente. Mensagens: 1–500 caracteres, texto escapado, 20/min e pelo menos 1s entre envios, UUID idempotente por remetente, histórico paginado de 50 itens, consultas de 3s suspensas ao ocultar a aba/fechar o painel. Mensagem pendente fica no sessionStorage por conta/conversa; reenvio não duplica. Bloquear encerra a amizade e revoga visitas/chat; desbloquear não aceita nova amizade automaticamente. Histórico anterior permanece no banco, inacessível sem amizade aceita. Não há promessa de criptografia ponta a ponta.
+
+Visitas têm um mapa Phaser separado, usando o estado público confirmado do amigo, parcelas e canteiros avulsos. A posição do visitante não substitui o save de sua fazenda; ajuda/roubo continuam validados e limitados no servidor. Nome, cultivo e aparência pública podem aparecer ao amigo; e-mail, saldos, tokens e inventário privado não são retornados pela visita. Não há co-op ou avatar remoto ao vivo.
+
 # Versão online 0.4 — beta
 
 Frontend Vite/Phaser na Vercel; API `api/game.ts` Node; Postgres no Neon, região AWS us-east-1; identidade Managed Better Auth com transporte de sessão em `/api/auth/` no mesmo domínio para funcionar em navegadores móveis que bloqueiam cookies de terceiros. A API verifica assinatura EdDSA, emissor e expiração do token e confirma a existência da conta. Nenhuma senha é tratada pelo servidor do jogo. Credenciais de banco ficam somente nas variáveis do servidor.

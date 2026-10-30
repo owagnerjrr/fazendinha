@@ -5,9 +5,14 @@ import type { MarketItem } from './market';
 export type Snapshot = { farm: OnlineFarm; revision: number; code?: string; name?: string; now: number; message?: string; harvest?: boolean };
 export type Friend = {code:string;name:string;accepted:boolean;incoming:boolean};
 export type Listing = {id:string;crop:MarketItem;quantity:number;price:number;mine:boolean;name:string;code:string};
-const authUrl = (import.meta as any).env.VITE_NEON_AUTH_URL as string | undefined;
+
 let client: any;
-export async function auth() { if (!authUrl) throw new Error('Conta online indisponível neste ambiente.'); return client ??= (await import('@neondatabase/auth')).createAuthClient(`${location.origin}/api/auth`); }
+export async function auth() { return client ??= (await import('@neondatabase/auth')).createAuthClient(`${location.origin}/api/auth`); }
+export async function googleSignIn(link=false){
+ const status=await fetch('/api/auth-status',{cache:'no-store'});if(!status.ok||!(await status.json()).available)throw new Error('O acesso Google está indisponível agora. Tente novamente em instantes.');
+ const a=await auth();localStorage.setItem('wj-cloud-session','1');const options={provider:'google',callbackURL:location.origin,errorCallbackURL:location.origin+'/?error=google-cancelled'};
+ const result=link?await a.linkSocial(options):await a.signIn.social(options);if(result.error)throw new Error(result.error.message||'Não foi possível abrir o Google. Suas escolhas foram preservadas.');return result;
+}
 export class CloudFarm {
   salePosition:()=>Farm['player']|undefined=()=>undefined;
   active=false; busy=false; revision=0; code=''; name=''; offset=0;
@@ -17,14 +22,14 @@ export class CloudFarm {
   onConnected:()=>Promise<void>|void=()=>{};
   onSnapshot: (snapshot:Snapshot,initial:boolean)=>void = ()=>{};
   onStatus:(message:string)=>void=()=>{};
-  async request(path='',body?:unknown) {
+  async request(path='',body?:unknown,endpoint='/api/game') {
     const a=await auth(), token=sessionToken(await a.token()); if(!token) throw new Error('Sua sessão expirou. Entre novamente.');
     this.accessToken=token;
-    const r=await fetch(`/api/game${path}`,{method:body?'POST':'GET',headers:{'X-Farm-Version':'8',Authorization:`Bearer ${token}`,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,cache:'no-store',signal:AbortSignal.timeout(15000)});
+    const r=await fetch(`${endpoint}${path}`,{method:body?'POST':'GET',headers:{'X-Farm-Version':'8',Authorization:`Bearer ${token}`,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,cache:'no-store',signal:AbortSignal.timeout(15000)});
     const result=await r.json(); if(!r.ok) { const error=new Error(result.error??'Falha ao sincronizar.') as Error & {status:number}; error.status=r.status; throw error; } return result;
   }
   accept(snapshot:Snapshot,initial=false) { if(!initial&&snapshot.revision<this.revision) return; this.revision=snapshot.revision; this.offset=snapshot.now-Date.now(); this.code=snapshot.code??this.code; this.name=snapshot.name??this.name; this.onSnapshot(snapshot,initial); this.onStatus('Progresso online sincronizado'); }
-  async connect() { const a=await auth(), session=await a.getSession(); if(!session.data?.user) return false; const result=await this.request(); this.active=true; this.accept(result,true); localStorage.setItem('wj-cloud-session','1'); await this.retryPending();await this.onConnected(); return true; }
+  async connect() { const a=await auth(), session=await a.getSession(); if(session.error)throw new Error(session.error.message||'Não foi possível recuperar sua sessão.');if(!session.data?.user) return false; const result=await this.request(); this.active=true; this.accept(result,true); localStorage.setItem('wj-cloud-session','1'); await this.retryPending();await this.onConnected(); return true; }
   async refresh() { if(!this.active||this.busy||sessionStorage.getItem('wj-pending-action')) return; try { this.accept(await this.request()); } catch { this.onStatus('Sem conexão · reconecte para continuar'); } }
   async retryPending() {
     const raw=sessionStorage.getItem('wj-pending-action'); if(!raw) return null;
@@ -65,5 +70,6 @@ export class CloudFarm {
       if(pending&&JSON.parse(pending).body.id===body.id){sessionStorage.removeItem('wj-pending-action');this.accept(result);}
     }).catch(()=>{});
   }
+  chatRequest(path='',body?:unknown){return this.request(path,body,'/api/chat');}
   async disconnect() { if(this.busy) throw new Error('Aguarde a sincronização antes de sair.'); await this.retryPending(); await (await auth()).signOut(); this.active=false;localStorage.removeItem('wj-cloud-session'); }
 }

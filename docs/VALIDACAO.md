@@ -1,3 +1,7 @@
+## Social 0.17.0
+
+126 testes unitários/regressões passaram, build TypeScript/Vite/PWA aprovado. Migração aditiva validada primeiro na branch dev-social-chat-017: chaves estrangeiras, rejeição de duplicação de UUID, autoenvio e mensagens acima de 500 caracteres; isolamento de terceira identidade. A mesma migração foi aplicada à produção sem reescrever saves ou contas. `scripts/smoke-social.mjs` cobre o fluxo publicado com identidades QA isoladas. Resultados de integração e navegador são registrados após a execução; o consentimento de uma conta Google pessoal não é automatizado.
+
 ## Revisão da fazenda 0.16.0
 
 123 testes passaram e build TypeScript/Vite/PWA aprovado. Novas regressões cobrem três lados da ponte × três alcances, alvos na água e rejeição de alvos inválidos, captura única, duração de culturas novas e preservação de prazos anteriores, recapitulação da enxada após colher, canteiro avulso com energia online, validação de proximidade/ocupação/área, persistência do canteiro e plantação, envelhecimento do solo e calendário avançado por sono, luz persistida e intervalos de necessidades animais. As expectativas antigas de 45 segundos foram atualizadas para os prazos intencionalmente maiores.

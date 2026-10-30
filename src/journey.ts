@@ -1,4 +1,4 @@
-import { auth, type CloudFarm } from './cloud';
+import {googleSignIn, auth, type CloudFarm } from './cloud';
 import { AVATAR_STYLES,SKIN_TONES,HAIR_COLORS,SHIRT_COLORS,type Avatar } from './content';
 import type { Farm } from './farm';
 import { CHARACTER_PRESETS,PROFILE_DRAFT_KEY,readProfileDraft,normalizePlayerName,needsInitialProfile,type ProfileDraft } from './profile';
@@ -26,7 +26,7 @@ export function setupJourney(s:Services){
   const back=root.querySelector<HTMLButtonElement>('#journey-back');if(back)back.onclick=()=>{draft.step=draft.step===3?(draft.name?2:1):1;persist();render();root.scrollTop=0;};
   const google=root.querySelector<HTMLButtonElement>('#journey-google');if(google)google.onclick=()=>void run(async()=>{
    if(s.cloud.active){await acceptAccount();return;}persist();localStorage.setItem('wj-cloud-session','1');feedback('Abrindo o Google… Suas escolhas estão guardadas.');
-   const a=await auth(),result=await a.signIn.social({provider:'google',callbackURL:location.origin});if(result.error)throw new Error(result.error.message||'Não foi possível abrir o Google. Tente novamente.');
+   await googleSignIn();
   });
   const emailForm=root.querySelector<HTMLFormElement>('#journey-email-form');if(emailForm){
    const login=(signup:boolean)=>run(async()=>{if(!emailForm.reportValidity())return;persist();const d=new FormData(emailForm);const a=await auth(),credentials={email:String(d.get('email')),password:String(d.get('password'))};const r=signup?await a.signUp.email({...credentials,name:draft.name||'Fazendeiro'}):await a.signIn.email(credentials);if(r.error)throw new Error(r.error.message||'Confira seu e-mail e sua senha.');if(!await s.cloud.connect())throw new Error('Não foi possível abrir sua conta. Tente novamente.');});
