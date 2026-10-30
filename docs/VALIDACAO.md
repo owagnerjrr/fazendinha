@@ -1,3 +1,9 @@
+## Auditoria 0.26.0 — estado atual
+
+Consulte [relatório do check-up](CHECKUP_0_26.md) para correções, testes, segurança e limites. Vendas Orders seguem habilitadas; Pix real é validação anterior, cartão/reembolso foram validados em sandbox. CRON_SECRET está cadastrado em produção e o agendamento consta na configuração, mas a primeira execução automática ainda não foi observada. Migrações 009–012 já aplicadas; PRs #2 a #5 integrados à main. Registros abaixo são históricos e podem descrever pendências já resolvidas.
+
+---
+
 ## 0.25.1 — cuidado e visitas
 
 Sem energia obrigatória; gatos raster detalhados; primeiro carinho corrigido e animação refeita; quadrado da horta removido; ações explícitas e ajuda em vários canteiros de amigos. 193 testes e build aprovados. [Escopo e validação](CARE_0_25_1.md).
