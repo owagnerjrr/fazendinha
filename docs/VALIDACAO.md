@@ -470,4 +470,4 @@ Para repetir o QA visual: iniciar Vite e executar `node scripts/qa-store-browser
 
 
 ## Orders API — branch de homologação
-176 testes automatizados aprovados. Migração 009 aditiva aplicada somente no banco isolado `dev-store-wardrobe-024`. Checkout Pro Orders, evento `order`, validação de vínculos financeiros, QR obtido na consulta oficial e ledger agregado implementados. Produção preservada. Homologação real de pagamentos e assinatura do webhook permanecem pendentes. Detalhes e limitações em `ORDERS_HOMOLOGACAO.md`.
+177 testes automatizados aprovados. Migração 009 aditiva aplicada somente no banco isolado `dev-store-wardrobe-024`. Checkout Pro Orders, evento `order`, validação de vínculos financeiros, QR obtido na consulta oficial e ledger agregado implementados. Produção preservada. Homologação real de pagamentos e assinatura do webhook permanecem pendentes. Detalhes e limitações em `ORDERS_HOMOLOGACAO.md`.

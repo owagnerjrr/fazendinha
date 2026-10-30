@@ -12,14 +12,15 @@ Esta branch migra novas compras para Checkout Pro via Orders. Produção permane
 - `GET /api/mp-webhook` informa disponibilidade sem revelar credenciais. `POST` sem configuração/assinatura válida jamais credita moedas.
 
 ## Ambiente
-- Vercel Preview, branch `codex/mercadopago-orders`.
+- Branch `codex/mercadopago-orders`, com Preview protegido no projeto principal.
+- Endpoint público em projeto dedicado `fazendinha-wj-mp-test`: https://fazendinha-wj-mp-test.vercel.app/api/mp-webhook. Sua publicação usa o slot Production desse projeto de testes, sem promover o jogo principal.
 - Neon branch existente `dev-store-wardrobe-024`, separado de produção, com migração aditiva `009_orders_api.sql`.
 - Autenticação Neon do próprio branch de teste, sem reutilizar o endpoint de produção.
-- Token fornecido pelo proprietário cadastrado como Secret apenas em Preview. `MP_APPLICATION_ID` e `MP_COLLECTOR_ID` são da conta de testes mostrada no painel.
+- Token de testes fornecido pelo proprietário cadastrado como Secret em Preview e no projeto dedicado de homologação; nunca no ambiente Production do jogo principal. `MP_APPLICATION_ID` e `MP_COLLECTOR_ID` são da conta de testes mostrada no painel.
 - Novas compras seguem bloqueadas (`MP_TEST_CHECKOUT_ENABLED=false`). Falta cadastrar a assinatura real do webhook em `MP_WEBHOOK_SECRET`; não foi usado segredo inventado.
 
 ## Validação e limites
-176 testes automatizados passam, incluindo seis cenários adicionais de Orders: criação/restrições, vínculo financeiro, estados sem crédito, refund/contestação/QR, assinatura HMAC e chave única do ledger. Testes de contrato usam fixtures; não equivalem à homologação no provedor.
+177 testes automatizados passam, incluindo sete cenários adicionais de Orders: criação/restrições, vínculo financeiro, estados sem crédito, refund/contestação/QR, assinatura HMAC e chave única do ledger. Testes de contrato usam fixtures; não equivalem à homologação no provedor.
 
 O servidor deve ser publicado e o endpoint deve ser acessível pelo Mercado Pago antes de salvar o webhook. Conferir em homologação a assinatura real, o pagamento Pix, cartão aprovado/recusado, notificações repetidas e o jogo fechado. Habilitar produção requer as credenciais correspondentes e a validação da conta recebedora, com homologação concluída. Nenhuma cobrança real deve ser criada para realizar esses testes.
 
@@ -30,3 +31,5 @@ O servidor deve ser publicado e o endpoint deve ser acessível pelo Mercado Pago
 - https://www.mercadopago.com.br/developers/pt/docs/checkout-pro-orders/additional-settings/exclude-payment-methods
 - https://www.mercadopago.com.br/developers/pt/docs/checkout-pro-orders/web-integration/configure-back-urls
 - https://raw.githubusercontent.com/mercadopago/sdk-nodejs/master/src/clients/order/commonTypes.ts
+
+O slot público do projeto dedicado só aceita modo de teste quando `MP_SANDBOX_PROJECT_ID` corresponde ao próprio ID da Vercel. O ID do jogo principal é explicitamente bloqueado nesse caminho. A proteção SSO dos previews existentes permanece intacta. O endpoint de saúde da Vercel confirmou que o token informado pertence à conta de testes esperada (sem cobrar e sem expor o token).

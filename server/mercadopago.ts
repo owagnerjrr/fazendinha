@@ -9,7 +9,8 @@ export function paymentConfig(env:NodeJS.ProcessEnv=process.env):MPConfig|null{
  try{const url=new URL(origin);if(url.protocol!=='https:'||url.origin!==origin||url.username||url.password)return null;}catch{return null;}
  return{token:env.MP_ACCESS_TOKEN,secret:env.MP_WEBHOOK_SECRET,collector:env.MP_COLLECTOR_ID!,mode:mode as MPConfig['mode'],origin,api:env.MP_API==='orders'?'orders':'legacy',application:env.MP_APPLICATION_ID};
 }
-export function salesAllowed(env:NodeJS.ProcessEnv=process.env){const c=paymentConfig(env);if(!c)return false;if(c.mode==='test')return env.VERCEL_ENV!=='production'&&env.MP_TEST_CHECKOUT_ENABLED==='true';return env.MP_SALES_ENABLED==='true'&&env.MP_SANDBOX_VALIDATED==='true'&&env.MP_FEES_ACKNOWLEDGED==='true'&&env.MP_ACCOUNT_VERIFIED==='true';}
+export function sandboxRuntime(env:NodeJS.ProcessEnv=process.env){return env.VERCEL_ENV!=='production'||!!env.MP_SANDBOX_PROJECT_ID&&env.MP_SANDBOX_PROJECT_ID===env.VERCEL_PROJECT_ID&&env.VERCEL_PROJECT_ID!=='prj_iRVw6wfsusQgc7mTmTs2FXHHBVkJ';}
+export function salesAllowed(env:NodeJS.ProcessEnv=process.env){const c=paymentConfig(env);if(!c)return false;if(c.mode==='test')return sandboxRuntime(env)&&env.MP_TEST_CHECKOUT_ENABLED==='true';return env.MP_SALES_ENABLED==='true'&&env.MP_SANDBOX_VALIDATED==='true'&&env.MP_FEES_ACKNOWLEDGED==='true'&&env.MP_ACCOUNT_VERIFIED==='true';}
 export async function mpRequest(config:MPConfig,path:string,body?:unknown,idempotency?:string,fetcher:typeof fetch=fetch){
  const r=await fetcher('https://api.mercadopago.com'+path,{method:body?'POST':'GET',headers:{Authorization:`Bearer ${config.token}`,'Content-Type':'application/json',...(idempotency?{'X-Idempotency-Key':idempotency}:{})},body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(12000),cache:'no-store'});
  const data=await r.json();if(!r.ok)throw new StoreError('O Mercado Pago não concluiu a operação. Consulte o pedido antes de tentar novamente.',502);return data;

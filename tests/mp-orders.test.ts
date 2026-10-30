@@ -1,10 +1,16 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {createHmac} from 'node:crypto';
 import {orderCents,orderPayload,validateProviderOrder} from '../server/mp-orders';
-import {verifyWebhook} from '../server/mercadopago';import {settleProviderOrder} from '../server/store';import {pool} from '../server/db';
+import {verifyWebhook,sandboxRuntime} from '../server/mercadopago';import {settleProviderOrder} from '../server/store';import {pool} from '../server/db';
 const id='ORDTST01KS5AJ6HTK2HRQ3XJ3C2JCKP9',local={id:'00000000-0000-4000-8000-000000000001',package:'p10',amount_cents:1000,collector_id:'123',mode:'test',method:'pix',payment_api:'orders',provider_order_id:id,origin:'https://farm.test'};
 const config={token:'fixture',secret:'fixture-secret',collector:'123',mode:'test' as const,origin:local.origin,api:'orders' as const,application:'456'};
 const payment={amount:'10.00',refunded_amount:'0.00',payment_method:{id:'pix',type:'bank_transfer'}};
 const proof={id,type:'online',processing_mode:'manual',status:'processed',status_detail:'accredited',country_code:'BRA',currency:'BRL',user_id:'123',external_reference:local.id,total_amount:'10.00',total_paid_amount:'10.00',last_updated_date:'2026-10-30T20:00:00Z',integration_data:{application_id:'456'},transactions:{payments:[payment]}};
+test('isolated sandbox permits its own public test endpoint but never the live game project',()=>{
+ assert.equal(sandboxRuntime({VERCEL_ENV:'production'}),false);
+ assert.equal(sandboxRuntime({VERCEL_ENV:'production',VERCEL_PROJECT_ID:'test-project',MP_SANDBOX_PROJECT_ID:'test-project'}),true);
+ assert.equal(sandboxRuntime({VERCEL_ENV:'production',VERCEL_PROJECT_ID:'other-project',MP_SANDBOX_PROJECT_ID:'test-project'}),false);
+ assert.equal(sandboxRuntime({VERCEL_ENV:'production',VERCEL_PROJECT_ID:'prj_iRVw6wfsusQgc7mTmTs2FXHHBVkJ',MP_SANDBOX_PROJECT_ID:'prj_iRVw6wfsusQgc7mTmTs2FXHHBVkJ'}),false);
+});
 test('Orders prices, references, hosted payment restrictions and return URLs come from the server',()=>{
  const methods=[{id:'pix',payment_type_id:'bank_transfer',status:'active'},{id:'visa',payment_type_id:'credit_card',status:'active'},{id:'bolbradesco',payment_type_id:'ticket',status:'active'}];
  for(const method of ['pix','card']){const p=orderPayload({...local,method},'qa@example.invalid',methods);assert.equal(p.total_amount,'10.00');assert.equal(p.processing_mode,'manual');assert.equal(p.external_reference,local.id);assert.equal(p.config.payment_method.max_installments,1);assert.equal(p.config.online.callback_url,'https://farm.test/api/mp-webhook');assert.ok(!JSON.stringify(p).includes('card_number'));assert.ok(p.config.payment_method.not_allowed_ids.includes(method==='pix'?'visa':'pix'));}
