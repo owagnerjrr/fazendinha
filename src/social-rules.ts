@@ -6,3 +6,5 @@ export function normalizeMessage(value:unknown):string|null{
 }
 export function messageCursor(value:string|null){if(value===null)return null;if(!/^(0|[1-9]\d{0,18})$/.test(value)||BigInt(value)>9223372036854775807n)throw new Error('Cursor inválido.');return value;}
 export const canSocialize=(accepted:boolean,blocked:boolean)=>accepted&&!blocked;
+
+export function newMessageId(){const b=crypto.getRandomValues(new Uint8Array(16));b[6]=(b[6]&15)|64;b[8]=(b[8]&63)|128;const h=Array.from(b,n=>n.toString(16).padStart(2,'0')).join('');return `${h.slice(0,8)}-${h.slice(8,12)}-${h.slice(12,16)}-${h.slice(16,20)}-${h.slice(20)}`;}

@@ -1,3 +1,5 @@
+0.17.2 — Verificação online concluída com três contas QA, correção de identidade UUID/text na autorização e IDs de mensagem compatíveis com a prévia HTTP. Chat persistente e isolado, gestão de pedidos/bloqueios e visita no mapa.
+
 0.17.0 — Google/Gmail com sessão e escolhas preservadas, painel da conta mostra e-mail/provedor, amizades com gestão de pedidos/bloqueios, visitas no mapa em cena isolada e chat privado persistido com paginação, reenvio idempotente e atualização de 3s. Banco aditivo validado em branch antes da produção; sem alterar progresso existente.
 
 0.16.0 — Revisão de ferramentas, vara/linha, direção e alcance da pesca, Vartin, margem do rio, retirada do poço, vento discreto e passadas. Luz da casa, sono sob a coberta com olhos fechados, TV sentada/desligamento ao levantar. Capina após colher, cultivos novos de 15–90 min reais, cuidados animais de 48h e canteiros avulsos persistidos nas clareiras, com solo vazio envelhecendo em três dias do jogo. Protocolo 8 impede clientes antigos de perder os novos dados.
