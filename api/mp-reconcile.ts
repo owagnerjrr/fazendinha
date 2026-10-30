@@ -1,6 +1,6 @@
-import {timingSafeEqual} from 'node:crypto';
+import {timingSafeEqual,createHash} from 'node:crypto';
 import {pool} from '../server/db.js';
-import {paymentConfig,verifyCollector,mpRequest,sandboxRuntime} from '../server/mercadopago.js';
+import {paymentConfig,verifyCollector,mpRequest,sandboxRuntime,StoreError} from '../server/mercadopago.js';
 import {validateProviderOrder} from '../server/mp-orders.js';
 import {settleProviderOrder} from '../server/store.js';
 export async function GET(request:Request){
@@ -20,7 +20,7 @@ export async function GET(request:Request){
 }
 
 /** Operator-only refund of a sandbox payment; never available for real funds. */
-export async function POST(request:Request){
+async function refundTestOrder(request:Request){
  const secret=process.env.CRON_SECRET,provided=request.headers.get('authorization')??'',expected='Bearer '+(secret??'');
  if(!secret||secret.length<32||Buffer.byteLength(provided)!==Buffer.byteLength(expected)||!timingSafeEqual(Buffer.from(provided),Buffer.from(expected)))return Response.json({error:'Unauthorized'},{status:401});
  const config=paymentConfig();if(!config||config.api!=='orders'||config.mode!=='test'||!sandboxRuntime())return Response.json({error:'Sandbox only'},{status:403});
@@ -29,6 +29,8 @@ export async function POST(request:Request){
  await verifyCollector(config);const order=(await pool.query("SELECT * FROM coin_orders WHERE id=$1 AND mode='test' AND payment_api='orders' AND collector_id=$2",[input.order,config.collector])).rows[0];
  if(!order?.provider_order_id?.startsWith('ORDTST'))return Response.json({error:'Test order not found'},{status:404});
  const resource=await mpRequest(config,'/v1/orders/'+encodeURIComponent(order.provider_order_id)),proof=validateProviderOrder(resource,order,config);
- if(proof.status!=='refunded'){if(proof.status!=='approved')return Response.json({error:'Only approved test orders can be refunded'},{status:409});await mpRequest(config,'/v1/orders/'+encodeURIComponent(order.provider_order_id)+'/refund',{},order.id);}
+ if(proof.status!=='refunded'){if(proof.status!=='approved')return Response.json({error:'Only approved test orders can be refunded'},{status:409});await mpRequest(config,'/v1/orders/'+encodeURIComponent(order.provider_order_id)+'/refund',{},createHash('sha256').update('full-refund:'+order.id).digest('hex'));}
  const updated=await mpRequest(config,'/v1/orders/'+encodeURIComponent(order.provider_order_id));await settleProviderOrder(updated,config);return Response.json({status:validateProviderOrder(updated,order,config).status},{headers:{'Cache-Control':'no-store'}});
 }
+
+export async function POST(request:Request){try{return await refundTestOrder(request);}catch(error){return Response.json({error:'Sandbox refund could not be completed; reconcile before retrying.'},{status:error instanceof StoreError?error.status:503,headers:{'Cache-Control':'no-store'}});}}
