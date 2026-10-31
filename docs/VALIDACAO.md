@@ -1,3 +1,11 @@
+## 0.31.0 — passeios felizes, cuidados nas visitas e seleção na baia
+
+Iniciar passeio completa a felicidade e ela permanece cheia enquanto o passeio estiver ativo. Baia com vários animais abre uma lista numerada com nomes, espécies e condição; funciona no portão e ao escolher animais, inclusive gatos/cães, na fazenda própria e no celeiro visitado.
+
+Visitantes autorizados podem alimentar, dar água, limpar, medicar, brincar, acariciar, oferecer peixe ao gato e iniciar/encerrar passeio. Recursos saem do visitante, informado no painel. Passeio mantém proprietário, baia, instalação e configuração original; concessão temporária de 45s renovada a cada 8s de visita ativa. Sair tenta devolver imediatamente; queda de conexão/aba suspensa deixa expirar e retorna ao local original. Outro visitante não pode tomar o passeio; dono pode revogar cuidados ou retomar o controle.
+
+241 testes e build aprovados. Navegador 1280/390px: seleção dos 5 animais por teclado/toque, felicidade cheia, cuidados completos no celeiro com estoque do visitante, acompanhamento real/brincadeira na fazenda e devolução sem mudar proprietário/baia. Regressão da assinatura estável do celeiro impede reiniciar a cena por renovação do passeio. Roteiro scripts/qa-friend-care031.mjs; validação autenticada isolada antes da publicação. Nenhuma migração de tabela nem teste destrutivo em produção.
+
 ## 0.30.0 — oito baias e cuidados equilibrados
 
 Cada baia suporta cinco animais de qualquer espécie; total de 40 vagas no celeiro. Compra e transferência permitem escolher a baia, com contagem individual e validação no servidor. Ovos em incubação reservam vaga na baia da mãe. Redistribuição aditiva dos animais antigos sem baia; IDs, saldos, nomes, produção, cuidados e configurações de acompanhamento são preservados. Protocolo 14 impede que clientes antigos sobrescrevam a nova distribuição.

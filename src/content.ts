@@ -16,7 +16,7 @@ export const ANIMALS={
 } as const;
 export type AnimalKind=keyof typeof ANIMALS;
 export type AnimalProduct='egg'|'milk'|'goatMilk';
-export type Animal={pen?:number;walking?:boolean;vital?:import('./living-animals.js').Vital;petMode?:import('./pet-rules.js').PetMode;id:string;kind:AnimalKind;fedAt:number|null;collectedAt:number;color?:'black'|'white'|'ginger'|'gray'|'calico';name?:string;wateredAt?:number|null;pettedAt?:number|null;playedAt?:number|null;bornAt?:number;incubationAt?:number|null;housing?:string;sex?:'female'|'male';pendingAt?:number|null;care?:{startedAt:number;cleanedAt:number;illnessAt:number|null;recoveredAt?:number}};
+export type Animal={guestWalk?:{code:string;until:number};pen?:number;walking?:boolean;vital?:import('./living-animals.js').Vital;petMode?:import('./pet-rules.js').PetMode;id:string;kind:AnimalKind;fedAt:number|null;collectedAt:number;color?:'black'|'white'|'ginger'|'gray'|'calico';name?:string;wateredAt?:number|null;pettedAt?:number|null;playedAt?:number|null;bornAt?:number;incubationAt?:number|null;housing?:string;sex?:'female'|'male';pendingAt?:number|null;care?:{startedAt:number;cleanedAt:number;illnessAt:number|null;recoveredAt?:number}};
 export const DECOR={
  cocoaTree:{name:'Árvore do Cacau Encantado',price:120,texture:'cocoaTree',description:'Cacau, flores rosadas e uma história só nossa.'},
  flowerPlanter:{name:'Jardineira florida',price:45,texture:'flowerPlanter',description:'Flores para dar cor aos caminhos.'},

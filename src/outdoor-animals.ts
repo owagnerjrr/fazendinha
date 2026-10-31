@@ -1,3 +1,4 @@
+import{guestWalking}from'./guest-animal-care';
 import{vitalAt}from'./living-animals';
 import Phaser from 'phaser';import {ANIMAL_SIZE} from './barn-layout';import {animalReady,type Animal} from './content';import {outdoorBox} from './housing';import {livestockMotion} from './livestock-motion';import {livestockArt} from './livestock-art';import {AnimalIndicators} from './animal-indicators';import type {Farm} from './farm';
 type Item={animal:Animal;image:Phaser.GameObjects.Image;shadow:Phaser.GameObjects.Ellipse;icons:AnimalIndicators;box:ReturnType<typeof outdoorBox>;index:number;count:number;spot:{x:number;y:number};access:{x:number;y:number}};
@@ -8,7 +9,7 @@ export class OutdoorAnimals{
  private items:Item[]=[];private signature='';private nextSignature=0;
  constructor(private scene:Phaser.Scene,private farm:()=>Farm,private now:()=>number,private animals:(id?:string)=>void,private collect:(id:string)=>void){}
  update(time:number){const f=this.farm();
-  if(time>=this.nextSignature){this.nextSignature=time+300;const sig=JSON.stringify([f.buildings,f.animals.map(a=>[a.id,a.kind,a.housing,a.walking])]);if(sig!==this.signature){this.signature=sig;this.rebuild(f);}}
+  if(time>=this.nextSignature){this.nextSignature=time+300;const sig=JSON.stringify([f.buildings,f.animals.map(a=>[a.id,a.kind,a.housing,a.walking,guestWalking(a)])]);if(sig!==this.signature){this.signature=sig;this.rebuild(f);}}
   for(const item of this.items){const live=f.animals.find(a=>a.id===item.animal.id);if(!live)continue;item.animal=live;const size=ANIMAL_SIZE[live.kind],p=livestockMotion(item.box,item.index,item.count,size,time,item.box.x,live.kind);
    if(vitalAt(live,this.now())?.resting){p.walking=false;p.x=item.image.x;p.y=item.image.y;}
    if(this.care?.id===live.id){const t=Math.min(1,(time-this.care.start)/700),ease=t*t*(3-2*t);p.x=this.care.from.x+(this.care.x-this.care.from.x)*ease;p.y=this.care.from.y+(this.care.y-this.care.from.y)*ease;p.walking=t<1;p.frame=Math.floor(time/120)%8;}
@@ -18,7 +19,7 @@ export class OutdoorAnimals{
   }
  }
  private rebuild(f:Farm){for(const i of this.items){i.image.destroy();i.shadow.destroy();i.icons.destroy();}this.items=[];livestockArt(this.scene);
-  for(const b of f.buildings??[]){if(!['coop','pasture'].includes(b.kind))continue;const box=outdoorBox(b),animals=f.animals.filter(a=>a.housing===b.id&&!a.walking),access={x:box.x+box.width/2,y:box.y+box.height+20};
+  for(const b of f.buildings??[]){if(!['coop','pasture'].includes(b.kind))continue;const box=outdoorBox(b),animals=f.animals.filter(a=>a.housing===b.id&&!a.walking&&!guestWalking(a)),access={x:box.x+box.width/2,y:box.y+box.height+20};
    animals.forEach((animal,index)=>{const size=ANIMAL_SIZE[animal.kind],p=livestockMotion(box,index,animals.length,size,0),image=this.scene.add.image(p.x,p.y,`life-${animal.kind}`).setOrigin(.5,1).setDisplaySize(size.width,size.height),shadow=this.scene.add.ellipse(p.x,p.y-2,size.width*.7,8,0x2b432c,.25),spot={x:box.x+15+(index%3)*27+(index>=3?8:0),y:box.y+28+(index>=3?3:0)};this.items.push({animal,image,shadow,icons:new AnimalIndicators(this.scene),box,index,count:animals.length,spot,access});});
   }
  }

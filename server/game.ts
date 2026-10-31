@@ -1,3 +1,4 @@
+import{guestWalking,guestWalk,GUEST_CARE}from'../src/guest-animal-care.js';
 import{applyLife}from'../src/life-rules.js';
 import{settleClimate}from'../src/climate.js';
 import{settleVitals}from'../src/living-animals.js';
@@ -70,7 +71,7 @@ export async function mutate(user: string, body: any, version?: string|null) {
       await db.query('COMMIT'); return { ...old.rows[0].result, farm:row.state,revision:row.revision,now,replayed:true };
     }
     if (body.revision !== row.revision) throw new GameError('Sua fazenda mudou em outro aparelho. Sincronize e tente novamente.',409);
-    if(now-new Date(row.last_action_at).getTime()<150) throw new GameError('Aguarde um instante entre as ações.',429);
+    const background=body.command.type==='visit-animal-care'&&body.command.mode==='walk-keepalive';if(!background&&now-new Date(row.last_action_at).getTime()<150) throw new GameError('Aguarde um instante entre as ações.',429);
     const c=body.command;const blocked=progressionProblem(row.state,c);if(blocked)throw new GameError(blocked);
     if(c.type==='initialize-profile'){
       const result=initializeProfile(row.state,c);if(!result.ok)throw new GameError(result.message,result.existing?409:400);
@@ -92,7 +93,7 @@ export async function mutate(user: string, body: any, version?: string|null) {
     // Older cached clients may play before seeing the new welcome flow. Preserve that farm too.
     if(c.type!=='position'&&c.type!=='initialize-profile'&&row.state.profileComplete===false)row.state.profileComplete=true;
     settleCoinDebt(row.state);
-    await db.query('UPDATE farms SET state=$2,revision=revision+1,last_action_at=now(),position_at=CASE WHEN $3 THEN now() ELSE position_at END WHERE user_id=$1',[user,row.state,['position','work','fertilize','cast-line','reel-line','sell','list','till-ground'].includes(c.type)]);
+    await db.query('UPDATE farms SET state=$2,revision=revision+1,last_action_at=CASE WHEN $4 THEN last_action_at ELSE now() END,position_at=CASE WHEN $3 THEN now() ELSE position_at END WHERE user_id=$1',[user,row.state,['position','work','fertilize','cast-line','reel-line','sell','list','till-ground'].includes(c.type),background]);
     await db.query('INSERT INTO action_receipts(user_id,id,hash,result) VALUES($1,$2,$3,$4)',[user,body.id,hash,row.result]);
     await db.query('COMMIT');
     return {...row.result,farm:row.state,revision:row.revision+1,name:row.name,now};
@@ -123,9 +124,11 @@ async function social(db:PoolClient,user:string,row:any,c:any,now:number) {
     if(!allowed.rowCount) throw new GameError('Aceitem a amizade antes de ajudar.',403);
     if(c.type==='visit-animal-care'){
  if(target.state.visitorCare!==true)throw new GameError('O dono não permitiu cuidados por visitantes.',403);
- if(!['feed-animal','water-animal','pet-animal','play-animal','clean-animal','feed-cat-fish'].includes(c.mode))throw new GameError('Cuidado de visitante inválido.');
- const animal=target.state.animals.find((a:any)=>a.id===c.animal);if(!animal)throw new GameError('Animal não encontrado.');const building=target.state.buildings?.find((b:any)=>b.id===animal.housing),box=building?outdoorBox(building):null,spot=box?{x:box.x+box.width/2,y:box.y+box.height+20}:{x:1050,y:840};const nearby=await db.query("SELECT 1 FROM farm_presence WHERE user_id=$1 AND owner_id=$2 AND updated_at>now()-interval '12 seconds' AND sqrt(power(x-$3,2)+power(y-$4,2))<180",[user,target.user_id,spot.x,spot.y]);if(!nearby.rowCount)throw new GameError('Entre no celeiro do amigo para cuidar.');
- const host=structuredClone(target.state);settleVitals(host,now);host.feed=row.state.feed;host.fishing=structuredClone(row.state.fishing);host.supplies={...row.state.supplies};const result=applyLife(host,{type:c.mode,id:c.animal,fish:c.fish,quantity:c.quantity},now);if(!result.ok)throw new GameError(result.message);row.state.feed=host.feed;row.state.fishing=host.fishing;row.state.supplies=host.supplies;target.state.animals=host.animals;
+ if(!(GUEST_CARE as readonly string[]).includes(c.mode))throw new GameError('Cuidado de visitante inválido.');
+ if(c.mode==='walk-stop-all'){for(const a of target.state.animals)if(a.guestWalk?.code===row.public_code)delete a.guestWalk;await db.query('UPDATE farms SET state=$2,revision=revision+1 WHERE user_id=$1',[target.user_id,target.state]);return{ok:true,message:'Animais devolvidos ao dono.'};}
+ if(c.mode==='walk-keepalive'){const live=await db.query("SELECT 1 FROM farm_presence WHERE user_id=$1 AND owner_id=$2 AND updated_at>now()-interval '12 seconds'",[user,target.user_id]);if(!live.rowCount)throw new GameError('A visita terminou.');for(const a of target.state.animals)if(a.guestWalk?.code===row.public_code&&guestWalking(a,now))a.guestWalk.until=now+45000;await db.query('UPDATE farms SET state=$2 WHERE user_id=$1',[target.user_id,target.state]);return{ok:true,message:'Passeio acompanhado.'};}
+ const animal=target.state.animals.find((a:any)=>a.id===c.animal);if(!animal)throw new GameError('Animal não encontrado.');if(guestWalking(animal,now)&&animal.guestWalk!.code!==row.public_code)throw new GameError('Este animal passeia com outro visitante.');const building=target.state.buildings?.find((b:any)=>b.id===animal.housing),box=building?outdoorBox(building):null,spot=box?{x:box.x+box.width/2,y:box.y+box.height+20}:{x:1050,y:840};const nearby=await db.query("SELECT 1 FROM farm_presence WHERE user_id=$1 AND owner_id=$2 AND updated_at>now()-interval '12 seconds' AND sqrt(power(x-$3,2)+power(y-$4,2))<180",[user,target.user_id,spot.x,spot.y]);if(!nearby.rowCount){const live=await db.query("SELECT 1 FROM farm_presence WHERE user_id=$1 AND owner_id=$2 AND updated_at>now()-interval '12 seconds'",[user,target.user_id]);if(!live.rowCount||!(guestWalking(animal,now)&&animal.guestWalk!.code===row.public_code||animal.petMode==='farm'))throw new GameError('Aproxime-se do curral ou do animal que passeia com você.');}
+ const host=structuredClone(target.state);settleVitals(host,now);host.feed=row.state.feed;host.fishing=structuredClone(row.state.fishing);host.supplies={...row.state.supplies};const result=c.mode==='walk-animal'?guestWalk(host,c.animal,row.public_code,c.enabled,now):applyLife(host,{type:c.mode,id:c.animal,fish:c.fish,quantity:c.quantity},now);if(!result.ok)throw new GameError(result.message);row.state.feed=host.feed;row.state.fishing=host.fishing;row.state.supplies=host.supplies;target.state.animals=host.animals;
  await db.query('UPDATE farms SET state=$2,revision=revision+1 WHERE user_id=$1',[target.user_id,target.state]);await db.query("INSERT INTO social_notifications(user_id,actor_id,kind) VALUES($1,$2,'visit_help')",[target.user_id,user]);return result;
  }
  if(c.type==='steal-animal')throw new GameError('Animais pertencem ao dono. Visitantes podem apenas cuidar.',403);
