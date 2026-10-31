@@ -346,3 +346,7 @@ Validação 0.32: 253 testes e build passaram. Fluxos locais desktop/celular e a
 ## 0.37 — visitas aos cenários da Central
 
 Visitas autenticadas e sujeitas à amizade, bloqueios e público de publicação; cuidados e cultivo com recursos do visitante; presença compartilhada, reabertura, saída e imagens históricas autorizadas por contexto. Permanecem pendentes baias personalizadas, produção/reprodução de espécies inéditas, clima/doenças nas culturas dinâmicas e edição livre dos mapas nativos.
+
+## 0.38 — criação por modelos e publicação guiada
+
+Galeria com 12 bases funcionais, busca/filtro, campos básicos primeiro, ajustes técnicos opcionais, prévia isolada e salvamento direto para escolha de público. Jogadores/grupos selecionados pelo nome, revisão dos destinatários antes de publicar e auditoria preservada. Mecânicas e limites do executor permanecem os mesmos.
