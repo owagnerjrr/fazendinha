@@ -1,15 +1,28 @@
-# Central de criação e administração — versão 0.37
+# Central de criação e administração — versão 0.38
 
 ## Acesso exclusivo
 
 Entre no jogo com a conta proprietária e abra https://fazendinha-wj.vercel.app/admin/. O login é o mesmo do jogo. O código de amigo identifica a conta para a configuração inicial, mas não autentica ninguém. O servidor exige JWT válido, conta não bloqueada e associação exclusiva em studio_admins. Não existe cadastro público de administradores; todas as APIs e recursos privados também são protegidos.
 
+## Começar de forma simples
+
+1. Abra **Criações → Nova criação** e escolha uma base pronta. Use a busca ou o filtro de tipo para encontrar animais, plantas, roupas, construções e cenários.
+2. Personalize o nome, as cores e as opções básicas. Cada base já tem parâmetros funcionais; não precisa abrir JSON nem enviar imagens.
+3. Clique em **Testar minha criação**. É uma simulação isolada, com as mesmas regras do executor; não altera o progresso real.
+4. Use **Salvar e escolher quem recebe** ou **Salvar só como rascunho**.
+5. Escolha o público pelo nome do jogador ou grupo. O padrão é **Somente minha conta**. Escolha comprar/acessar, liberar por regra ou dar de presente.
+6. Clique em **Conferir quem recebe**, confira os nomes e depois em **Publicar criação**. Se mudar a seleção, confira novamente.
+
+Há 12 bases: coelho, ave, animal de orelhas curtas, alimento, defensivo, planta, roupa por cor, aparência, horta, decoração, bosque com lago e cenário livre. O bosque inclui água com pesca, canteiros, árvores, caminho, luminária e porta de volta. Loja, composição e regras ficam em Outras criações. Recursos próprios e dados técnicos continuam disponíveis em seções recolhidas.
+
+Salvar/publicar criações registra uma observação automática no histórico; você pode escrever uma observação personalizada. Correções administrativas de contas continuam exigindo o motivo pelo fluxo existente. As bases não publicam nem concedem bens automaticamente em produção.
+
 ## Criar um animal novo
 
-1. Em Criações → Nova criação, escolha Animal / espécie. Informe nome, descrição, preço e cor.
+1. Em Criações → Nova criação, escolha Coelho, Ave ou Animal de orelhas curtas. Personalize nome, descrição, preço e cor.
 2. Escolha anatomia, velocidade, intervalo de alimento, comportamentos, ambientes e dieta. Quadrúpedes de orelhas curtas/longas e aves têm arte e passos próprios. Espécies não ficam limitadas aos nomes antigos.
 3. Opcionalmente envie folhas na seção Arquivos. Em Aplicação da imagem, escolha animação padrão ou uma ação específica. Folhas têm quatro linhas: frente, esquerda, direita e costas, com dois ou quatro quadros por linha. O formulário aplica quatro; dois podem ser definidos na configuração estruturada. Ajuste escala e apoio sem exceder o quadro de 96×112. Descanso, caminhada, alimentação, carinho e brincadeira podem ter folhas distintas.
-4. Use Visualizar e testar: a fazenda temporária tem economia isolada, ações reais do mesmo executor e prévia das quatro direções. Os materiais necessários ficam disponíveis somente nesse teste. Nada é gravado na conta real.
+4. Use Testar minha criação: a fazenda temporária tem economia isolada, ações reais do mesmo executor e prévia das quatro direções. Os materiais necessários ficam disponíveis somente nesse teste. Nada é gravado na conta real.
 5. Salve o rascunho. Abra Público e publicação → Somente minha conta, confira as contas afetadas e publique. Use concessão gratuita para receber uma unidade ou disponibilidade para comprar com moedas.
 6. No jogo abra Menu → Criações do vale. Compre, alimente, interaja e configure o local ou acompanhamento. Novos animais aparecem também na fazenda, casa, celeiro e sul conforme seus ambientes permitidos. As necessidades são salvas individualmente e o progresso offline é limitado.
 

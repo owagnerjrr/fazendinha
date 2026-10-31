@@ -669,3 +669,12 @@ Guia de uso e limites efetivos em ADMIN_GUIA.md. Não há validação física de
 - Regra adicional testada: após atualização de mapa que bloqueie o visitante, ele retorna à chegada sem consumir recursos.
 
 - Candidato final conferido novamente: atualização conjunta de presença/estado, cuidados idempotentes e recuperação após migração de mapa executados pela API no sandbox; restauração manteve plantas, saldo e propriedade. Leituras de presença não buscam mais o inventário nativo ou dados de progresso sem relação com a visita.
+
+## 0.38 — criação simplificada (31/10/2026)
+
+- 306 testes passaram, incluindo validação de todas as bases e execução de viagem, colisão, pesca, cultivo e retorno do bosque pronto. TypeScript e build passaram.
+- Fluxo de escolha de base, personalização, teste isolado, rascunho e público guiado. JSON, recursos próprios e limites avançados ficam recolhidos; comportamentos e destinos usam nomes em português.
+- Primeira rodada autenticada com duas contas sintéticas no sandbox e Edge 1280/390 px: coelho criado sem JSON e sem prompts, erro de nome exibido sem quebrar a tela, prévia com carinho, concessão única somente à própria conta e depois a grupo escolhido pelo nome. Bosque testado e salvo só como rascunho. Sem erros JavaScript/transbordamento.
+- Nenhuma migração, mudança nas regras econômicas, credenciais ou atualização de fazendas de produção nesta entrega. Edição existente mantém os dados não alterados, mesmo com a seção avançada fechada.
+
+- Rodada final 0.38 repetida em 1280/390 px: busca por lago, filtro de animais, seletores por nome e concessões verificadas no servidor. Edição de nome/preço de um rascunho existente preservou exatamente ambiente, dieta, velocidade e dados técnicos adicionais, com a seção avançada fechada. Nenhum diálogo de prompt foi necessário para criar, salvar, conferir ou publicar.
