@@ -142,12 +142,6 @@ $('close-panel').onclick = closePanel;
 dialog.addEventListener('cancel', e => { if (activePanel === 'shop') e.preventDefault(); });
 dialog.addEventListener('click', e => { if(performance.now()-panelOpenedAt<400)return;if (activePanel !== 'shop' && e.target === dialog) { const r = dialog.getBoundingClientRect(); if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) closePanel(); } });
 function cropImage(c:Crop){return ['carrot','lettuce','tomato'].includes(c)?`/assets/v2/${c}-3.png`:`/assets/${c==='sunflower'?'v29':'v5'}/${c}.png`;}
-function oldInventory() {
-  if(onlineLoading){toast('Aguarde a conexão com sua conta.');return;}
-  openPanel('Seu inventário',`<button class="secondary" id="choose-equipment">Trocar equipamento</button>${saleItems(farm).map(i=>`<div class="item-row">${inventoryIcon(i.id)}<div class="item-info"><strong>${i.name}</strong><small>${i.quantity} unidades</small></div></div>`).join('')}<button class="secondary" id="inventory-animals">Cuidar dos animais</button>${cloud.active?'<button class="secondary" id="recover-reserved">Recuperar produtos reservados da antiga feira</button>':''}`);
-  if($('recover-reserved'))$('recover-reserved').onclick=()=>{const b=$<HTMLButtonElement>('recover-reserved');b.disabled=true;void cloud.command({type:'return-market-reservations'}).then(r=>{toast(r.message??'Recuperados.');inventory();}).catch(e=>{toast((e as Error).message);b.disabled=false;});};
-  $('choose-equipment').onclick=()=>life.equipment();$('inventory-animals').onclick=()=>life.animals();
-}
 let friendExpansion=false,friendReturn=false;
 function activeVisit(){return game.scene.getScene(friendExpansion?'VisitExpansion':'Visit') as VisitScene;}
 async function travelFriendExpansion(){if(areaBusy)return;areaBusy=true;try{const v=activeVisit(),pose=v.presencePosition();if(pose)await presenceChannel.send({code:v.farmCode(),...pose});const data=await cloud.request('?visit='+v.farmCode());game.scene.stop(friendExpansion?'VisitExpansion':'Visit');friendExpansion=!friendExpansion;friendReturn=!friendExpansion;game.scene.start(friendExpansion?'VisitExpansion':'Visit',data);}catch(e){toast((e as Error).message);}finally{areaBusy=false;}}

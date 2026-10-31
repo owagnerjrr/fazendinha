@@ -315,3 +315,5 @@ Validação autenticada no sandbox 873c41e: cachorro salvo no celeiro, replay id
 - Expansão ao sul reconhece terrenos antigos; construção com prévia, rotação e reposicionamento preserva identificadores.
 - Plantio e instalações funcionais, acompanhantes e visitas com presença separada por cenário.
 - Validação autenticada e publicação em andamento.
+
+Validação 0.32: 253 testes e build passaram. Fluxos locais desktop/celular e autenticados no sandbox concluídos; publicação final e verificação pública registradas no relatório de entrega.
