@@ -1,4 +1,4 @@
-# Central de criação e administração — versão 0.36
+# Central de criação e administração — versão 0.37
 
 ## Acesso exclusivo
 
@@ -73,4 +73,16 @@ Imagens normalizadas em PNG RGB/RGBA até 2048×2048 e 2 MB; áudio WAV PCM 8/16
 
 ## Limites atuais
 
-Não é um editor de código nem gerador por inteligência artificial. Mecânicas novas exigem programação. O editor não altera livremente o mapa nativo, não migra obstáculos conflitantes automaticamente e não edita todo o JSON das contas. Espécies novas não têm produção/reprodução inéditas; animações importadas são folhas por ação/direção, sem editor de ossos ou quadros individuais. Novas áreas não têm presença multiplayer/visitas compartilhadas ou transferência para baias customizadas; os sistemas nativos de amigos, animais e sul continuam disponíveis. Regras não listadas acima continuam no código. Não foi comprovado desempenho em todo aparelho físico nem escuta humana da música enviada pelo administrador. Consulte VALIDACAO para evidências e pendências.
+Não é um editor de código nem gerador por inteligência artificial. Mecânicas novas exigem programação. O editor não altera livremente o mapa nativo, não migra obstáculos conflitantes automaticamente e não edita todo o JSON das contas. Espécies novas não têm produção/reprodução inéditas; animações importadas são folhas por ação/direção, sem editor de ossos ou quadros individuais. Novas áreas ainda não têm transferência para baias customizadas; os sistemas nativos de amigos, animais e sul continuam disponíveis. Regras não listadas acima continuam no código. Não foi comprovado desempenho em todo aparelho físico nem escuta humana da música enviada pelo administrador. Consulte VALIDACAO para evidências e pendências.
+
+## Visitas aos cenários criados (0.37)
+
+No cadastro de um cenário, marque **Permitir visitas de amigos**, teste e publique. Para uma área já adquirida pelo dono, aplique a versão por **Impacto e atualização de bens existentes**: publicá-la não troca a definição salva sem migração. O dono deve entrar na área uma vez para ela passar a existir na sua fazenda. O público da publicação continua valendo para o amigo: marcar visitas não libera conteúdos exclusivos do administrador ou de outro grupo.
+
+No jogo, abra **Amigos → Visitar → Cenários**. As áreas listadas pertencem àquele amigo, com suas plantas, construções e animais reais. Sementes, ração e remédios usados nos cuidados saem da bolsa do visitante. O dono autoriza ajuda pela permissão existente de cuidados por visitantes; sem ela, a visita é de observação. O visitante pode consultar os indicadores, fazer carinho/brincar, alimentar com ração compatível, dar água, limpar/tratar, carpir, plantar suas sementes e regar. A pesca configurada usa sua própria vara e inventário. Colheita, venda, construção, reposicionamento, mudança de ambiente/propriedade do animal e retirada de recursos do dono ficam bloqueados.
+
+As presenças são consultadas a cada 2 segundos e expiram após 12 segundos sem atualização. Nome, aparência nativa, direção e passos dos demais jogadores aparecem no cenário; a indicação Também aqui acompanha a lista recebida. A aba oculta para de renovar presença. Reabrir a página pode retomar a visita, mas a amizade, o público e as permissões são conferidos novamente. O sessionStorage guarda somente a indicação de navegação; não armazena progresso nem concede acesso.
+
+A presença nova não duplica a pessoa na fazenda nativa. As posições dos jogadores são compartilhadas; os trajetos visuais dos animais continuam sendo calculados em cada aparelho, sem sincronização de cada pata entre visitantes. Condições e cuidados dos animais são compartilhados e gravados no dono. Não é possível passear levando animais do amigo para sua conta. Recursos gráficos de versões antigas ficam disponíveis apenas no contexto de uma visita autorizada. Uma área com estruturas/culturas não liberadas ao visitante é recusada; espécies privadas não são expostas.
+
+A tabela studio_presence contém somente presença temporária e uma linha por conta, com limpeza diária dos registros com mais de um dia. Não substitui fazendas, progressos ou a presença nativa.

@@ -16,7 +16,7 @@ export function sharedEntries(host:Farm,hostCatalog:StudioEntry[],visitorEntries
  for(const [key,p] of Object.entries(host.studio!.plots))if(key.startsWith(scene+':')&&p.content)wanted.add(p.content);
  for(const e of all)if(e.definition.kind==='crop'&&allowed.has(e.id))wanted.add(e.id);
  // Private species are not exposed just because their owner accepts a friendship.
- for(const pet of host.studio!.animals)if((pet.room===scene||pet.mode==='follow'&&host.studio!.position.scene===scene)&&allowed.has(pet.content))wanted.add(pet.content);
+ for(const pet of host.studio!.animals)if((pet.mode==='follow'?host.studio!.position.scene===scene:pet.room===scene)&&allowed.has(pet.content))wanted.add(pet.content);
  for(let n=0;n<100;n++){const before=wanted.size;for(const id of wanted){const e=all.find(e=>e.id===id);check(e&&allowed.has(id),'Esta área contém conteúdo não liberado para sua conta.');for(const dep of contentDependencies(e.definition))wanted.add(dep);}if(wanted.size===before)break;}
  check(wanted.size<=100,'Este cenário tem dependências demais.');
  return all.filter(e=>wanted.has(e.id));
@@ -39,7 +39,7 @@ export function applyStudioGuest(host:Farm,visitor:Farm,entries:StudioEntry[],po
  if(c.action==='pet'){
   check(['pet','play','feed','water','clean','heal'].includes(c.mode),'Visitantes não podem mudar o local ou o dono do animal.');
   const pet=hostCopy.studio!.animals.find(a=>a.id===c.animal),d=entries.find(e=>e.id===pet?.content)?.definition;
-  check(pet&&d&&petAllowed(d,position.scene)&&(pet.room===position.scene||pet.mode==='follow'&&originalPosition.scene===position.scene),'Animal indisponível neste cenário.');
+  check(pet&&d&&petAllowed(d,position.scene)&&(pet.mode==='follow'?originalPosition.scene===position.scene:pet.room===position.scene),'Animal indisponível neste cenário.');
   const n=petNeeds(pet,d,now);if(c.mode==='feed')check(n.food<95,'O animal já está alimentado.');if(c.mode==='heal')check(n.health<95,'O animal não precisa deste remédio.');
   hostCopy.feed=guestCopy.feed;hostCopy.supplies=structuredClone(guestCopy.supplies);
  }else if(c.action==='plant'){
@@ -65,7 +65,7 @@ export function sharedProjection(host:Farm,entries:StudioEntry[],owner:{code:str
  const ids=new Set(entries.map(e=>e.id)),s=host.studio!;
  return {owner,visitorCare:host.visitorCare===true,entries,position,calendar:host.calendar,now,players:[],
  plots:Object.fromEntries(Object.entries(s.plots).filter(([key])=>key.startsWith(position.scene+':'))),structures:s.structures.filter(b=>b.scene===position.scene),
- animals:s.animals.filter(p=>ids.has(p.content)&&petAllowed(entries.find(e=>e.id===p.content)!.definition,position.scene)&&(p.room===position.scene||p.mode==='follow'&&s.position.scene===position.scene)).map(p=>({...petNeeds(p,entries.find(e=>e.id===p.content)!.definition,now),mode:'stay',room:position.scene}))};
+ animals:s.animals.filter(p=>ids.has(p.content)&&petAllowed(entries.find(e=>e.id===p.content)!.definition,position.scene)&&(p.mode==='follow'?s.position.scene===position.scene:p.room===position.scene)).map(p=>({...petNeeds(p,entries.find(e=>e.id===p.content)!.definition,now),mode:'stay',room:position.scene}))};
 }
 
 export function guestDoor(host:Farm,entries:StudioEntry[],position:StudioPosition,c:Record<string,unknown>){
