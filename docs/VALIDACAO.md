@@ -605,3 +605,8 @@ Verificações:
 - Corrigidos durante execução: aproximação de instalações incompatível com arredondamento do caminho; referências visuais e comandos antigos ao encerrar/reabrir cenas; inicialização de cuidados para cliente 15.
 
 Limites: celular validado por emulação de viewport/toque no Edge, sem aparelho físico. Não foram criados pagamentos, cobranças ou reembolsos reais. Compras e cuidados autenticados foram testados em contas sintéticas no sandbox; produção recebe conferência pública sem alterar bens reais. As imagens da expansão usam a conta sintética de homologação.
+
+## 0.32.1 — saída sul
+- Reproduzido caminhando até a borda: origem do personagem em y=1092,16 (própria fazenda) e y=1092 (visita), acima do limite 1090 aceito pelo servidor. A física limitava o corpo, não a origem usada na API.
+- Limites compartilhados mantêm a origem dos pés em coordenadas válidas, preservando a passagem e instalações antigas ao sul. Nenhum dado salvo ou regra econômica alterado.
+- 255 testes e build passaram. Novo teste de execução percorre a fazenda com teclado e joystick, entra e volta da expansão própria e do amigo, sem teletransportar o personagem para a entrada.
