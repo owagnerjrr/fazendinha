@@ -1,6 +1,6 @@
 ## Central administrativa — base em desenvolvimento
 
-Branch codex/admin-creation-studio: autenticação exclusiva no servidor, definições versionadas, grupos/públicos estáveis, consulta de contas/pedidos e coleta de atividade. 278 testes passaram e build passou. Migração aditiva 014 testada no banco isolado. Executor de conteúdo, editor visual, arquivos, concessões, edição estrutural do progresso e configuração efetiva do jogo ainda pendentes; não considerar o pedido completo. Consulte docs/ADMIN_GUIA.md. Sandbox autenticado confirmou autorização 401/403, recibos idempotentes, rascunhos persistentes, público self/grupos, suspensão, restauração sem alterar bens e consulta de pedidos/atividade. Interface 1280/390px: salvar/reabrir/buscar e acesso negado para conta comum, sem erro JS nem transbordamento. Ajustes numéricos com revisão e recuperação condicionada também implementados, em validação.
+Branch codex/admin-creation-studio: autenticação exclusiva no servidor, definições versionadas, grupos/públicos estáveis, consulta de contas/pedidos e coleta de atividade. 278 testes passaram e build passou. Migração aditiva 014 testada no banco isolado. Executor de conteúdo, editor visual, arquivos, concessões, edição estrutural do progresso e configuração efetiva do jogo ainda pendentes; não considerar o pedido completo. Consulte docs/ADMIN_GUIA.md. Sandbox autenticado confirmou autorização 401/403, recibos idempotentes, rascunhos persistentes, público self/grupos, suspensão, restauração sem alterar bens e consulta de pedidos/atividade. Interface 1280/390px: salvar/reabrir/buscar e acesso negado para conta comum, sem erro JS nem transbordamento. Ajustes numéricos e recuperação condicionada validados no sandbox. A central completa continua pendente; exemplos de espécies/cenários/roupas jogáveis ainda não implementados.
 ## 0.31.0 — passeios felizes, cuidados nas visitas e seleção na baia
 
 Iniciar passeio completa a felicidade e ela permanece cheia enquanto o passeio estiver ativo. Baia com vários animais abre uma lista numerada com nomes, espécies e condição; funciona no portão e ao escolher animais, inclusive gatos/cães, na fazenda própria e no celeiro visitado.
@@ -326,5 +326,6 @@ Validação 0.32: 253 testes e build passaram. Fluxos locais desktop/celular e a
 0.33: consulta remota de cuidados dos animais de amigos; ajuda com deslocamento até o animal; organização automática de construções antigas no sul sem recriar bens; chamados temporários para gato e cachorro com gesto, áudio e aproximação.
 
 0.34: Construir fora dos controles de movimento/ação; fertilizante e defensivo como borrifadores equipáveis; gesto de chamada em quadros de sprite com braço substituído, não sobreposto.
+
 
 
