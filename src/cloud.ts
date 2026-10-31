@@ -46,9 +46,9 @@ export class CloudFarm {
     const task=this.queue.then(async()=>{
       this.busy=true; this.onStatus('Sincronizando…');
       try {
-        const hadPending=!!sessionStorage.getItem('wj-pending-action');
+        const rawPending=sessionStorage.getItem('wj-pending-action'),hadPending=!!rawPending;let priorCommand:any;try{priorCommand=rawPending?JSON.parse(rawPending).body?.command:undefined;}catch{}
         const recovered=await this.retryPending();
-        if(hadPending)throw new Error(recovered?'A ação anterior foi recuperada. Confira o resultado e repita a nova ação.':'Fazenda atualizada. Confira o resultado antes de repetir a ação.');
+        if(hadPending&&priorCommand?.type!=='position'){if(recovered&&JSON.stringify(priorCommand)===JSON.stringify(command))return recovered;throw new Error(recovered?('Ação anterior confirmada: '+(recovered.message??'progresso salvo')+' Confira antes de iniciar outra ação.'):'Fazenda atualizada. Confira o resultado antes de repetir a ação.');}
         const body={id:crypto.randomUUID(),revision:this.revision,command,position};
         sessionStorage.setItem('wj-pending-action',JSON.stringify({code:this.code,body}));
         const snapshot=await this.request('',body);sessionStorage.removeItem('wj-pending-action');this.accept(snapshot);return snapshot;

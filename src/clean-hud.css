@@ -74,3 +74,6 @@
 #enter-place:not([hidden]){display:block!important;font-size:13px;width:auto;min-width:118px;padding:8px 14px;white-space:nowrap}#enter-place::before{content:none}
 
 body.friend-barn #enter-place{display:none!important}
+
+.animal-purchase{flex-wrap:wrap}.animal-purchase .purchase-feedback{flex-basis:100%;padding:10px;border-radius:8px;background:#dce9c8;color:#254328;margin:6px 0;overflow-wrap:anywhere}.animal-purchase .purchase-feedback[data-outcome=error]{background:#f2dec0;color:#633a20}.housing-summary{padding:10px;background:#e8dfbf;border-radius:8px;font-size:12px}
+@media(max-width:600px){.animal-purchase{display:grid;grid-template-columns:54px minmax(0,1fr);gap:10px}.animal-purchase>.item-info{min-width:0}.animal-purchase>label,.animal-purchase>.purchase-feedback{grid-column:1/-1}.animal-purchase>label{display:flex;align-items:center;justify-content:space-between;gap:10px}.animal-purchase>button{grid-column:2;min-height:44px}.animal-purchase>img{max-width:50px}.animal-purchase select{max-width:75%}}

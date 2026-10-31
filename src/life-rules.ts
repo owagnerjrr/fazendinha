@@ -49,7 +49,7 @@ export function applyLife(f:Farm,c:any,now:number):{ok:boolean;message:string;ca
   const housing=c.housing??'barn',space=housingProblem(f,kind,housing);if(space)return fail(space);
   if(!f.careVersion&&f.animals.length+f.animals.filter(x=>x.incubationAt!=null).length>=12)return fail('Seu celeiro comporta 12 animais, incluindo ovos em incubação.');if(f.coins<item.price)return fail('Moedas insuficientes.');
   if(kind==='cat'&&c.color!==undefined&&!['black','white','ginger','gray','calico'].includes(c.color))return fail('Escolha uma cor válida.');
-  f.coins-=item.price;f.animals.push({id:`animal-${now}-${f.animals.length}`,kind,...(kind==='cat'?{color:c.color??'black'}:{}),fedAt:null,wateredAt:null,pettedAt:null,collectedAt:now,...(f.careVersion?{housing,care:{startedAt:now,cleanedAt:now,illnessAt:null}}:{}),...(kind==='chick'?{bornAt:now}:{})});return {ok:true,message:`${item.name} chegou ao seu celeiro. Alimente e ofereça água!`};
+  f.coins-=item.price;f.animals.push({id:`animal-${now}-${f.animals.length}`,kind,...(kind==='dog'?{petMode:'barn' as const}:{}),...(kind==='cat'?{color:c.color??'black'}:{}),fedAt:null,wateredAt:null,pettedAt:null,collectedAt:now,...(f.careVersion?{housing,care:{startedAt:now,cleanedAt:now,illnessAt:null}}:{}),...(kind==='chick'?{bornAt:now}:{})});return {ok:true,message:`${item.name} entregue em ${housing==='barn'?'seu celeiro':'sua instalação'}. Alimente e ofereça água!`};
  }
  if(c.type==='buy-feed'){if(f.coins<10)return fail('Você precisa de 10 moedas.');f.coins-=10;f.feed+=5;return {ok:true,message:'+5 porções de ração.'};}
  if(['feed-animal','water-animal','pet-animal','play-animal','rename-animal','start-incubation','hatch-chick','mature-chick','collect-animal'].includes(c.type)){
