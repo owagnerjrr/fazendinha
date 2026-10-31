@@ -35,9 +35,9 @@ export async function readStudioVisit(request:Request){const user=await identity
 export async function scenePresence(user:string,input:Record<string,any>){const db=await pool.connect();try{
  if(input.leave===true){await db.query('DELETE FROM studio_presence WHERE user_id=$1',[user]);return{players:[]};}
  const ctx=await context(db,user,input.code);check(uuid(input.scene),'Cenário inválido.');
- let p:StudioPosition;if(ctx.host.user_id===user){p=ctx.host.state.studio?.position;check(p?.scene===input.scene,'Entre neste cenário primeiro.');}
- else{sharedEntries(ctx.host.state,ctx.ownCatalog,ctx.visitorEntries,input.scene);p=(await db.query('SELECT scene,x,y,direction FROM studio_presence WHERE user_id=$1 AND owner_id=$2 AND scene=$3 AND updated_at>now()-interval \'12 seconds\'',[user,ctx.host.user_id,input.scene])).rows[0];check(p,'Sua visita terminou. Entre novamente.');}
- await savePresence(db,user,ctx.host.user_id,p);return{players:await peers(db,user,ctx.host.user_id,p.scene)};
+ let p:StudioPosition;let entries:ReturnType<typeof sharedEntries>|undefined;if(ctx.host.user_id===user){p=ctx.host.state.studio?.position;check(p?.scene===input.scene,'Entre neste cenário primeiro.');}
+ else{entries=sharedEntries(ctx.host.state,ctx.ownCatalog,ctx.visitorEntries,input.scene);p=(await db.query('SELECT scene,x,y,direction FROM studio_presence WHERE user_id=$1 AND owner_id=$2 AND scene=$3 AND updated_at>now()-interval \'12 seconds\'',[user,ctx.host.user_id,input.scene])).rows[0];check(p,'Sua visita terminou. Entre novamente.');}
+ await savePresence(db,user,ctx.host.user_id,p);const players=await peers(db,user,ctx.host.user_id,p.scene);if(entries){const visit=sharedProjection(ctx.host.state,entries,{code:ctx.host.public_code,name:ctx.host.name},p,Date.now());visit.players=players;return{players,visit};}return{players};
  }finally{db.release();}}
 
 // Called inside the existing economy transaction and receipt. No extra mutable endpoint.

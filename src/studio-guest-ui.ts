@@ -13,7 +13,7 @@ export function studioGuestUI(s:Services){
  function navigation(){if(data)sessionStorage.setItem('wj-studio-visit',JSON.stringify({code,scene:data.position.scene}));}
  function destroy(){const hadActive=!!data||!!view;epoch++;view?.destroy();view=undefined;data=undefined;busy=false;if(timer)clearInterval(timer);timer=undefined;sessionStorage.removeItem('wj-studio-visit');return hadActive?s.request('',{type:'scene-presence',leave:true}).catch(()=>{}):Promise.resolve();}
  async function poll(){if(!data||busy||polling||document.hidden)return;polling=true;const current=epoch,scene=data.position.scene;try{
-  await s.request('',{type:'scene-presence',code,scene});const fresh:SharedStudio=await s.request(path(scene));if(current!==epoch||!data)return;data=fresh;await assets();
+  const response=await s.request('',{type:'scene-presence',code,scene});const fresh:SharedStudio=response.visit??await s.request(path(scene));if(current!==epoch||!data)return;data=fresh;await assets();
  }catch(e){if(current!==epoch)return;if((e as {status?:number}).status===403||(e as {status?:number}).status===400){destroy();s.close();s.toast('A visita terminou ou as permissões mudaram.');}}finally{polling=false;}}
  async function command(c:Record<string,any>){if(busy||!data)throw Error('Aguarde a visita sincronizar.');busy=true;epoch++;try{
   if(c.action==='travel'&&c.content==='farm'){await s.request('',{type:'scene-presence',leave:true});data.position={scene:'farm',x:0,y:0};return{message:'Você voltou da visita.'};}
