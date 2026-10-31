@@ -319,3 +319,5 @@ Validação autenticada no sandbox 873c41e: cachorro salvo no celeiro, replay id
 Validação 0.32: 253 testes e build passaram. Fluxos locais desktop/celular e autenticados no sandbox concluídos; publicação final e verificação pública registradas no relatório de entrega.
 
 0.32.1: corrigida incompatibilidade entre bordas físicas e posições aceitas pelo servidor na saída sul; regressão cobre caminhada real até a passagem própria e de amigos.
+
+0.33: consulta remota de cuidados dos animais de amigos; ajuda com deslocamento até o animal; organização automática de construções antigas no sul sem recriar bens; chamados temporários para gato e cachorro com gesto, áudio e aproximação.
