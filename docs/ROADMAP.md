@@ -317,3 +317,5 @@ Validação autenticada no sandbox 873c41e: cachorro salvo no celeiro, replay id
 - Validação autenticada e publicação em andamento.
 
 Validação 0.32: 253 testes e build passaram. Fluxos locais desktop/celular e autenticados no sandbox concluídos; publicação final e verificação pública registradas no relatório de entrega.
+
+0.32.1: corrigida incompatibilidade entre bordas físicas e posições aceitas pelo servidor na saída sul; regressão cobre caminhada real até a passagem própria e de amigos.

@@ -1,3 +1,4 @@
+import{WORLD_BOUNDS}from'./world-bounds';
 import{setupBag}from'./bag-ui';import{expansionCells}from'./expansion-rules';import{BUILDINGS,type BuildingKind}from'./plots';
 import{guestWalking}from'./guest-animal-care';import{pickPenAnimal}from'./animal-picker';
 import{inventoryIcon}from'./inventory-icons';
@@ -229,7 +230,7 @@ class FarmScene extends Phaser.Scene {
     $('loading').hidden = true;
     this.remote=new RemoteFarmers(this);this.cameras.main.setBackgroundColor('#287287');this.add.rectangle(800,600,5000,5000,0x287287).setDepth(-2);
     this.add.image(0, 0, 'terrain').setOrigin(0);valleyScenery(this);
-    this.physics.world.setBounds(90, 160, 1410, 930);
+    this.physics.world.setBounds(WORLD_BOUNDS.x,WORLD_BOUNDS.y,WORLD_BOUNDS.width,WORLD_BOUNDS.height);
     this.obstacles = this.physics.add.staticGroup();
     const block = (x: number, y: number, w: number, h: number, river=false) => { const zone = this.add.zone(x, y, w, h);if(river)zone.setData('river',true); this.obstacles.add(zone); (zone.body as Phaser.Physics.Arcade.StaticBody).setSize(w, h); };
     const shadow = (x: number, y: number, w: number, h: number) => this.add.ellipse(x, y, w, h, 0x203726, .24).setDepth(2);
