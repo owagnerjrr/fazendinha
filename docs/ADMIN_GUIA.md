@@ -113,3 +113,7 @@ Configurações comuns de cuidados são compartilhadas com animais originais; di
 Todo conteúdo comprável publicado entra automaticamente na venda do público escolhido, inclusive presentes. Animais aparecem em Animais e ração; sementes, cuidados e obras entram nas categorias correspondentes; Novidades do vale reúne todos. Roupas/modelos ainda não adquiridos aparecem também na loja de roupas. O preço é o cadastrado; presentes existentes não são cobrados novamente. Rascunhos, conteúdos desativados e restritos a outras contas não aparecem. Uma loja exclusiva configurada explicitamente continua exclusiva. Cenários/configurações não viram itens compráveis.
 
 Toque/clique no animal criado para abrir seu painel; o comando E/Usar com a mão seleciona o animal próximo à frente, em fazenda, interiores e expansão. Portas e pontos próximos do interior mantêm prioridade. Carinho/brincadeira aproximam o animal antes da animação.
+
+## 0.40.1 — painel dos animais criados
+
+Cuidados usam o mesmo cartão compacto dos animais originais: retrato extraído do sprite real, nome, indicadores e ações. Nome e local ficam em Mais opções. O nome não aparece sobre o animal no cenário; avisos de fome, sede e doença continuam visíveis quando necessários. Sem migração ou alteração dos dados dos animais.

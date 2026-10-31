@@ -1,5 +1,4 @@
 .studio-world{position:relative}.studio-world>canvas{display:block;width:100%;max-height:65vh;object-fit:contain;image-rendering:pixelated;background:#214132;touch-action:manipulation;border:2px solid #a99862;border-radius:9px}.studio-tools,.studio-controls{display:flex;gap:5px;flex-wrap:wrap;margin:10px 0}.studio-tools button,.studio-controls button{padding:9px;min-height:44px}.studio-cards{position:absolute;inset:12px;background:#fffbedf5;color:#193e2b;padding:16px;overflow:auto;max-height:68vh;border:2px solid #b1a376;border-radius:10px}.studio-cards article{border-bottom:1px solid #c7b992;padding:12px 0}.studio-cards button{margin:4px}.studio-controls button{flex:1}.studio-tools select{max-width:100%}
 
-.studio-animal-panel .secondary{margin:0}.studio-animal-panel .need-grid{margin:0}.studio-animal-panel p{margin:4px 0}.studio-animal-panel input{font-size:16px}
 
 .created-market .item-row>.secondary{width:auto;flex:0 0 auto;max-width:55%;margin:4px 0}.created-market .item-info{flex:1;min-width:0}.created-market .shop-art{object-fit:contain}@media(max-width:520px){.created-market .item-row>.secondary{width:100%;max-width:none;flex-basis:100%}}
