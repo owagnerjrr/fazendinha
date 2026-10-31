@@ -1,3 +1,4 @@
+import{mutateStudioVisit}from'./studio-visits.js';
 import{activitySnapshot,recordAction}from'./player-activity.js';
 import {catalogFor,reconcileStudio} from './studio.js';
 import {applyStudio} from '../src/studio-runtime.js';
@@ -82,7 +83,7 @@ export async function mutate(user: string, body: any, version?: string|null) {
       const result=initializeProfile(row.state,c);if(!result.ok)throw new GameError(result.message,result.existing?409:400);
       await claimInvitation(db,user,c.referral,now);
       row.name=row.state.playerName;await db.query('UPDATE farms SET name=$2 WHERE user_id=$1',[user,row.name]);row.result=result;
-    }else if(c.type==='studio'){try{const catalog=await catalogFor(db,user);await reconcileStudio(db,user,row.state,now,catalog);row.result=applyStudio(row.state,catalog,c,now);}catch(e){if(e instanceof StudioValidationError)throw new GameError(e.message);throw e;}}
+    }else if(c.type==='studio-visit'){try{row.result=await mutateStudioVisit(db,user,row.state,c,now);}catch(e){if(e instanceof StudioValidationError)throw new GameError(e.message);throw e;}}else if(c.type==='studio'){try{const catalog=await catalogFor(db,user);await reconcileStudio(db,user,row.state,now,catalog);row.result=applyStudio(row.state,catalog,c,now);}catch(e){if(e instanceof StudioValidationError)throw new GameError(e.message);throw e;}}
     else if(c.type==='position') move(row,body.position,now);
     else if(['work','buy','sell','expand',...LIFE_COMMANDS].includes(c.type)) {
       if(['place-building','move-building','travel-area','prepare-expansion','cure-plant','fertilize','cast-line','reel-line','sell','till-ground'].includes(c.type))move(row,body.position,now);

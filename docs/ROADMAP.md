@@ -342,3 +342,7 @@ Validação 0.32: 253 testes e build passaram. Fluxos locais desktop/celular e a
 - Administração de condições/permissões, bloqueio e recuperação; atividade e histórico com retenção.
 - Pacotes versionados, contratos financeiros imutáveis e reconciliação com consulta oficial.
 - Pendências delimitadas no ADMIN_GUIA: edição arbitrária dos mapas/contas nativos, visitas aos cenários dinâmicos, produção/reprodução de novas espécies, clima/doenças nas novas culturas e mecanismos inéditos.
+
+## 0.37 — visitas aos cenários da Central
+
+Visitas autenticadas e sujeitas à amizade, bloqueios e público de publicação; cuidados e cultivo com recursos do visitante; presença compartilhada, reabertura, saída e imagens históricas autorizadas por contexto. Permanecem pendentes baias personalizadas, produção/reprodução de espécies inéditas, clima/doenças nas culturas dinâmicas e edição livre dos mapas nativos.
