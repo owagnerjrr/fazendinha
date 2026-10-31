@@ -1,3 +1,4 @@
+import {PresenceChannel} from './presence-channel';
 import {FarmMusic} from './music';
 import {petStroke} from './pet-motion';
 import {PetWorld} from './pet-world';
@@ -597,8 +598,9 @@ setInterval(()=>{
 },500);
 
 function startVisit(code:string,data:VisitData){if(scene.pets.locked||scene.outdoorBond||(inside&&(game.scene.getScene('Interior') as InteriorScene).pets.locked)){toast('Aguarde a interação terminar.');return;}if(farm.home?.sleep){toast('Aguarde a personagem acordar.');return;}if(inside){game.scene.stop('Interior');finishInteriorExit();}scene.finishCurrentWork();scene.cancelMovement();game.scene.sleep('Farm');visiting=true;document.body.classList.add('visiting');$('exit-interior').hidden=false;$('world-place').textContent=`Fazenda de ${data.name}`;const label=document.createElement('aside');label.id='visit-banner';const text=document.createElement('span');text.textContent=`Fazenda de ${data.name}`;const chat=document.createElement('button');chat.textContent='Conversar';chat.onclick=()=>void onlineUI.chat(code);const animals=document.createElement('button');animals.textContent='Animais';animals.onclick=()=>{(game.scene.getScene('Visit') as VisitScene).animalsMenu();};label.append(text,chat,animals);document.body.append(label);game.scene.start('Visit',data);}
-function finishVisit(){visiting=false;document.body.classList.remove('visiting');document.getElementById('visit-banner')?.remove();$('exit-interior').hidden=true;$('world-place').textContent='VALE DO SOSSEGO';game.scene.wake('Farm');scene.cancelMovement();}
-game.scene.add('Visit',new VisitScene({own:()=>farm,tool:()=>tool,seed:()=>selected,stick:()=>joystick,modal:()=>modal,fetch:code=>cloud.request(`?visit=${code}`),presence:(code,pose)=>cloud.request('?presence=1',{code,...pose}),command:c=>cloud.command(c),open:openPanel,close:closePanel,toast,exit:finishVisit,chat:code=>void onlineUI.chat(code),petMenu:id=>life.animals(id)}),false);
+function finishVisit(){void presenceChannel.send({leave:true}).catch(()=>{});visiting=false;document.body.classList.remove('visiting');document.getElementById('visit-banner')?.remove();$('exit-interior').hidden=true;$('world-place').textContent='VALE DO SOSSEGO';game.scene.wake('Farm');scene.cancelMovement();}
+const presenceChannel=new PresenceChannel<any>(payload=>cloud.request('?presence=1',payload));
+game.scene.add('Visit',new VisitScene({own:()=>farm,tool:()=>tool,seed:()=>selected,stick:()=>joystick,modal:()=>modal,fetch:code=>cloud.request(`?visit=${code}`),presence:(code,pose)=>presenceChannel.send({code,...pose}),command:c=>cloud.command(c),open:openPanel,close:closePanel,toast,exit:finishVisit,chat:code=>void onlineUI.chat(code),petMenu:id=>life.animals(id)}),false);
 
 const homeDesigner=homeDesignUI({farm:()=>farm,open:openPanel,command:lifeCommand,toast,fertilizers:()=>void storeUI.open('fertilizer')});
 document.addEventListener('click',e=>{const el=(e.target as Element).closest('[data-home-design],[data-fertilizer-menu]');if(el?.hasAttribute('data-home-design'))homeDesigner.open();if(el?.hasAttribute('data-fertilizer-menu'))homeDesigner.fertilizer();});
@@ -607,6 +609,6 @@ let presenceBusy=false,presenceWasActive=false;
 setInterval(()=>{if(!cloud.active||presenceBusy||document.hidden)return;const visit=visiting?game.scene.getScene('Visit') as VisitScene:null;const pose=visit?.presencePosition()??(!inside?scene?.presencePosition():null);presenceBusy=true;
  const payload=pose?{...pose,code:visit?.farmCode()??cloud.code}:{leave:true};
  if(!pose&&!presenceWasActive){presenceBusy=false;return;}presenceWasActive=!!pose;
- void cloud.request('?presence=1',payload).then(data=>{if(visit&&visiting)visit.remote?.accept(data.players);else if(!visiting&&!inside)scene?.remote?.accept(data.players);}).catch(()=>{}).finally(()=>{presenceBusy=false;});
+ void presenceChannel.send(payload).then(data=>{if(visit&&visiting)visit.remote?.accept(data.players);else if(!visiting&&!inside)scene?.remote?.accept(data.players);}).catch(()=>{}).finally(()=>{presenceBusy=false;});
 },1500);
 void socialAlerts.poll();

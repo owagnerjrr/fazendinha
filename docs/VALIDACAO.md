@@ -1,3 +1,7 @@
+## 0.28.2 — chegada confiável nas visitas
+
+Correção da sincronização de presença ao entrar e cuidar dos canteiros. [Causas e testes](VISITAS_0_28_2.md).
+
 ## 0.28.1 — visitas com ferramentas
 
 Ações diretamente no cenário, sem painel de canteiro. [Implementação e testes](VISITAS_0_28_1.md).
