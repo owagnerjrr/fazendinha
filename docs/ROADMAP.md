@@ -1,3 +1,6 @@
+## Runtime administrativo — em validação no sandbox
+
+Implementados catálogo consumido pelo jogo, animais novos separados dos registros antigos, prévia isolada, editor de terrenos, cenários com cultivo/colisão/portas/pesca, compras por transação existente, cosméticos/modelos no renderizador original, biblioteca PNG/WAV versionada, concessões idempotentes e configurações por público. 288 testes passaram. Validação autenticada e visual publicada em andamento; não declarar os exemplos completos concluídos antes dela. Nenhuma mudança aplicada ao banco de produção nesta etapa.
 ## Central administrativa — base em desenvolvimento
 
 Branch codex/admin-creation-studio: autenticação exclusiva no servidor, definições versionadas, grupos/públicos estáveis, consulta de contas/pedidos e coleta de atividade. 278 testes passaram e build passou. Migração aditiva 014 testada no banco isolado. Executor de conteúdo, editor visual, arquivos, concessões, edição estrutural do progresso e configuração efetiva do jogo ainda pendentes; não considerar o pedido completo. Consulte docs/ADMIN_GUIA.md. Sandbox autenticado confirmou autorização 401/403, recibos idempotentes, rascunhos persistentes, público self/grupos, suspensão, restauração sem alterar bens e consulta de pedidos/atividade. Interface 1280/390px: salvar/reabrir/buscar e acesso negado para conta comum, sem erro JS nem transbordamento. Ajustes numéricos e recuperação condicionada validados no sandbox. A central completa continua pendente; exemplos de espécies/cenários/roupas jogáveis ainda não implementados.
@@ -326,6 +329,7 @@ Validação 0.32: 253 testes e build passaram. Fluxos locais desktop/celular e a
 0.33: consulta remota de cuidados dos animais de amigos; ajuda com deslocamento até o animal; organização automática de construções antigas no sul sem recriar bens; chamados temporários para gato e cachorro com gesto, áudio e aproximação.
 
 0.34: Construir fora dos controles de movimento/ação; fertilizante e defensivo como borrifadores equipáveis; gesto de chamada em quadros de sprite com braço substituído, não sobreposto.
+
 
 
 

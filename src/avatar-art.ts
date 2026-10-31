@@ -1,3 +1,4 @@
+import{imageAsset,mediaGeneration}from'./studio-assets-client';
 import {outfitPixels,drawOutfitCap} from './outfit-art';
 import {headAttachment,eraseNativeHead,nativeSkin,nativeHeadRegion,restoreRaisedTool,alignHeadToSpine,stableBackHead} from './avatar-attachment';
 import Phaser from 'phaser';
@@ -11,13 +12,14 @@ const spec:Record<string,{w:number;h:number}>={'farmer-v2':{w:48,h:64},'carry-ho
 const rgb=(hex:string)=>[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16));
 let avatarInstance=0;
 export class AvatarArt {
+ private media=0;
  private instance=++avatarInstance;
  private keys=new Map<string,string>();private generation=0;private previous?:Avatar;
  constructor(private scene:Phaser.Scene){}
  destroy(){for(const key of this.keys.values())this.scene.textures.remove(key);this.keys.clear();}
  key(base:string,avatar:Avatar){
   const old=this.previous;
-  if(!old||old.style!==avatar.style||old.skin!==avatar.skin||old.hair!==avatar.hair||old.shirt!==avatar.shirt||old.outfit!==avatar.outfit){for(const key of this.keys.values()){this.scene.textures.remove(key);this.scene.textures.remove(`${key}-source`);}this.keys.clear();this.previous={...avatar};this.generation++;}
+  if(this.media!==mediaGeneration()||JSON.stringify(old?.studioOverlay)!==JSON.stringify(avatar.studioOverlay)||JSON.stringify(old?.studioBody)!==JSON.stringify(avatar.studioBody)||!old||old.style!==avatar.style||old.skin!==avatar.skin||old.hair!==avatar.hair||old.shirt!==avatar.shirt||old.outfit!==avatar.outfit||old.studioColor!==avatar.studioColor){for(const key of this.keys.values()){this.scene.textures.remove(key);this.scene.textures.remove(`${key}-source`);}this.keys.clear();this.media=mediaGeneration();this.previous={...avatar};this.generation++;}
   if(this.keys.has(base))return this.keys.get(base)!;
   if(base==='pose-sit'||base==='pose-sleep'){
    const source=this.scene.textures.get(this.key('farmer-v2',avatar)).getSourceImage() as HTMLCanvasElement;
@@ -32,7 +34,7 @@ export class AvatarArt {
   }
   const {w,h}=spec[base],source=this.scene.textures.get(base).getSourceImage() as HTMLImageElement;
   const canvas=document.createElement('canvas');canvas.width=w*4;canvas.height=h*4;const ctx=canvas.getContext('2d')!;ctx.imageSmoothingEnabled=false;ctx.drawImage(source,0,0);
-  const skin=rgb(SKIN_TONES[avatar.skin]),hair=rgb(HAIR_COLORS[avatar.hair]),shirt=rgb(SHIRT_COLORS[avatar.shirt]);
+  const skin=rgb(SKIN_TONES[avatar.skin]),hair=rgb(HAIR_COLORS[avatar.hair]),shirt=rgb(avatar.studioColor??SHIRT_COLORS[avatar.shirt]);
   if(['farmer-v2','carry-hoe','carry-seed','carry-water'].includes(base)){
    const reference=ctx.getImageData(0,3*h,w,h).data,region=nativeHeadRegion(reference,w,h,{x:w/2,top:5}),neck=headAttachment(reference,w,h,region.top,region.x);
    for(let col=0;col<4;col++){
@@ -72,6 +74,7 @@ export class AvatarArt {
     ctx.save();ctx.globalCompositeOperation='destination-over';ctx.translate(ox,oy);drawPortraitHead(ctx,this.scene.textures.get('portrait-heads-v9').getSourceImage() as HTMLImageElement,avatar,row,neck.x,neck.y);ctx.restore();
    }
    ctx.save();ctx.translate(ox,oy);drawOutfitCap(ctx,avatar,row,neck);ctx.restore();
+   for(const ref of [avatar.studioBody,avatar.studioOverlay]){const overlay=imageAsset(ref);if(overlay){ctx.drawImage(overlay,col*48,row*64,48,64,ox+w/2-24+(ref?.offsetX??0),oy+(base==='farmer-v2'?0:38)+(ref?.offsetY??0),48,64);}}
    const layered=ctx.getImageData(ox,oy,w,h);restoreRaisedTool(layered.data,foreground,w,h,base,row,col,skin,neck.y);ctx.putImageData(layered,ox,oy);
    ctx.restore();const final=ctx.getImageData(ox,oy,w,h);cleanAvatarPixels(final.data,w,h);ctx.putImageData(final,ox,oy);
   }
@@ -90,3 +93,4 @@ export class AvatarArt {
   const key=`avatar-${this.instance}-${this.generation}-${cache}`,texture=this.scene.textures.addCanvas(key,cv)!;this.scene.textures.addSpriteSheet('',texture,{frameWidth:w,frameHeight:h});this.keys.set(cache,key);return key;
  }
 }
+

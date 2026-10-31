@@ -1,3 +1,6 @@
+import {catalogFor,reconcileStudio} from './studio.js';
+import {applyStudio} from '../src/studio-runtime.js';
+import {StudioValidationError} from '../src/studio-schema.js';
 import{applyExpansion}from'../src/expansion-rules.js';
 import{guestWalking,guestWalk,GUEST_CARE,publicAnimals}from'../src/guest-animal-care.js';
 import{applyLife}from'../src/life-rules.js';
@@ -35,7 +38,7 @@ export async function ensureFarm(id: string, name: string,care=false,living=fals
   if(care)await pool.query("UPDATE farms SET state=state || jsonb_build_object('careVersion',1,'careStartedAt',floor(extract(epoch FROM now())*1000)) WHERE user_id=$1 AND NOT (state ? 'careVersion')",[id]);
 }
 async function getFarm(db: PoolClient, id: string) { const { rows } = await db.query('SELECT * FROM farms WHERE user_id=$1 FOR UPDATE',[id]); if (!rows[0]) throw new GameError('Fazenda não encontrada.',404); upgradeFarm(rows[0].state);return rows[0]; }
-export async function snapshot(id:string){await settleVerifiedInvitation(id);const db=await pool.connect();try{await db.query('BEGIN');const row=await getFarm(db,id);const now=Date.now();if(row.state.livingSince!=null){settleClimate(row.state,now);settleVitals(row.state,now);await db.query('UPDATE farms SET state=$2 WHERE user_id=$1',[id,row.state]);}replenish(row.state,now);await db.query('COMMIT');return{farm:row.state,revision:row.revision,code:row.public_code,name:row.name,now};}catch(e){await db.query('ROLLBACK');throw e;}finally{db.release();}}
+export async function snapshot(id:string){await settleVerifiedInvitation(id);const db=await pool.connect();try{await db.query('BEGIN');const row=await getFarm(db,id),now=Date.now(),changed=await reconcileStudio(db,id,row.state,now);if(row.state.livingSince!=null){settleClimate(row.state,now);settleVitals(row.state,now);}replenish(row.state,now);await db.query('UPDATE farms SET state=$2,revision=revision+$3 WHERE user_id=$1',[id,row.state,changed?1:0]);if(changed)row.revision++;await db.query('COMMIT');return{farm:row.state,revision:row.revision,code:row.public_code,name:row.name,now};}catch(e){await db.query('ROLLBACK');throw e;}finally{db.release();}}
 export async function community(id: string, marketVersion=1) {
   const friends = await pool.query(`SELECT f.public_code AS code,f.name,r.accepted,(r.recipient=$1) AS incoming FROM friendships r JOIN farms f ON f.user_id=CASE WHEN r.sender=$1 THEN r.recipient ELSE r.sender END WHERE (r.sender=$1 OR r.recipient=$1) AND NOT EXISTS(SELECT 1 FROM social_blocks b WHERE (b.owner=$1 AND b.blocked=f.user_id) OR (b.blocked=$1 AND b.owner=f.user_id)) ORDER BY r.created_at DESC LIMIT 100`,[id]);
   // Older installed PWAs only know crops. Keep their response compatible until they update.
@@ -78,7 +81,8 @@ export async function mutate(user: string, body: any, version?: string|null) {
       const result=initializeProfile(row.state,c);if(!result.ok)throw new GameError(result.message,result.existing?409:400);
       await claimInvitation(db,user,c.referral,now);
       row.name=row.state.playerName;await db.query('UPDATE farms SET name=$2 WHERE user_id=$1',[user,row.name]);row.result=result;
-    }else if(c.type==='position') move(row,body.position,now);
+    }else if(c.type==='studio'){try{const catalog=await catalogFor(db,user);await reconcileStudio(db,user,row.state,now,catalog);row.result=applyStudio(row.state,catalog,c,now);}catch(e){if(e instanceof StudioValidationError)throw new GameError(e.message);throw e;}}
+    else if(c.type==='position') move(row,body.position,now);
     else if(['work','buy','sell','expand',...LIFE_COMMANDS].includes(c.type)) {
       if(['place-building','move-building','travel-area','prepare-expansion','cure-plant','fertilize','cast-line','reel-line','sell','till-ground'].includes(c.type))move(row,body.position,now);
       if(c.type==='work'||c.type==='fertilize'||c.type==='cure-plant'||c.type==='prepare-expansion') {
@@ -198,3 +202,4 @@ async function social(db:PoolClient,user:string,row:any,c:any,now:number) {
   }
   throw new GameError('Ação desconhecida.');
 }
+

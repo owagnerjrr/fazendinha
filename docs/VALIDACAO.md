@@ -1,3 +1,6 @@
+## Runtime administrativo — em validação no sandbox
+
+Implementados catálogo consumido pelo jogo, animais novos separados dos registros antigos, prévia isolada, editor de terrenos, cenários com cultivo/colisão/portas/pesca, compras por transação existente, cosméticos/modelos no renderizador original, biblioteca PNG/WAV versionada, concessões idempotentes e configurações por público. 288 testes passaram. Validação autenticada e visual publicada em andamento; não declarar os exemplos completos concluídos antes dela. Nenhuma mudança aplicada ao banco de produção nesta etapa.
 Conferência pública 0.35.0: jogo carregou em 1280/390px, pagamentos prontos e APIs protegidas. Ajustada mensagem de sessão ausente do painel para português após o SDK retornar Unauthorized. Nenhum dado ou controle administrativo exposto sem sessão.
 
 ## Central administrativa — base em desenvolvimento
@@ -627,6 +630,7 @@ Limites: celular validado por emulação de viewport/toque no Edge, sem aparelho
 - Fertilizante e defensivo são itens equipáveis separados na bolsa: borrifadores com ícones e estoque próprios, frasco preso à mão, bombeamento e névoa na aplicação. Fertilizante reduz crescimento; defensivo trata doença. Consumo somente após sucesso nos comandos existentes do servidor; falhas e repetição conservam estoque.
 - Chamados usam oito quadros de pose que substituem os braços originais, com mão na boca e orientação consistente. O gesto tem elevação e retorno, sem braços extras nem círculos grandes. Ações incompatíveis são bloqueadas durante o chamado.
 - 269 testes e build passaram. Playwright local em 1280×900, 390×780 e 844×390: equipar pela bolsa, borrifar fertilizante/defensivo, cura e consumo únicos, recusa de repetição, aplicação no sul, limites de Construir e pose efetivamente renderizada. Sandbox publicado com contas sintéticas: fertilizante (1280 px) e defensivo (390 px) equipados pela bolsa e aplicados na planta por clique, com dose exata e estado atualizado pela API real; chamado com pose nova, passagem para o sul e Construir separado do controle de ação, sem erros JS/API. A conferência de produção fica no relatório de entrega.
+
 
 
 

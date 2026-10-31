@@ -1,3 +1,5 @@
+import {studioUI} from './studio-ui';
+import {StudioAnimals} from './studio-animals';
 import{isSpray,checkSpray,sprayCommand,sprayStock}from'./plant-spray';import{SprayerVisual}from'./sprayer-visual';
 import{friendHealthUI,friendAnimalHealth}from'./friend-health-ui';import{PetCallEffect}from'./pet-call-effect';import{summoned}from'./pet-call-rules';
 import{WORLD_BOUNDS}from'./world-bounds';
@@ -138,7 +140,7 @@ function syncUI() {
 function setTool(next: Tool) {if(isSpray(next)&&sprayStock(farm,next)<1){toast('Este produto acabou. Compre mais na loja.');return;} if(next==='rod'&&!farm.fishing?.rod)return;if(tool==='rod'&&next!=='rod')void scene?.fishingView?.cancel();if(next==='rod'||next==='water'){equippedTool=next;try{localStorage.setItem('wj-tool-slot-v1',next);}catch{/* optional preference */}}tool = next; syncUI(); const hints: Record<Tool, string> = {fertilizer:'Toque numa planta regada para borrifar fertilizante.',medicine:'Toque numa planta doente e hidratada para borrifar defensivo.',rod:'', hand: 'Toque em uma planta pronta para colher.', hoe: 'Toque em um canteiro para preparar a terra.', seed: `Toque na terra preparada para plantar ${CROPS[selected].name.toLowerCase()}.`, water: 'Toque na plantação para regar e iniciar o crescimento.' }; $('hint').textContent = hints[tool]; }
 function openPanel(title: string, content: string, kind: 'shop' | 'other' = 'other') {panelOpenedAt=performance.now();
   dialog.classList.remove('animal-detail');activePanel = kind; scene?.finishCurrentWork();
-  modal = true; scene?.cancelMovement(); $('panel-eyebrow').textContent = 'UM POUQUINHO DE VIDA NO CAMPO'; $('panel-content').innerHTML = `<h2>${title}</h2>${content}`; document.body.classList.add('modal-open'); if (!dialog.open) dialog.showModal();
+  modal = true; scene?.cancelMovement(); $('panel-eyebrow').textContent = 'UM POUQUINHO DE VIDA NO CAMPO'; $('panel-content').innerHTML = content; const heading=document.createElement('h2');heading.textContent=title;$('panel-content').prepend(heading); document.body.classList.add('modal-open'); if (!dialog.open) dialog.showModal();
 }
 function closePanel() { dialog.close();releasePanelState(); }
 function releasePanelState(){if(dialog.open)return;modal=document.body.classList.contains('journey-open');activePanel='other';document.body.classList.remove('modal-open');joystick={x:0,y:0};$('joystick-knob').style.transform='';}
@@ -654,3 +656,9 @@ async function performPetCall(kind:'dog'|'cat'){
 callControls.querySelectorAll<HTMLButtonElement>('[data-call-pet]').forEach(b=>b.onclick=()=>void performPetCall(b.dataset.callPet as 'dog'|'cat'));
 
 setInterval(()=>{callControls.hidden=booting||onlineLoading||visiting||modal||!farm.animals.some(isPet);callControls.querySelectorAll<HTMLButtonElement>('[data-call-pet]').forEach(b=>b.disabled=!!petCaller?.active||!farm.animals.some(a=>a.kind===b.dataset.callPet));},250);
+
+const studio=studioUI({farm:()=>farm,request:()=>cloud.request('',undefined,'/api/studio'),command:c=>cloud.command(c),open:openPanel,close:closePanel,toast,now:()=>Date.now()+cloud.offset,avatar:(row,frame)=>previewAvatar(appearanceOf(farm),row,frame)});
+const studioButton=document.createElement('button');studioButton.textContent='Criações do vale';studioButton.onclick=()=>{if(!cloud.active){toast('Entre na sua conta para acessar os conteúdos publicados.');return;}void studio.open().catch(e=>toast(e.message));};document.querySelector('[data-menu-actions]')!.append(studioButton);
+dialog.addEventListener('close',()=>studio.destroy());
+new StudioAnimals(game,{farm:()=>farm,hand:()=>setTool('hand'),select:id=>studio.animal(id),view:()=>{if(visiting||friendBarnActive)return;const key=expansionBarn?'ExpansionBarn':inside?'Interior':expansionActive?'Expansion':'Farm';const active=game.scene.getScene(key);if(!active?.scene.isActive())return;return{scene:active,room:expansionBarn?'barn':inside?currentInterior!:(expansionActive?'expansion':'farm')};}});
+
