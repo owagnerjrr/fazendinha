@@ -25,3 +25,6 @@ Scripts DEV: `scripts/qa-gait-browser.mjs`, `scripts/qa-time-music-sales.mjs`, `
 ## Limites
 
 Emulação móvel não substitui aparelho físico. A música foi verificada por execução/síntese e análise do sinal; avaliação auditiva em alto-falantes reais permanece recomendada. Não foi medida garantia de 60 FPS em todo hardware. Pagamentos não foram criados ou modificados nesta versão. Resultados de publicação e persistência remota devem ser registrados após o deploy.
+## Verificação remota
+
+No projeto Vercel isolado `fazendinha-wj-mp-test`, uma conta QA nova validou venda parcial e por item (sementes iniciais), replay idempotente, calendário pausado durante sono, despertar exato calculado pelo relógio do servidor, recusa de cliente antigo durante o sono e persistência após novo login. Nenhum SQL de teste nem alteração em contas existentes foi necessário. Abertura autenticada da versão publicada em 1280px e 390px sem erros JavaScript. A última revisão visual também corrigiu lacunas de pixels nas patas verticais; nova execução dos quadros pelo renderizador aprovada.
