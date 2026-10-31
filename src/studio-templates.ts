@@ -1,8 +1,9 @@
+import{VITAL_MINUTES}from'./animal-defaults';
 import type{Definition,StudioKind}from'./studio-schema';
 export type CreationTemplate={id:string;icon:string;title:string;hint:string;definition:Definition};
 const animal=['wander','follow','pet','play','feed','water','clean','heal'];
 export function creationDefaults(kind:StudioKind):Definition{
- const data:Record<StudioKind,Record<string,unknown>>={animal:{shape:'long',speed:35,careMinutes:90},item:{action:'feed',effect:100},crop:{growthSeconds:120,yield:3},cosmetic:{shirtColor:'#507e98'},model:{style:'cap',skin:2,hair:1,shirt:1},building:{function:'decoration',widthTiles:1,heightTiles:1},scene:{width:20,height:16,spawnX:5,spawnY:8,cells:[{x:5,y:14,type:'door',destination:'farm'}]},shop:{products:[]},config:{minuteMs:1000},bundle:{contents:[]}};
+ const data:Record<StudioKind,Record<string,unknown>>={animal:{shape:'long',speed:35,careMinutes:VITAL_MINUTES.food},item:{action:'feed',effect:100},crop:{growthSeconds:120,yield:3},cosmetic:{shirtColor:'#507e98'},model:{style:'cap',skin:2,hair:1,shirt:1},building:{function:'decoration',widthTiles:1,heightTiles:1},scene:{width:20,height:16,spawnX:5,spawnY:8,cells:[{x:5,y:14,type:'door',destination:'farm'}]},shop:{products:[]},config:{minuteMs:1000},bundle:{contents:[]}};
  return{kind,name:'',description:'',price:100,sellPrice:0,color:'#8e9270',behaviors:kind==='animal'?[...animal]:[],dependencies:[],data:structuredClone(data[kind])};
 }
 function template(id:string,icon:string,title:string,hint:string,kind:StudioKind,name:string,data:Record<string,unknown>,color='#8e9270',price=100,sellPrice=0):CreationTemplate{

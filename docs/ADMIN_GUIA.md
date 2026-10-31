@@ -99,3 +99,11 @@ As presenças são consultadas a cada 2 segundos e expiram após 12 segundos sem
 A presença nova não duplica a pessoa na fazenda nativa. As posições dos jogadores são compartilhadas; os trajetos visuais dos animais continuam sendo calculados em cada aparelho, sem sincronização de cada pata entre visitantes. Condições e cuidados dos animais são compartilhados e gravados no dono. Não é possível passear levando animais do amigo para sua conta. Recursos gráficos de versões antigas ficam disponíveis apenas no contexto de uma visita autorizada. Uma área com estruturas/culturas não liberadas ao visitante é recusada; espécies privadas não são expostas.
 
 A tabela studio_presence contém somente presença temporária e uma linha por conta, com limpeza diária dos registros com mais de um dia. Não substitui fazendas, progressos ou a presença nativa.
+
+## 0.39 — conteúdo criado usa os cuidados do jogo
+
+Animais criados aparecem em Meus animais, inclusive presentes anteriores. É possível nomear, dar ração e água, limpar, tratar, acariciar, brincar e passear conforme as capacidades e ambientes publicados. Ração usa o estoque normal; reposição de comida/água a partir de 40%, limpeza usa palha e tratamento usa remédio veterinário. Indicadores mostram os seis cuidados. Carinho e brincadeira aproximam o animal no cenário atual; entre no ambiente dele se estiver em outro lugar. Passear com todos inclui as espécies com acompanhamento e restaura o modo anterior ao encerrar.
+
+Roupas criadas e recebidas aparecem no guarda-roupa e podem ser reequipadas gratuitamente. Escolher uma roupa original remove a sobreposição criada, preservando a propriedade. Editar o avatar original desativa o modelo criado equipado, sem apagar o modelo adquirido.
+
+Configurações comuns de cuidados são compartilhadas com animais originais; dieta, ambientes e capacidades explicitamente definidos continuam respeitados. Mecânicas inéditas, produção/reprodução de espécies dinâmicas e integração de cuidados de espécies criadas nas visitas ainda exigem implementação própria. Esta atualização não recria nem redistribui presentes existentes.

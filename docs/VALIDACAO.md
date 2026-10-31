@@ -678,3 +678,7 @@ Guia de uso e limites efetivos em ADMIN_GUIA.md. Não há validação física de
 - Nenhuma migração, mudança nas regras econômicas, credenciais ou atualização de fazendas de produção nesta entrega. Edição existente mantém os dados não alterados, mesmo com a seção avançada fechada.
 
 - Rodada final 0.38 repetida em 1280/390 px: busca por lago, filtro de animais, seletores por nome e concessões verificadas no servidor. Edição de nome/preço de um rascunho existente preservou exatamente ambiente, dieta, velocidade e dados técnicos adicionais, com a seção avançada fechada. Nenhum diálogo de prompt foi necessário para criar, salvar, conferir ou publicar.
+
+## 0.39 — integração das criações (validação local)
+
+311 testes passaram e build passou. Regressões: comandos normais em animal recebido; renomear; ração/água/limpeza/tratamento; reposição repetida recusada sem consumir; identidade e inventário preservados após serialização; dono/dieta/nome inválidos recusados; passeio coletivo/restauração; intervalos comuns e limite offline; roupa criada/original sem nova compra. Validação autenticada e visual no sandbox ainda em andamento. Nenhuma alteração nos animais ou presentes de produção.
