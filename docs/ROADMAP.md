@@ -333,3 +333,12 @@ Validação 0.32: 253 testes e build passaram. Fluxos locais desktop/celular e a
 
 
 
+
+## 0.36 — criação dinâmica e administração integrada
+
+- Executor aditivo de espécies, itens, culturas, cosméticos/modelos, construções, lojas e cenários identificados por UUID.
+- Prévia isolada, editor de terrenos, biblioteca PNG/WAV com versões, composições/dependências e distribuição validada no servidor.
+- Configurações por público consumidas no jogo; migrações compatíveis com análise de impacto, sem substituição de fazendas.
+- Administração de condições/permissões, bloqueio e recuperação; atividade e histórico com retenção.
+- Pacotes versionados, contratos financeiros imutáveis e reconciliação com consulta oficial.
+- Pendências delimitadas no ADMIN_GUIA: edição arbitrária dos mapas/contas nativos, visitas aos cenários dinâmicos, produção/reprodução de novas espécies, clima/doenças nas novas culturas e mecanismos inéditos.

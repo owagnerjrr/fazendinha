@@ -2,7 +2,7 @@ import type {Definition} from './studio-schema';
 import{imageAsset,type MediaRef}from'./studio-assets-client';
 // Original parametric pixel art. Imported sheets can override it without changing behavior.
 export function drawStudioAnimal(c:CanvasRenderingContext2D,d:Definition,x:number,y:number,row:number,frame:number,action='idle'){
- const spec=d.data.sprite as (MediaRef&{frameWidth:number;frameHeight:number;frames:number;scale?:number;offsetX?:number;offsetY?:number})|undefined,image=imageAsset(spec);if(image&&spec){const scale=spec.scale??1,w=spec.frameWidth*scale,h=spec.frameHeight*scale;c.drawImage(image,(frame%spec.frames)*spec.frameWidth,row*spec.frameHeight,spec.frameWidth,spec.frameHeight,Math.round(x-w/2+(spec.offsetX??0)),Math.round(y-h+(spec.offsetY??0)),w,h);return;}
+ const spec=((d.data.animations as Record<string,unknown>|undefined)?.[action]??d.data.sprite) as (MediaRef&{frameWidth:number;frameHeight:number;frames:number;scale?:number;offsetX?:number;offsetY?:number})|undefined,image=imageAsset(spec);if(image&&spec){const scale=spec.scale??1,w=spec.frameWidth*scale,h=spec.frameHeight*scale;c.drawImage(image,(frame%spec.frames)*spec.frameWidth,row*spec.frameHeight,spec.frameWidth,spec.frameHeight,Math.round(x-w/2+(spec.offsetX??0)),Math.round(y-h+(spec.offsetY??0)),w,h);return;}
  c.save();c.translate(Math.round(x),Math.round(y));if(row===1)c.scale(-1,1);const color=d.color,shape=d.data.shape??'short',step=[0,2,0,-2][frame%4];
  const r=(x:number,y:number,w:number,h:number,color:string)=>{c.fillStyle=color;c.fillRect(x,y,w,h);};
  c.fillStyle='#19382d44';c.fillRect(-12,-3,25,5);
