@@ -11,10 +11,10 @@ import type{Farm}from'../src/farm.js';
 
 async function context(db:PoolClient,user:string,code:unknown,lock=false){
  check(typeof code==='string'&&/^[A-F0-9]{10}$/.test(code),'Código de amigo inválido.');
- const host=(await db.query(`SELECT f.user_id,f.public_code,f.name,f.state FROM farms f JOIN neon_auth."user" u ON u.id::text=f.user_id WHERE f.public_code=$2 AND NOT coalesce(u.banned,false) AND NOT EXISTS(SELECT 1 FROM studio_account_blocks WHERE user_id=f.user_id) AND (f.user_id=$1 OR EXISTS(SELECT 1 FROM friendships WHERE accepted AND ((sender=$1 AND recipient=f.user_id) OR (recipient=$1 AND sender=f.user_id)))) AND NOT EXISTS(SELECT 1 FROM social_blocks WHERE (owner=$1 AND blocked=f.user_id) OR (blocked=$1 AND owner=f.user_id)) ${lock?'FOR UPDATE OF f':''}`,[user,code])).rows[0];
+ const host=(await db.query(`SELECT f.user_id,f.public_code,f.name,${lock?'f.state':"jsonb_build_object('studio',f.state->'studio','calendar',f.state->'calendar','visitorCare',f.state->'visitorCare')"} AS state FROM farms f JOIN neon_auth."user" u ON u.id::text=f.user_id WHERE f.public_code=$2 AND NOT coalesce(u.banned,false) AND NOT EXISTS(SELECT 1 FROM studio_account_blocks WHERE user_id=f.user_id) AND (f.user_id=$1 OR EXISTS(SELECT 1 FROM friendships WHERE accepted AND ((sender=$1 AND recipient=f.user_id) OR (recipient=$1 AND sender=f.user_id)))) AND NOT EXISTS(SELECT 1 FROM social_blocks WHERE (owner=$1 AND blocked=f.user_id) OR (blocked=$1 AND owner=f.user_id)) ${lock?'FOR UPDATE OF f':''}`,[user,code])).rows[0];
  check(host,'A visita precisa de amizade aceita e sem bloqueios.');
- const visitor=(await db.query('SELECT state FROM farms WHERE user_id=$1',[user])).rows[0];check(visitor,'Entre no jogo primeiro.');
- const ownCatalog=await catalogFor(db,host.user_id),visitorCatalog=host.user_id===user?ownCatalog:await catalogFor(db,user);
+ const visitor=host.user_id===user?host:(await db.query("SELECT jsonb_build_object('studio',state->'studio') AS state FROM farms WHERE user_id=$1",[user])).rows[0];check(visitor,'Entre no jogo primeiro.');
+ const ownCatalog=host.user_id===user&&!lock?[]:await catalogFor(db,host.user_id),visitorCatalog=host.user_id===user?ownCatalog:await catalogFor(db,user);
  return{host,ownCatalog,visitorEntries:studioEntries(visitor.state,visitorCatalog)};
 }
 async function peers(db:PoolClient,user:string,owner:string,scene:string){
