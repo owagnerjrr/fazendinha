@@ -1,0 +1,2 @@
+import type {CloudFarm} from './cloud';
+export function trackActivity(cloud:CloudFarm,area:()=>string){const session=crypto.randomUUID();let last=Date.now(),sending=false;for(const type of ['pointerdown','keydown','touchstart'])document.addEventListener(type,()=>{last=Date.now();},{passive:true});setInterval(()=>{if(!cloud.active||sending||document.hidden)return;sending=true;void cloud.request('',{session,area:area(),visible:!document.hidden,focused:document.hasFocus(),idle:Date.now()-last},'/api/studio').catch(()=>{}).finally(()=>sending=false);},20000);}

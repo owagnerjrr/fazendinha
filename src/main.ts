@@ -75,6 +75,7 @@ import { act, hasPests, buySeeds, CROPS, makeFarm, remaining, restoreFarm, SAVE_
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const cloud = new CloudFarm();
+void import('./player-activity').then(({trackActivity})=>trackActivity(cloud,()=>friendBarnActive?'friend_barn':visiting?'friend_farm':inside?'house':expansionBarn?'expansion_barn':expansionActive?'expansion':'farm'));
 let onlineLoading = false;
 const hadLocalFarm=!!localStorage.getItem(SAVE_KEY);
 let booting=true;

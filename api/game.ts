@@ -1,5 +1,6 @@
 import {presence,notifications,acknowledge} from '../server/social-live.js';
 import { identity } from '../server/auth.js';
+import {recordAction} from '../server/player-activity.js';
 import { requiresNewClient, CLIENT_UPDATE_MESSAGE } from '../src/client-compat.js';
 import { community, ensureFarm, GameError, mutate, snapshot, visit } from '../server/game.js';
 const json=(value:unknown,status=200)=>Response.json(value,{status,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
@@ -26,7 +27,9 @@ async function handle(request:Request) {
     let body; try { body=JSON.parse(raw); } catch { return json({error:'JSON inválido.'},400); }
     if(url.searchParams.has('presence'))return json(await presence(user.id,body));
     if(url.searchParams.has('notifications'))return json(await acknowledge(user.id,body));
-    return json(await mutate(user.id,body,request.headers.get('X-Farm-Version')));
+    const result=await mutate(user.id,body,request.headers.get('X-Farm-Version'));
+    try{await recordAction(user.id,body.command,result);}catch{console.error('activity_event_failed');}
+    return json(result);
   } catch(error) {
     if(error instanceof Error && error.message==='UNAUTHORIZED') return json({error:'Entre na sua conta para continuar.'},401);
     if(error instanceof GameError) return json({error:error.message},error.status);
