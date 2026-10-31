@@ -14,11 +14,11 @@ export function sharedEntries(host:Farm,hostCatalog:StudioEntry[],visitorEntries
  const allowed=new Set(visitorEntries.map(e=>e.id)),wanted=new Set([scene]);
  for(const b of host.studio!.structures.filter(b=>b.scene===scene))wanted.add(b.content);
  for(const [key,p] of Object.entries(host.studio!.plots))if(key.startsWith(scene+':')&&p.content)wanted.add(p.content);
- for(let n=0;n<100;n++){const before=wanted.size;for(const id of wanted){const e=all.find(e=>e.id===id);check(e&&allowed.has(id),'Esta área contém conteúdo não liberado para sua conta.');for(const dep of contentDependencies(e.definition))wanted.add(dep);}if(wanted.size===before)break;}
- check(wanted.size<=100,'Este cenário tem dependências demais.');
  for(const e of all)if(e.definition.kind==='crop'&&allowed.has(e.id))wanted.add(e.id);
  // Private species are not exposed just because their owner accepts a friendship.
  for(const pet of host.studio!.animals)if((pet.room===scene||pet.mode==='follow'&&host.studio!.position.scene===scene)&&allowed.has(pet.content))wanted.add(pet.content);
+ for(let n=0;n<100;n++){const before=wanted.size;for(const id of wanted){const e=all.find(e=>e.id===id);check(e&&allowed.has(id),'Esta área contém conteúdo não liberado para sua conta.');for(const dep of contentDependencies(e.definition))wanted.add(dep);}if(wanted.size===before)break;}
+ check(wanted.size<=100,'Este cenário tem dependências demais.');
  return all.filter(e=>wanted.has(e.id));
 }
 
