@@ -1,0 +1,8 @@
+/** Articulated lower limbs. The torso remains byte-identical; legs swing from fixed hips. */
+export function gaitPixels(raw:Uint8ClampedArray,w:number,h:number,frame:number,kind:string,direction='right'){
+ let left=w,right=0,bottom=0,top=h;for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(raw[(y*w+x)*4+3]>150){left=Math.min(left,x);right=Math.max(right,x);bottom=Math.max(bottom,y);top=Math.min(top,y);}
+ const out=raw.slice(),bird=['chicken','rooster','chick'].includes(kind),cut=Math.round(top+(bottom-top)*(bird?.68:.66)),vertical=direction==='up'||direction==='down',travel=direction==='left'||direction==='up'?-1:1,count=bird||vertical?2:4,span=(right-left+1)/count,stride=Math.max(3,Math.round((right-left)*.13)),lift=bird?4:3;
+ for(let y=cut;y<=bottom;y++)for(let x=left;x<=right;x++)out.fill(0,(y*w+x)*4,(y*w+x)*4+4);
+ for(let leg=0;leg<count;leg++){const x0=Math.floor(left+span*leg),x1=Math.floor(left+span*(leg+1)),phase=frame*Math.PI/4+(bird?leg*Math.PI:[0,Math.PI,Math.PI,0][leg]),swing=Math.sin(phase),rise=Math.max(0,Math.cos(phase));for(let y=cut;y<=bottom;y++){const t=(y-cut)/Math.max(1,bottom-cut),knee=t<.5?t*.6:.3+(t-.5)*1.4,dx=vertical?Math.round(swing*2*knee):Math.round(swing*stride*knee*travel),dy=-Math.round(rise*lift*t)+(vertical?Math.round(swing*3*t*travel):0);for(let x=x0;x<x1;x++){const at=(y*w+x)*4;if(raw[at+3]<150)continue;const px=x+dx,py=y+dy;if(px<0||px>=w||py<0||py>=h)continue;const nt=Math.min(1,(y+1-cut)/Math.max(1,bottom-cut)),nextY=y+1-Math.round(rise*lift*nt)+(vertical?Math.round(swing*3*nt*travel):0);for(let fy=py;fy<Math.max(py+1,nextY);fy++){if(fy<0||fy>=h)continue;const target=(fy*w+px)*4;for(let c=0;c<4;c++)out[target+c]=raw[at+c];}}}}
+ return out;
+}

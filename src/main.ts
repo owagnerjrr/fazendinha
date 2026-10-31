@@ -1,3 +1,4 @@
+import {FarmMusic} from './music';
 import {petStroke} from './pet-motion';
 import {PetWorld} from './pet-world';
 import {isPet,petMode} from './pet-rules';
@@ -77,6 +78,7 @@ try { farm = restoreLocalFarm(localStorage.getItem(SAVE_KEY),localStorage.getIte
 enableFarmCare(farm);
 let selected: Crop = 'carrot', tool: Tool = 'hand', modal = false, toastTimer: ReturnType<typeof setTimeout>;
 let equippedTool:Exclude<Tool,'hand'|'hoe'|'seed'>='water';try{if(localStorage.getItem('wj-tool-slot-v1')==='rod')equippedTool='rod';}catch{/* Farm progress is independent of preferences. */}
+const music=new FarmMusic(()=>farm,()=>Date.now()+cloud.offset);
 let joystick = { x: 0, y: 0 };
 let scene: FarmScene;
 let life:ReturnType<typeof setupLifeUI>;
@@ -577,6 +579,7 @@ const frameBudget=new FrameBudget();let frameStart=0;
 game.events.on('prestep',()=>{frameStart=performance.now();});
 document.addEventListener('visibilitychange',()=>frameBudget.reset());
 game.events.on('postrender',()=>{if(frameBudget.tick(performance.now(),!document.hidden&&!booting,performance.now()-frameStart)){setAutomaticLight(frameBudget.light);const reading=document.getElementById('performance-reading');if(reading)reading.textContent=`${frameBudget.fps<10?frameBudget.fps.toFixed(1):Math.round(frameBudget.fps)} FPS medidos · quadro p95 ${frameBudget.p95.toFixed(1)} ms · CPU p95 ${frameBudget.cpu95.toFixed(1)} ms.`;}});
+$('music-settings').onclick=()=>music.panel(openPanel);
 $('frame-rate').onclick=()=>{openPanel('Desempenho e animação',`<p id="performance-reading">${frameBudget.fps<10?frameBudget.fps.toFixed(1):Math.round(frameBudget.fps)} FPS medidos · quadro p95 ${frameBudget.p95.toFixed(1)} ms · CPU p95 ${frameBudget.cpu95.toFixed(1)} ms.</p><p>A meta é 60 FPS (16,7 ms por quadro). O resultado depende do aparelho e do navegador.</p><label>Efeitos do cenário <select id="effects-setting"><option value="auto">Automático</option><option value="full">Completos</option><option value="light">Leves</option></select></label><p>O modo leve reduz efeitos decorativos e mantém personagem, ferramentas e regras da fazenda.</p><label><input id="breathing-setting" type="checkbox" ${display.breathing?'checked':''}/> Respiração da personagem</label><p class="quiet-note">Noite mais clara em todos os modos. A respiração usa quadros de pixel art, sem mudar colisões.</p>`);
  const effects=$<HTMLSelectElement>('effects-setting');effects.value=display.effects;effects.onchange=()=>{display.effects=effects.value as Effects;saveDisplay();};$<HTMLInputElement>('breathing-setting').onchange=e=>{display.breathing=(e.target as HTMLInputElement).checked;saveDisplay();};};
 window.addEventListener('error', event => { $('save-status').textContent = 'Ocorreu um erro. Recarregue para continuar.';if(inside){const room=currentInterior??'barn',error=event.error instanceof Error?event.error:new Error(event.message);queueMicrotask(()=>{recoverInterior(error,room);game.loop.wake();});} });

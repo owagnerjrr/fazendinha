@@ -1,3 +1,4 @@
+import {sleepPicker} from './sleep-picker';
 import {PetWorld} from './pet-world';
 import {isPet} from './pet-rules';
 import {petStroke} from './pet-motion';
@@ -20,9 +21,9 @@ import { AvatarArt } from './avatar-art';
 import { buildBarn, type RoomPoint } from './barn-art';
 import type { Farm, Tool } from './farm';
 import { findPath } from './pathfinding';
-type Services={farm:()=>Farm;stick:()=>{x:number;y:number};modal:()=>boolean;tool:()=>Tool;now:()=>number;avatar:()=>void;wardrobe?:()=>void;animals:(id?:string)=>void;equipment:()=>void;toast:(s:string)=>void;open:(title:string,html:string)=>void;exit:()=>void;collect?:(id:string)=>Promise<unknown>;home?:(c:{type:'home';action:'tv'|'lights'|'sleep'|'wake';on?:boolean})=>Promise<unknown>;care?:(c:{type:'pet-animal'|'play-animal';id:string})=>Promise<unknown>;failed?:(error:Error,room:'house'|'barn')=>void};
+type Services={farm:()=>Farm;stick:()=>{x:number;y:number};modal:()=>boolean;tool:()=>Tool;now:()=>number;avatar:()=>void;wardrobe?:()=>void;animals:(id?:string)=>void;equipment:()=>void;toast:(s:string)=>void;open:(title:string,html:string)=>void;exit:()=>void;collect?:(id:string)=>Promise<unknown>;home?:(c:{type:'home';action:'tv'|'lights'|'sleep'|'wake';on?:boolean;wakeAt?:number})=>Promise<unknown>;care?:(c:{type:'pet-animal'|'play-animal';id:string})=>Promise<unknown>;failed?:(error:Error,room:'house'|'barn')=>void};
 export class InteriorScene extends Phaser.Scene {
- pets!:PetWorld;private failed=false;
+ pets!:PetWorld;private sleepShade!:Phaser.GameObjects.Rectangle;private failed=false;
  private bonding:{id:string;type:'pet-animal'|'play-animal';phase:'arriving'|'contact'|'saving'|'reacting';start:number;resolve:()=>void;reject:(e:Error)=>void}|null=null;private gesture!:Phaser.GameObjects.Graphics;private reduced=matchMedia('(prefers-reduced-motion: reduce)');
  private breathing=new IdleBreathing();
  private nextUI=0;private house?:ReturnType<typeof buildHouse>;private lighting!:TimeLighting;private homeBusy=false;
@@ -56,8 +57,9 @@ export class InteriorScene extends Phaser.Scene {
   this.player=this.physics.add.sprite(600,spawnY,'farmer-down-0').setVisible(false).setOrigin(.5,1).setCollideWorldBounds(true);this.player.body!.setSize(14,10).setOffset(17,52);this.physics.world.setBounds(this.room==='house'?278:165,224,this.room==='house'?644:870,this.room==='house'?500:596);this.physics.add.collider(this.player,group);
   if(spawn)this.player.setPosition(spawn.x,spawn.y);
   this.actor=this.add.sprite(this.player.x,this.player.y,'farmer-down-0').setOrigin(.5,62/64).setScale(1.08);
-  this.lighting=new TimeLighting(this,true);
+  this.lighting=new TimeLighting(this,true,this.room,()=>({x:303+houseOffset(s.farm(),'lamp').x,y:670+houseOffset(s.farm(),'lamp').y}));
   this.houseButton=document.getElementById('house-action') as HTMLButtonElement|null;this.tvButton=document.getElementById('house-tv') as HTMLButtonElement|null;if(this.houseButton)this.houseButton.onclick=()=>this.interact();if(this.tvButton)this.tvButton.onclick=()=>this.useHouse('tv');
+  this.sleepShade=this.add.rectangle(0,0,1,1,0x080f19).setAlpha(0).setScrollFactor(0).setDepth(5000);
   this.gesture=this.add.graphics();this.pets=new PetWorld(this,this.room,s.farm,()=>this.blocks,{x:this.room==='house'?278:165,y:224,width:this.room==='house'?644:870,height:this.room==='house'?485:580},id=>s.animals(id),c=>s.care?.(c)??Promise.reject(Error('Cuidados indisponíveis.')));
   this.cameras.main.setBounds(0,0,1200,950);this.cameras.main.startFollow(this.player,true,.1,.1,0,30);this.resize();this.scale.on('resize',this.resize,this);
   this.keys=this.input.keyboard!.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,E,ESC') as Record<string,Phaser.Input.Keyboard.Key>;
@@ -97,9 +99,10 @@ export class InteriorScene extends Phaser.Scene {
   if(kind==='lamp'){if(s.home){this.homeBusy=true;void s.home({type:'home',action:'lights',on:s.farm().home?.lightsOn===false}).catch(e=>s.toast(e.message)).finally(()=>this.homeBusy=false);}return;}
   if(kind==='bed'||kind==='tv'){
    if(!s.home){s.toast('Interação indisponível neste ambiente.');return;}
+   if(kind==='bed'){sleepPicker(s.farm,s.now,s.open,async wakeAt=>{if(this.homeBusy)return;this.homeBusy=true;try{await s.home!({type:'home',action:'sleep',wakeAt});this.rest={kind:'sleep',start:this.time.now,from:{x:this.player.x,y:this.player.y-2}};}catch(e){s.toast((e as Error).message);throw e;}finally{this.homeBusy=false;}});return;}
    this.homeBusy=true;this.player.setVelocity(0);this.target=null;this.route=[];
-   const c=kind==='bed'?{type:'home' as const,action:'sleep' as const}:{type:'home' as const,action:'tv' as const,on:!s.farm().home?.tvOn};
-   void s.home(c).then(()=>{if(kind==='bed')this.rest={kind:'sleep',start:this.time.now,from:{x:this.player.x,y:this.player.y-2}};}).catch(e=>s.toast(e.message)).finally(()=>{this.homeBusy=false;});return;
+   const c={type:'home' as const,action:'tv' as const,on:!s.farm().home?.tvOn};
+   void s.home(c).catch(e=>s.toast(e.message)).finally(()=>{this.homeBusy=false;});return;
   }
   s.open('À mesa','<p>Um cantinho tranquilo para desacelerar.</p>');
  }
@@ -123,7 +126,7 @@ export class InteriorScene extends Phaser.Scene {
  private finishBond(error?:Error){const bond=this.bonding;this.bonding=null;this.barn?.endCare();this.gesture.clear();this.target=null;this.route=[];if(error)bond?.reject(error);else bond?.resolve();}
  update(time:number){if(this.failed)return;try{this.updateRoom(time);}catch(error){this.failRoom(error);}}
  private failRoom(error:unknown){if(this.failed)return;this.failed=true;if(this.player?.body)this.player.setVelocity(0);const detail=error instanceof Error?error:new Error(String(error));queueMicrotask(()=>{if(this.services.failed)this.services.failed(detail,this.room);else this.services.toast(`Não foi possível abrir o cômodo: ${detail.message}`);});}
- private updateRoom(time:number){if(!this.player)return;const s=this.services;this.pets.update(time,this.player,s.modal()||!!this.rest||!!this.bonding);this.lighting.update(s.farm().calendar,s.now(),this.room==='house'?s.farm().home?.lightsOn!==false:undefined);if(this.room==='house'&&s.farm().home?.sleep&&!this.rest)this.rest={kind:'sleep',start:time,from:{x:this.player.x,y:this.player.y-2}};if(this.rest?.kind==='sleep'&&!s.farm().home?.sleep)this.releaseRest();let vx=0,vy=0;
+ private updateRoom(time:number){if(!this.player)return;const s=this.services;this.pets.update(time,this.player,s.modal()||!!this.rest||!!this.bonding);const sleep=s.farm().home?.sleep,cam=this.cameras.main,fade=sleep?Math.min(1,Math.max(0,(s.now()-sleep.startedAt)/800)):Math.max(0,this.sleepShade.alpha-.04);this.sleepShade.setPosition(cam.width/2,cam.height/2).setSize(cam.width/cam.zoom+4,cam.height/cam.zoom+4).setAlpha(fade);this.lighting.update(s.farm().calendar,s.now(),this.room==='house'?s.farm().home?.lightsOn!==false:undefined);if(this.room==='house'&&s.farm().home?.sleep&&!this.rest)this.rest={kind:'sleep',start:time,from:{x:this.player.x,y:this.player.y-2}};if(this.rest?.kind==='sleep'&&!s.farm().home?.sleep)this.releaseRest();let vx=0,vy=0;
   if(!s.modal()){const stick=s.stick();vx=Number(this.keys.D.isDown||this.keys.RIGHT.isDown)-Number(this.keys.A.isDown||this.keys.LEFT.isDown)+stick.x;vy=Number(this.keys.S.isDown||this.keys.DOWN.isDown)-Number(this.keys.W.isDown||this.keys.UP.isDown)+stick.y;
    if(this.rest&&(vx||vy))this.releaseRest();
    if(this.bonding||this.pets.locked||this.rest||this.homeBusy){vx=0;vy=0;}
