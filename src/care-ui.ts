@@ -1,5 +1,5 @@
 import {animalNeeds} from './animal-needs';import {plantNeeds} from './plant-care';import {allPlots,hasPests,CROPS,type Farm,type Tool} from './farm';import {SUPPLIES} from './husbandry-rules';import {ANIMALS} from './content';
-type Services={farm:()=>Farm;now:()=>number;open:(title:string,html:string)=>void;close:()=>void;command:(c:any)=>Promise<{message?:string}>;tendPlot:(id:number,tool:Tool)=>void;toast:(s:string)=>void};
+type Services={treatPlant?:(id:number)=>void;farm:()=>Farm;now:()=>number;open:(title:string,html:string)=>void;close:()=>void;command:(c:any)=>Promise<{message?:string}>;tendPlot:(id:number,tool:Tool)=>void;toast:(s:string)=>void};
 export function careDashboard(s:Services,animals:()=>void,shop:()=>void){let busy=false;
  const activePlants=()=>allPlots(s.farm()).filter(p=>p.crop);
  function alerts(){const f=s.farm(),now=s.now();return f.animals.filter(a=>{const n=animalNeeds(a,now);return n.food<=25||n.water<=25||n.clean<=25||n.sick;}).length+activePlants().filter(p=>{const n=plantNeeds(p,now);return n.water<=25||n.sick||hasPests(p,now);}).length;}
@@ -8,7 +8,7 @@ export function careDashboard(s:Services,animals:()=>void,shop:()=>void){let bus
   document.querySelectorAll<HTMLButtonElement>('[data-climate-drain],[data-climate-shade]').forEach(b=>b.onclick=async()=>{b.disabled=true;try{const r=await s.command({type:'protect-plot',plot:Number(b.dataset.climateDrain??b.dataset.climateShade),mode:b.dataset.climateDrain?'drain':'shade'});open();s.toast(r.message??'Cuidado salvo.');}catch(e){s.toast((e as Error).message);b.disabled=false;}});
   document.getElementById('care-animals')!.onclick=animals;document.getElementById('care-supplies')!.onclick=shop;
   document.querySelectorAll<HTMLButtonElement>('[data-care-water],[data-care-clean]').forEach(b=>b.onclick=()=>{s.close();s.tendPlot(Number(b.dataset.careWater??b.dataset.careClean),b.dataset.careWater!==undefined?'water':'hand');});
-  document.querySelectorAll<HTMLButtonElement>('[data-care-cure]').forEach(b=>b.onclick=async()=>{if(busy)return;busy=true;b.disabled=true;try{const r=await s.command({type:'cure-plant',plot:Number(b.dataset.careCure)});open();s.toast(r.message??'Planta tratada.');}catch(e){document.getElementById('care-feedback')!.textContent=(e as Error).message;b.disabled=false;}finally{busy=false;}});
+  document.querySelectorAll<HTMLButtonElement>('[data-care-cure]').forEach(b=>b.onclick=async()=>{if(s.treatPlant){s.close();s.treatPlant(Number(b.dataset.careCure));return;}if(busy)return;busy=true;b.disabled=true;try{const r=await s.command({type:'cure-plant',plot:Number(b.dataset.careCure)});open();s.toast(r.message??'Planta tratada.');}catch(e){document.getElementById('care-feedback')!.textContent=(e as Error).message;b.disabled=false;}finally{busy=false;}});
  }
  return{open,alerts};
 }

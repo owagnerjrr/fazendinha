@@ -1,3 +1,4 @@
+import{applyExpansion,EXPANSION_COMMANDS}from'./expansion-rules.js';
 import{availablePen,assignBarnPens}from'./barn-slots.js';
 import{protectPlot}from'./climate.js';
 import{livingCommand,settleVitals,boostVital}from'./living-animals.js';
@@ -13,9 +14,9 @@ import {applyHome} from './world-time.js';
 import { ANIMALS, DECOR, DECOR_SLOTS, animalReady, animalHydrated, validAvatar, type AnimalKind, type DecorationKind } from './content.js';
 import { LAND_PRICE, ORIGINAL_PLOTS, EXTRA_PLOTS, LAND_SITES, BUILDINGS, parcels, buildProblem, type LandSite, type BuildingKind } from './plots.js';
 import type { Farm } from './farm.js';
-export const LIFE_COMMANDS=['protect-plot','feed-cat-fish','walk-animals','visitor-care-setting','pet-setting','buy-house-item','place-house-item','house-style','fertilize','buy-outfit','equip-outfit','till-ground',...FISHING_COMMANDS,...HUSBANDRY_COMMANDS,'home','avatar','buy-land','build-land','buy-animal','buy-feed','feed-animal','water-animal','pet-animal','play-animal','rename-animal','start-incubation','hatch-chick','mature-chick','collect-animal','buy-decor','move-decor','raids-setting','animal-raids-setting'] as const;
+export const LIFE_COMMANDS=[...EXPANSION_COMMANDS,'protect-plot','feed-cat-fish','walk-animals','visitor-care-setting','pet-setting','buy-house-item','place-house-item','house-style','fertilize','buy-outfit','equip-outfit','till-ground',...FISHING_COMMANDS,...HUSBANDRY_COMMANDS,'home','avatar','buy-land','build-land','buy-animal','buy-feed','feed-animal','water-animal','pet-animal','play-animal','rename-animal','start-incubation','hatch-chick','mature-chick','collect-animal','buy-decor','move-decor','raids-setting','animal-raids-setting'] as const;
 export function applyLife(f:Farm,c:any,now:number):{ok:boolean;message:string;caught?:import('./fishing.js').Fish} {
- settleVitals(f,now);if(c.type==='protect-plot')return protectPlot(f,c);if(['feed-cat-fish','walk-animals','visitor-care-setting'].includes(c.type))return livingCommand(f,c,now);
+ settleVitals(f,now);if((EXPANSION_COMMANDS as readonly string[]).includes(c.type))return applyExpansion(f,c);if(c.type==='protect-plot')return protectPlot(f,c);if(['feed-cat-fish','walk-animals','visitor-care-setting'].includes(c.type))return livingCommand(f,c,now);
  if(c.type==='pet-setting')return setPetMode(f.animals,c.id,c.mode);
  if(['buy-house-item','place-house-item','house-style'].includes(c.type))return applyHouseDesign(f,c);
  if(c.type==='fertilize')return applyFertilizer(f,c,now);

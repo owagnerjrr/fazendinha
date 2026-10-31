@@ -19,7 +19,7 @@ export class OutdoorAnimals{
   }
  }
  private rebuild(f:Farm){for(const i of this.items){i.image.destroy();i.shadow.destroy();i.icons.destroy();}this.items=[];livestockArt(this.scene);
-  for(const b of f.buildings??[]){if(!['coop','pasture'].includes(b.kind))continue;const box=outdoorBox(b),animals=f.animals.filter(a=>a.housing===b.id&&!a.walking&&!guestWalking(a)),access={x:box.x+box.width/2,y:box.y+box.height+20};
+  for(const b of (f.buildings??[]).filter(b=>(b.area??'farm')===(f.playerArea??'farm'))){if(!['coop','pasture'].includes(b.kind))continue;const box=outdoorBox(b),animals=f.animals.filter(a=>a.housing===b.id&&!a.walking&&!guestWalking(a)),access={x:box.x+box.width/2,y:box.y+box.height+20};
    animals.forEach((animal,index)=>{const size=ANIMAL_SIZE[animal.kind],p=livestockMotion(box,index,animals.length,size,0),image=this.scene.add.image(p.x,p.y,`life-${animal.kind}`).setOrigin(.5,1).setDisplaySize(size.width,size.height),shadow=this.scene.add.ellipse(p.x,p.y-2,size.width*.7,8,0x2b432c,.25),spot={x:box.x+15+(index%3)*27+(index>=3?8:0),y:box.y+28+(index>=3?3:0)};this.items.push({animal,image,shadow,icons:new AnimalIndicators(this.scene),box,index,count:animals.length,spot,access});});
   }
  }

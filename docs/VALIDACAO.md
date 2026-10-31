@@ -581,3 +581,9 @@ Sincronização da interface restaura data-tool, imagem, nome e acessibilidade d
 Escolhas individuais, cuidado e brinquedos no mundo, acompanhamento entre ambientes e novas vistas de gatos/cachorro. Escopo, dados preservados e limites em PETS_0_27.md.
 
 Validação autenticada no sandbox 873c41e: cachorro salvo no celeiro, replay idempotente sem nova entrega/débito, lotação recusada sem débito e estado preservado após novo login. Somente conta sintética QA0294 Compra foi preparada na branch de testes; nenhum saldo real alterado.
+
+## 0.32.0 — bolsa e campos do sul (em validação)
+- 252 testes automatizados passaram; build TypeScript/Vite passou.
+- Playwright local em 1280 e 390 px: estoque de defensivo, busca/categorias, plantio na expansão e compra/posicionamento de galinheiro.
+- Migração 013 aditiva adiciona área à presença, sem modificar bens ou saldos. Aplicada primeiro no banco isolado.
+- Pendentes nesta etapa: validação autenticada no sandbox, publicação e conferência final.

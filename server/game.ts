@@ -1,3 +1,4 @@
+import{applyExpansion}from'../src/expansion-rules.js';
 import{guestWalking,guestWalk,GUEST_CARE,publicAnimals}from'../src/guest-animal-care.js';
 import{applyLife}from'../src/life-rules.js';
 import{settleClimate}from'../src/climate.js';
@@ -50,7 +51,7 @@ export async function visit(id: string, code: string) {
 }
 function move(row: any, position: any, now: number) {
   if (!position || !Number.isFinite(position.x) || !Number.isFinite(position.y) || position.x<100 || position.x>1480 || position.y<180 || position.y>1090) throw new GameError('Posição inválida.');
-  if(!riverWalkable(position))throw new GameError('Não é possível caminhar sobre a água.');
+  if(row.state.playerArea!=='expansion'&&!riverWalkable(position))throw new GameError('Não é possível caminhar sobre a água.');
   const elapsed = Math.max(0,(now-new Date(row.position_at).getTime())/1000);
   if (Math.hypot(position.x-row.state.player.x,position.y-row.state.player.y)>elapsed*190+45) throw new GameError('Movimento rápido demais. Aguarde a sincronização.',409);
   row.state.player={x:position.x,y:position.y};
@@ -79,21 +80,21 @@ export async function mutate(user: string, body: any, version?: string|null) {
       row.name=row.state.playerName;await db.query('UPDATE farms SET name=$2 WHERE user_id=$1',[user,row.name]);row.result=result;
     }else if(c.type==='position') move(row,body.position,now);
     else if(['work','buy','sell','expand',...LIFE_COMMANDS].includes(c.type)) {
-      if(['fertilize','cast-line','reel-line','sell','till-ground'].includes(c.type))move(row,body.position,now);
-      if(c.type==='work'||c.type==='fertilize') {
+      if(['travel-area','prepare-expansion','cure-plant','fertilize','cast-line','reel-line','sell','till-ground'].includes(c.type))move(row,body.position,now);
+      if(c.type==='work'||c.type==='fertilize'||c.type==='cure-plant'||c.type==='prepare-expansion') {
         move(row,body.position,now);
         const point=plotPosition(c.plot,row.state);if(!point)throw new GameError('Canteiro inválido.');
-        const {x,y}=point;
+        if((c.plot>=1000?'expansion':'farm')!==(row.state.playerArea??'farm'))throw new GameError('Este canteiro está em outro cenário.');const {x,y}=point;
         if(Math.hypot(row.state.player.x-x,row.state.player.y-y)>70) throw new GameError('Aproxime-se do canteiro.');
       }
-      const result=applyCommand(row.state,c,now); if(!result.ok) throw new GameError(result.message);
+      if(row.state.playerArea==='expansion'&&['sell','list','cast-line','reel-line','till-ground'].includes(c.type))throw new GameError('Esta atividade fica na fazenda original.');const result=applyCommand(row.state,c,now); if(!result.ok) throw new GameError(result.message);
       row.result=result;
     } else {if(c.type==='list'){move(row,body.position,now);if(!atVendor(row.state.player))throw new GameError('Vá até a venda para anunciar produtos na feira.');}row.result=await social(db,user,row,c,now);}
     row.result??={ok:true,message:'Posição salva.'};
     // Older cached clients may play before seeing the new welcome flow. Preserve that farm too.
     if(c.type!=='position'&&c.type!=='initialize-profile'&&row.state.profileComplete===false)row.state.profileComplete=true;
     settleCoinDebt(row.state);
-    await db.query('UPDATE farms SET state=$2,revision=revision+1,last_action_at=CASE WHEN $4 THEN last_action_at ELSE now() END,position_at=CASE WHEN $3 THEN now() ELSE position_at END WHERE user_id=$1',[user,row.state,['position','work','fertilize','cast-line','reel-line','sell','list','till-ground'].includes(c.type),background]);
+    await db.query('UPDATE farms SET state=$2,revision=revision+1,last_action_at=CASE WHEN $4 THEN last_action_at ELSE now() END,position_at=CASE WHEN $3 THEN now() ELSE position_at END WHERE user_id=$1',[user,row.state,['position','work','travel-area','prepare-expansion','cure-plant','fertilize','cast-line','reel-line','sell','list','till-ground'].includes(c.type),background]);
     await db.query('INSERT INTO action_receipts(user_id,id,hash,result) VALUES($1,$2,$3,$4)',[user,body.id,hash,row.result]);
     await db.query('COMMIT');
     return {...row.result,farm:row.state,revision:row.revision+1,name:row.name,now};
@@ -127,15 +128,16 @@ async function social(db:PoolClient,user:string,row:any,c:any,now:number) {
  if(!(GUEST_CARE as readonly string[]).includes(c.mode))throw new GameError('Cuidado de visitante inválido.');
  if(c.mode==='walk-stop-all'){for(const a of target.state.animals)if(a.guestWalk?.code===row.public_code)delete a.guestWalk;await db.query('UPDATE farms SET state=$2,revision=revision+1 WHERE user_id=$1',[target.user_id,target.state]);return{ok:true,message:'Animais devolvidos ao dono.'};}
  if(c.mode==='walk-keepalive'){const live=await db.query("SELECT 1 FROM farm_presence WHERE user_id=$1 AND owner_id=$2 AND updated_at>now()-interval '12 seconds'",[user,target.user_id]);if(!live.rowCount)throw new GameError('A visita terminou.');for(const a of target.state.animals)if(a.guestWalk?.code===row.public_code&&guestWalking(a,now))a.guestWalk.until=now+45000;await db.query('UPDATE farms SET state=$2 WHERE user_id=$1',[target.user_id,target.state]);return{ok:true,message:'Passeio acompanhado.'};}
- const animal=target.state.animals.find((a:any)=>a.id===c.animal);if(!animal)throw new GameError('Animal não encontrado.');if(guestWalking(animal,now)&&animal.guestWalk!.code!==row.public_code)throw new GameError('Este animal passeia com outro visitante.');const building=target.state.buildings?.find((b:any)=>b.id===animal.housing),box=building?outdoorBox(building):null,spot=box?{x:box.x+box.width/2,y:box.y+box.height+20}:{x:1050,y:840};const nearby=await db.query("SELECT 1 FROM farm_presence WHERE user_id=$1 AND owner_id=$2 AND updated_at>now()-interval '12 seconds' AND sqrt(power(x-$3,2)+power(y-$4,2))<180",[user,target.user_id,spot.x,spot.y]);if(!nearby.rowCount){const live=await db.query("SELECT 1 FROM farm_presence WHERE user_id=$1 AND owner_id=$2 AND updated_at>now()-interval '12 seconds'",[user,target.user_id]);if(!live.rowCount||!(guestWalking(animal,now)&&animal.guestWalk!.code===row.public_code||animal.petMode==='farm'))throw new GameError('Aproxime-se do curral ou do animal que passeia com você.');}
+ const animal=target.state.animals.find((a:any)=>a.id===c.animal);if(!animal)throw new GameError('Animal não encontrado.');if(guestWalking(animal,now)&&animal.guestWalk!.code!==row.public_code)throw new GameError('Este animal passeia com outro visitante.');const building=target.state.buildings?.find((b:any)=>b.id===animal.housing),box=building?outdoorBox(building):null,spot=box?{x:box.x+box.width/2,y:box.y+box.height+20}:{x:1050,y:840};const nearby=await db.query("SELECT 1 FROM farm_presence WHERE user_id=$1 AND owner_id=$2 AND updated_at>now()-interval '12 seconds' AND area=$5 AND sqrt(power(x-$3,2)+power(y-$4,2))<180",[user,target.user_id,spot.x,spot.y,building?.area??'farm']);if(!nearby.rowCount){const live=await db.query("SELECT 1 FROM farm_presence WHERE user_id=$1 AND owner_id=$2 AND updated_at>now()-interval '12 seconds'",[user,target.user_id]);if(!live.rowCount||!(guestWalking(animal,now)&&animal.guestWalk!.code===row.public_code||animal.petMode==='farm'))throw new GameError('Aproxime-se do curral ou do animal que passeia com você.');}
  const host=structuredClone(target.state);settleVitals(host,now);host.feed=row.state.feed;host.fishing=structuredClone(row.state.fishing);host.supplies={...row.state.supplies};const result=c.mode==='walk-animal'?guestWalk(host,c.animal,row.public_code,c.enabled,now):applyLife(host,{type:c.mode,id:c.animal,fish:c.fish,quantity:c.quantity},now);if(!result.ok)throw new GameError(result.message);row.state.feed=host.feed;row.state.fishing=host.fishing;row.state.supplies=host.supplies;target.state.animals=host.animals;
  await db.query('UPDATE farms SET state=$2,revision=revision+1 WHERE user_id=$1',[target.user_id,target.state]);await db.query("INSERT INTO social_notifications(user_id,actor_id,kind) VALUES($1,$2,'visit_help')",[target.user_id,user]);return result;
  }
  if(c.type==='steal-animal')throw new GameError('Animais pertencem ao dono. Visitantes podem apenas cuidar.',403);
+    if(c.type==='help'&&c.mode==='hoe'&&c.plot>=1000&&!getPlot(target.state,c.plot)){const point=plotPosition(c.plot,target.state),prior=target.state.player,area=target.state.playerArea;if(!point)throw new GameError('Canteiro inválido.');target.state.player=point;target.state.playerArea='expansion';const r=applyExpansion(target.state,{type:'prepare-expansion',plot:c.plot});target.state.player=prior;target.state.playerArea=area;if(!r.ok)throw new GameError(r.message);getPlot(target.state,c.plot)!.tilled=false;}
     if(!Number.isInteger(c.plot)||c.plot<0||!plotUsable(target.state,c.plot)) throw new GameError('Canteiro inválido.');
     if(!plotUsable(target.state,c.plot))throw new GameError('Este espaço não está disponível para cultivo.');
     const spot=plotPosition(c.plot,target.state)!;
-    const nearby=await db.query("SELECT 1 FROM farm_presence WHERE user_id=$1 AND owner_id=$2 AND updated_at>now()-interval '12 seconds' AND sqrt(power(x-$3,2)+power(y-$4,2))<=80",[user,target.user_id,spot.x,spot.y]);
+    const nearby=await db.query("SELECT 1 FROM farm_presence WHERE user_id=$1 AND owner_id=$2 AND updated_at>now()-interval '12 seconds' AND area=$5 AND sqrt(power(x-$3,2)+power(y-$4,2))<=80",[user,target.user_id,spot.x,spot.y,c.plot>=1000?'expansion':'farm']);
     if(!nearby.rowCount)throw new GameError('Visite a fazenda e aproxime-se do canteiro.');
     const plot=getPlot(target.state,c.plot)!;
     const day=new Date(now).toISOString().slice(0,10);
