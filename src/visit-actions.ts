@@ -12,3 +12,9 @@ export function visitActions(p:Plot,crop:Crop,own:Pick<Farm,'seeds'|'socialRaids
   {type:'steal',mode:'',label:'Pegar 1 produto',enabled:ready&&own.socialRaids&&host.socialRaids&&!host.protected&&!p.stolen&&!needs.sick&&!needs.dry&&!hasPests(p,now),reason:!own.socialRaids||!host.socialRaids?'Os dois amigos precisam ativar o roubo em Minha fazenda.':host.protected?'Esta fazenda está protegida.':p.stolen?'Esta colheita já foi beliscada.':!ready?'Espere a plantação amadurecer.':'A plantação precisa de cuidados.'},
  ];
 }
+
+/** Direct tool interaction uses the same permissions as the former action menu. */
+export function visitToolAction(p:Plot,crop:Crop,own:Pick<Farm,'seeds'|'socialRaids'>,host:{socialRaids:boolean;protected:boolean},now:number,tool:import('./farm.js').Tool):VisitAction|undefined{
+ const mode=tool==='hoe'?'hoe':tool==='seed'?'plant':tool==='water'?'water':tool==='hand'?(hasPests(p,now)?'clean':''):undefined;
+ return mode===undefined?undefined:visitActions(p,crop,own,host,now).find(a=>a.mode===mode);
+}

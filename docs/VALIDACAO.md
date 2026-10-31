@@ -1,3 +1,7 @@
+## 0.28.1 — visitas com ferramentas
+
+Ações diretamente no cenário, sem painel de canteiro. [Implementação e testes](VISITAS_0_28_1.md).
+
 ## 0.28.0 — passos, música e relógio
 
 Implementação e evidências em [UPGRADE_0_28.md](UPGRADE_0_28.md). Vendas por item, trilha original, iluminação contínua e sono com horário. Dados existentes preservados; sem alteração em pagamentos.
