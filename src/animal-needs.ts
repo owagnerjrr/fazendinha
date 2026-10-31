@@ -1,6 +1,7 @@
+import{CARE_REFILL_AT}from'./animal-defaults.js';
 import{vitalAt}from'./living-animals.js';
 import type {Animal} from './content.js';
-export const ANIMAL_CARE={foodMs:172800000,waterMs:172800000,cleanMs:345600000,illnessNeglectMs:259200000,illnessDirtMs:518400000,refillAt:40} as const;
+export const ANIMAL_CARE={foodMs:172800000,waterMs:172800000,cleanMs:345600000,illnessNeglectMs:259200000,illnessDirtMs:518400000,refillAt:CARE_REFILL_AT} as const;
 const pct=(at:number|null|undefined,now:number,duration:number)=>at==null?0:Math.max(0,Math.min(100,100*(1-Math.max(0,now-at)/duration)));
 export function animalNeeds(a:Animal,now:number){
  const v=vitalAt(a,now);if(v)return{food:Math.round(v.food),water:Math.round(v.water),clean:Math.round(v.clean),energy:Math.round(v.energy),happy:Math.round(v.happy),illnessAt:a.care?.illnessAt??(v.neglect>=3600000?now:null),sick:a.care?.illnessAt!=null||v.neglect>=3600000,health:a.care?.illnessAt!=null||v.neglect>=3600000?35:Math.round(55+(v.food+v.water+v.clean)*.15)};

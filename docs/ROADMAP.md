@@ -1,3 +1,7 @@
+## 0.39 — criações integradas aos cuidados e guarda-roupa
+
+Animais publicados usam comandos e estoques comuns, aparecem em Meus animais e nos alertas de cuidados. Passeios coletivos incluem espécies compatíveis. Roupas criadas integram o guarda-roupa e trocam corretamente com as originais. 312 testes e build passaram. Sandbox autenticado em PC/celular validou presentes, nome/cuidados, estoques, animações reais, roupas, persistência e acompanhamento casa/celeiro/fazenda. Permanecem os limites de mecânicas inéditas, produção/reprodução dinâmica e cuidados de espécies criadas nas visitas.
+
 ## Runtime administrativo — em validação no sandbox
 
 Implementados catálogo consumido pelo jogo, animais novos separados dos registros antigos, prévia isolada, editor de terrenos, cenários com cultivo/colisão/portas/pesca, compras por transação existente, cosméticos/modelos no renderizador original, biblioteca PNG/WAV versionada, concessões idempotentes e configurações por público. 288 testes passaram. Validação autenticada e visual publicada em andamento; não declarar os exemplos completos concluídos antes dela. Nenhuma mudança aplicada ao banco de produção nesta etapa.
