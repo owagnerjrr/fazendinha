@@ -4,7 +4,7 @@ Cada baia suporta cinco animais de qualquer espécie; total de 40 vagas no celei
 
 Todos os animais recebem texto FOME, SEDE, DOENTE, LIMPEZA ou DESCANSO quando aplicável. Doença tem prioridade; necessidades simultâneas alternam o aviso. Cuidados completos duram aproximadamente 90min para comida, 75min para água, 120min para limpeza, 90min de energia de passeio/felicidade, com variações por espécie. Avisos abaixo de 30%. Novos animais começam com 70% de reserva; os estados já salvos não são preenchidos nem apagados. Offline limitado a 2min por retorno. Não há punição extra por sono.
 
-235 testes e build aprovados. Navegador 1280/390px: escolha na compra e transferência de cachorro, 40 animais misturados desenhados nas baias, recusa de sexto sem débito, avisos, carinho no cachorro e peixe ao gato com portões abertos e retorno, recuperação após recarregar. Script: scripts/qa-barn-pens030.mjs. Validação autenticada isolada antes da publicação.
+235 testes e build aprovados. Navegador 1280/390px: escolha na compra e transferência de cachorro, 40 animais misturados desenhados nas baias, recusa de sexto sem débito, avisos, carinho no cachorro e peixe ao gato com portões abertos e retorno, recuperação após recarregar. Script: scripts/qa-barn-pens030.mjs. Sandbox 36a9ece validado: distribuição aditiva de 12 animais antigos preservou IDs, nomes, saldo, produto pendente e doença; compra na baia selecionada, transferência, disputa da última vaga com um único débito, recusa por baia inválida/cheia, 40 animais após novo login e bloqueio do cliente antigo.
 
 ## 0.29.4 — compra de cachorro e confirmação
 
