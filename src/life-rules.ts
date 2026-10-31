@@ -1,3 +1,4 @@
+import {setPetMode} from './pet-rules.js';
 import {applyHouseDesign} from './home-design.js';
 import {applyFertilizer} from './fertilizer.js';
 import {applyWardrobe} from './wardrobe.js';
@@ -9,8 +10,9 @@ import {applyHome} from './world-time.js';
 import { ANIMALS, DECOR, DECOR_SLOTS, animalReady, animalHydrated, validAvatar, type AnimalKind, type DecorationKind } from './content.js';
 import { LAND_PRICE, ORIGINAL_PLOTS, EXTRA_PLOTS, LAND_SITES, BUILDINGS, parcels, buildProblem, type LandSite, type BuildingKind } from './plots.js';
 import type { Farm } from './farm.js';
-export const LIFE_COMMANDS=['buy-house-item','place-house-item','house-style','fertilize','buy-outfit','equip-outfit','till-ground',...FISHING_COMMANDS,...HUSBANDRY_COMMANDS,'home','avatar','buy-land','build-land','buy-animal','buy-feed','feed-animal','water-animal','pet-animal','play-animal','rename-animal','start-incubation','hatch-chick','mature-chick','collect-animal','buy-decor','move-decor','raids-setting','animal-raids-setting'] as const;
+export const LIFE_COMMANDS=['pet-setting','buy-house-item','place-house-item','house-style','fertilize','buy-outfit','equip-outfit','till-ground',...FISHING_COMMANDS,...HUSBANDRY_COMMANDS,'home','avatar','buy-land','build-land','buy-animal','buy-feed','feed-animal','water-animal','pet-animal','play-animal','rename-animal','start-incubation','hatch-chick','mature-chick','collect-animal','buy-decor','move-decor','raids-setting','animal-raids-setting'] as const;
 export function applyLife(f:Farm,c:any,now:number):{ok:boolean;message:string;caught?:import('./fishing.js').Fish} {
+ if(c.type==='pet-setting')return setPetMode(f.animals,c.id,c.mode);
  if(['buy-house-item','place-house-item','house-style'].includes(c.type))return applyHouseDesign(f,c);
  if(c.type==='fertilize')return applyFertilizer(f,c,now);
  if(c.type==='buy-outfit'||c.type==='equip-outfit')return applyWardrobe(f,c);
@@ -66,7 +68,6 @@ export function applyLife(f:Farm,c:any,now:number):{ok:boolean;message:string;ca
   if(c.type==='rename-animal'){if(typeof c.name!=='string')return fail('Informe um nome válido.');const name=c.name.trim().replace(/\s+/g,' ');if(name.length<1||name.length>24||/[<>\u0000-\u001f\u007f]/.test(name))return fail('Use um nome de 1 a 24 caracteres, sem símbolos de controle.');a.name=name;return {ok:true,message:`Nome salvo: ${name}.`};}
   if(c.type==='water-animal'){if(a.wateredAt!==undefined&&a.wateredAt!==null&&now>=a.wateredAt&&now-a.wateredAt<86400000)return fail('Este animal já tem água por 24 horas.');a.wateredAt=now;return {ok:true,message:'Água fresca disponível por 24 horas!'};}
   if(c.type==='pet-animal'||c.type==='play-animal'){
-   if(c.type==='play-animal'&&a.kind!=='dog')return fail('Este animal prefere carinho tranquilo.');
    a.pettedAt=now;if(c.type==='play-animal')a.playedAt=now;
    return {ok:true,message:''};
   }
