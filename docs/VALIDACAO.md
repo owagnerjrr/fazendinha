@@ -6,6 +6,8 @@ Visitantes autorizados podem alimentar, dar água, limpar, medicar, brincar, aca
 
 242 testes e build aprovados. Navegador 1280/390px: seleção dos 5 animais por teclado/toque, felicidade cheia, cuidados completos no celeiro com estoque do visitante, acompanhamento real/brincadeira na fazenda e devolução sem mudar proprietário/baia. Regressão da assinatura estável do celeiro impede reiniciar a cena por renovação do passeio. Roteiro scripts/qa-friend-care031.mjs; sandbox autenticado validou permissões, estoque do visitante, felicidade completa, renovação, passeio/brincadeira fora do celeiro, devolução, revogação e retomada pelo dono. Interface publicada de testes confirmou portão, seleção entre 5 e passeio salvo. Resposta pública normaliza passeios expirados no relógio do servidor. Nenhuma migração de tabela nem teste destrutivo em produção.
 
+Também verificado: produto pronto no curral externo abre cuidados para o visitante, sem permitir coleta; passeio expirado omitido da resposta pública após correção no sandbox (antes vinha marcado, depois voltou à baia). O dono controla a opção Permitir cuidados e passeios por amigos.
+
 ## 0.30.0 — oito baias e cuidados equilibrados
 
 Cada baia suporta cinco animais de qualquer espécie; total de 40 vagas no celeiro. Compra e transferência permitem escolher a baia, com contagem individual e validação no servidor. Ovos em incubação reservam vaga na baia da mãe. Redistribuição aditiva dos animais antigos sem baia; IDs, saldos, nomes, produção, cuidados e configurações de acompanhamento são preservados. Protocolo 14 impede que clientes antigos sobrescrevam a nova distribuição.
