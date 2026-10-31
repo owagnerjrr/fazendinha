@@ -362,3 +362,7 @@ Visitas autenticadas e sujeitas à amizade, bloqueios e público de publicação
 ## 0.38 — criação por modelos e publicação guiada
 
 Galeria com 12 bases funcionais, busca/filtro, campos básicos primeiro, ajustes técnicos opcionais, prévia isolada e salvamento direto para escolha de público. Jogadores/grupos selecionados pelo nome, revisão dos destinatários antes de publicar e auditoria preservada. Mecânicas e limites do executor permanecem os mesmos.
+
+## 0.40.2 — organização de amigos e venda
+
+Cartões de amigos separam identificação e ações em linhas próprias, com botões alinhados e opções recolhidas. Animais criados usam a mesma linha e imagem da venda, sem subtítulo de origem. Sem mudança em permissões, preços ou dados. 317 testes e build passaram. Sandbox autenticado 1280/390/320px confirmou identificação acima das ações, grade de botões com larguras/alturas alinhadas, opções disponíveis e conversa abrindo. Coelho com imagem real e estilo do botão igual ao nativo, inserido antes da ração, sem subtítulo; confirmação de compra conferida e cancelada. Sem sobreposição, rolagem horizontal ou erros JS. Nenhuma alteração em contas reais.
