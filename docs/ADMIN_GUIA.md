@@ -117,3 +117,7 @@ Toque/clique no animal criado para abrir seu painel; o comando E/Usar com a mão
 ## 0.40.1 — painel dos animais criados
 
 Cuidados usam o mesmo cartão compacto dos animais originais: retrato extraído do sprite real, nome, indicadores e ações. Nome e local ficam em Mais opções. O nome não aparece sobre o animal no cenário; avisos de fome, sede e doença continuam visíveis quando necessários. Sem migração ou alteração dos dados dos animais.
+
+## 0.41 — animais criados nas visitas
+
+A visita à fazenda, celeiro principal e campos do sul inclui animais criados e recebidos, com identidade/aparência e necessidades reais. Animais também aparecem no painel Saúde e na lista Animais. A projeção de visita não compartilha saldo, inventário, catálogo de compra, cenários privados ou notas do cadastro; recursos gráficos têm autorização pela amizade e referências da projeção. Não há nova concessão nem migração. Cuidados básicos usam recursos do visitante, quando o dono permite e existe visita ativa na área correta. Visitantes não alteram nome, local ou propriedade. Passeios de espécies criadas com visitantes e entrada na casa do amigo permanecem fora desta alteração; acompanhantes do dono usam sua última área externa salva, sem seguir o visitante. Validação isolada em andamento.

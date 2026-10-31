@@ -1,3 +1,4 @@
+import{publicCreatedAnimals}from'../src/created-visit.js';
 import type{PoolClient}from'pg';
 import{pool}from'./db.js';
 import{identity}from'./auth.js';
@@ -59,4 +60,4 @@ export async function mutateStudioVisit(db:PoolClient,user:string,visitor:Farm,c
  await savePresence(db,user,ctx.host.user_id,p);return{ok:true,message,studioVisit:p};
 }
 
-export async function visitAsset(request:Request){const user=await identity(request),url=new URL(request.url),db=await pool.connect();try{const ctx=await context(db,user.id,url.searchParams.get('visit')),scene=url.searchParams.get('scene');check(uuid(scene),'Cenário inválido.');const entries=sharedEntries(ctx.host.state,ctx.ownCatalog,ctx.visitorEntries,scene),asset=url.searchParams.get('asset'),version=Number(url.searchParams.get('version'));check(uuid(asset)&&assetReferences(entries).some(r=>r.id===asset&&r.version===version),'Recurso não disponível para esta visita.');const row=(await db.query('SELECT mime,bytes FROM studio_asset_versions WHERE asset_id=$1 AND version=$2',[asset,version])).rows[0];check(row,'Recurso não encontrado.');return{mime:row.mime,data:row.bytes.toString('base64')};}finally{db.release();}}
+export async function visitAsset(request:Request){const user=await identity(request),url=new URL(request.url),db=await pool.connect();try{const ctx=await context(db,user.id,url.searchParams.get('visit')),scene=url.searchParams.get('scene');check(url.searchParams.get('nativeAnimals')==='1'||uuid(scene),'Cenário inválido.');const entries=url.searchParams.get('nativeAnimals')==='1'?publicCreatedAnimals(ctx.host.state,Date.now()).owned:sharedEntries(ctx.host.state,ctx.ownCatalog,ctx.visitorEntries,scene!),asset=url.searchParams.get('asset'),version=Number(url.searchParams.get('version'));check(uuid(asset)&&assetReferences(entries).some(r=>r.id===asset&&r.version===version),'Recurso não disponível para esta visita.');const row=(await db.query('SELECT mime,bytes FROM studio_asset_versions WHERE asset_id=$1 AND version=$2',[asset,version])).rows[0];check(row,'Recurso não encontrado.');return{mime:row.mime,data:row.bytes.toString('base64')};}finally{db.release();}}
