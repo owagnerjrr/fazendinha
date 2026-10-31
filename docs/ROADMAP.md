@@ -1,3 +1,9 @@
+## 0.29.4 — compra de cachorro e confirmação
+
+Vídeo recebido mostra celeiro cheio e saldo inalterado de 3.617 moedas; a capacidade continua 12 incluindo incubação. Vagas e impedimento agora ficam junto à compra. Confirmação Compra feita! por toast e no cartão somente após retorno bem-sucedido. Layout dos animais legível no celular. Nova compra de cachorro respeita destino Celeiro, sem alterar cães existentes (configuração anterior preservada).
+
+Corrigido clique descartado após recuperar posição pendente; recibo recuperado da mesma compra confirma a entrega existente sem repetir débito. Outra ação pendente exige conferência explícita. 229 testes e build aprovados. Navegador em 1280/390px: lotação sem débito, vaga disponível, clique duplo com entrega única, mensagem, cachorro renderizado no celeiro e compra mantida ao recarregar. Regressões em tests/dog-purchase.test.ts e scripts/qa-dog-purchase-0294.mjs.
+
 ## 0.29.3 — entrada por comando, sem círculos
 
 Aproximar-se das portas mostra Entrar; é necessário apertar o botão ou E para abrir casa, celeiro e venda. Chegar por caminhada ou por destino clicado não abre automaticamente. Mantida a ausência de círculos. Celeiro visitado usa o mesmo botão/ação próxima. 225 testes e build aprovados. Teclado (1280px) e joystick/botão (390px) testados nas três portas, aguardando antes de entrar e após sair/fechar a venda. Regressão em scripts/qa-manual-entry-0293.mjs substitui o roteiro anterior de entrada automática. Sem alteração de banco/economia.
