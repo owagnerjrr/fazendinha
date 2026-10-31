@@ -1,4 +1,4 @@
-import{createdCare}from'./created-animal-rules';
+import{createdCare}from'./created-animal-rules.js';
 import{VITAL_MINUTES}from'./animal-defaults.js';export{VITAL_MINUTES}from'./animal-defaults.js';
 import{guestWalking}from'./guest-animal-care.js';
 import{ANIMALS}from'./content.js';import{productionAt,animalNeeds}from'./animal-needs.js';
