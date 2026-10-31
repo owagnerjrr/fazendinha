@@ -32,10 +32,14 @@ Compra do cachorro: motivos de indisponibilidade (nível, saldo, lotação) são
 
 Visitas ao celeiro, galinheiro e pasto usam animais reais da instalação, nomes e pelagens salvos. Cuidados requerem amizade, proximidade e autorização explícita do dono. Recursos, incluindo peixes para gatos, saem do visitante, informado antes do clique. Transação serializada impede consumo concorrente duplicado. Produtos e controles de propriedade são exclusivos do dono. A antiga ação de levar animais foi desativada, conforme o novo requisito; nenhum animal é removido retroativamente.
 
-## Validação em andamento
+## Validação
 
-222 testes automatizados e build aprovados. Navegador 1280px e toque emulado 390px: seis climas, plantas completas, áudio independente, peixe consumido uma vez, compra do cachorro (sucesso/repetição/nível/saldo), portas com acompanhantes, passeio/retorno, alimentação de gato nos interiores e cuidados no celeiro visitado. Grupo de 12 testado com noite/tempestade, persistência após recarregar e compartilhamento/cópia de convite; p95 de intervalos RAF próximo de 8,5ms no ambiente de teste (não é garantia de FPS em hardware real).
+223 testes automatizados e build aprovados. Navegador 1280px e toque emulado 390px: seis climas, plantas completas, áudio independente, peixe consumido uma vez, compra do cachorro (sucesso/repetição/nível/saldo), portas com acompanhantes, passeio/retorno, alimentação de gato nos interiores e cuidados no celeiro visitado. Grupo de 12 testado com noite/tempestade, persistência após recarregar e compartilhamento/cópia de convite; p95 de intervalos RAF próximo de 8,5ms no ambiente de teste (não é garantia de FPS em hardware real).
 
-Ainda falta registrar a validação autenticada remota e a publicação. Aparelho móvel físico, audição em alto-falantes reais e prévias/cache de cada aplicativo de mensagem não foram verificados; não se afirma equivalência com esses ambientes.
+Aparelho móvel físico, audição em alto-falantes reais e prévias/cache de cada aplicativo de mensagem não foram verificados; não se afirma equivalência com esses ambientes.
 
 Em sandbox autenticado: compra de cachorro com recibo repetido e lotação, consumo único de peixe, alimentação concorrente por dois visitantes (uma ração), autorização do dono, proibição de renomear/levar animal e persistência após login. Cadastro por e-mail iniciado pelo convite conservou a indicação e permitiu enviar amizade. Consulta agregada somente de leitura em produção: três recibos bem-sucedidos de cachorro, três contas com cachorro salvo; nenhuma reparação financeira foi necessária.
+
+Candidata c09daa1 publicada e verificada no projeto isolado fazendinha-wj-mp-test (dpl_5cZTbninLvrJfrWWxe9Wz9VrtSmE). Testes autenticados adicionais: chuva persistida e checkpoints sem repetição, proteção gratuita, peixe de visitante sem tocar estoque do dono e recibo repetido, bloqueio após revogar permissão, 12 passeios salvos após login e retorno, sono de oito horas com horário/data do servidor e processamento apenas do tempo real. Entrada no celeiro pela interface móvel publicada foi confirmada. A aprovação/publicação de produção segue pelo PR #12 para manter main alinhada.
+
+Reprodução local: npm test, npm run build e scripts/qa-living-{valley,interiors,group,rest}.mjs com Vite ativo. PLAYWRIGHT_MODULE, CHROME_PATH e QA_BASE permitem usar uma instalação externa de Playwright sem adicionar dependências ao jogo. Os roteamentos e fixtures dos scripts atuam somente no navegador de QA; nenhum dado real é usado.
