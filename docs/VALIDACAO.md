@@ -581,3 +581,27 @@ Sincronização da interface restaura data-tool, imagem, nome e acessibilidade d
 Escolhas individuais, cuidado e brinquedos no mundo, acompanhamento entre ambientes e novas vistas de gatos/cachorro. Escopo, dados preservados e limites em PETS_0_27.md.
 
 Validação autenticada no sandbox 873c41e: cachorro salvo no celeiro, replay idempotente sem nova entrega/débito, lotação recusada sem débito e estado preservado após novo login. Somente conta sintética QA0294 Compra foi preparada na branch de testes; nenhum saldo real alterado.
+
+## 0.32.0 — bolsa e campos do sul (em validação)
+- 252 testes automatizados passaram; build TypeScript/Vite passou.
+- Playwright local em 1280 e 390 px: estoque de defensivo, busca/categorias, plantio na expansão e compra/posicionamento de galinheiro.
+- Migração 013 aditiva adiciona área à presença, sem modificar bens ou saldos. Aplicada primeiro no banco isolado.
+- Pendentes nesta etapa: validação autenticada no sandbox, publicação e conferência final.
+## 0.32.0 — campos do sul e bolsa
+
+Implementado e validado:
+- Defensivo orgânico já registrado em `supplies.plantMedicine` aparece na bolsa com ícone, descrição e quantidade real. Seleção de cultura doente/hidratada, efeito visual, consumo de uma dose somente após sucesso e recusa de repetição/incompatibilidade.
+- Bolsa com Todos, categorias não vazias, busca, ferramentas equipadas, sementes, colheitas, peixes, rações, cuidados, estruturas, decoração e roupas. Venda numérica e Vender tudo por item preservam estoque dos demais produtos e regras da venda. Recuperação da antiga feira mantida.
+- Passagem manual pela saída sul, retorno pela entrada norte, cenário original com caminhos reservados e campos vinculados aos terrenos comprados. Cada parcela antiga libera 45 posições cultiváveis adicionais sem nova cobrança; os 12 espaços antigos e suas plantas continuam onde estavam.
+- Compra de estruturas para a bolsa; prévia válida/inválida, rotação, confirmação/cancelamento e reposicionamento. Sobreposição, culturas, caminhos e posição do personagem são verificados; mover preserva identificador, animais e estado.
+- Cultivo, rega, colheita, defensivos, instalações de aves/bovinos/caprinos, transferência de animais, alimentação, água, carinho, acompanhantes e visitas usam os sistemas existentes. Cuidados de visitantes continuam sujeitos à permissão e usam os recursos do visitante.
+- Posição e cenário são persistidos. Presença separada por área evita misturar visitantes. Cliente antigo não pode sobrescrever dados da expansão.
+
+Verificações:
+- `npm test`: 253 testes passaram (11 regressões novas). `npm run build`: passou.
+- Playwright local em 1280 e 390 px com toque: tratamento e consumo, busca, venda parcial/tudo, plantio, compra/instalação, carinho animado na instalação, retorno, reabertura com mesmos bens, visita à expansão e instalação do amigo, alimentação pelo visitante e retorno. Gato e cachorro acompanhando também foram conferidos nos dois tamanhos.
+- Sandbox autenticado: compra de terrenos e defensivo, estoque persistente, cultivo, compra/rotação/reposicionamento, animal entregue uma vez com replay da mesma requisição, ajuda de visitante, ração debitada do visitante, cura com uma dose, replay sem novo consumo, recusa de ação em outro cenário, sobreposição com personagem e cliente desatualizado. Revogar cuidados impede alimentação sem gastar recursos.
+- Migração 013 aplicada primeiro na branch de testes e depois em produção: somente coluna `area` com padrão `farm` em `farm_presence`. Nenhum saldo, inventário, animal, plantação ou conta foi substituído.
+- Corrigidos durante execução: aproximação de instalações incompatível com arredondamento do caminho; referências visuais e comandos antigos ao encerrar/reabrir cenas; inicialização de cuidados para cliente 15.
+
+Limites: celular validado por emulação de viewport/toque no Edge, sem aparelho físico. Não foram criados pagamentos, cobranças ou reembolsos reais. Compras e cuidados autenticados foram testados em contas sintéticas no sandbox; produção recebe conferência pública sem alterar bens reais. As imagens da expansão usam a conta sintética de homologação.

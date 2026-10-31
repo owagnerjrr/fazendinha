@@ -309,3 +309,11 @@ Nome, identidade definitiva e monetização continuam em aberto. Não há compro
 - 0.27.0: modos individuais para pets, casa/celeiro/exterior, acompanhamento, animações com brinquedos e arte direcional.
 
 Validação autenticada no sandbox 873c41e: cachorro salvo no celeiro, replay idempotente sem nova entrega/débito, lotação recusada sem débito e estado preservado após novo login. Somente conta sintética QA0294 Compra foi preparada na branch de testes; nenhum saldo real alterado.
+
+## 0.32 — Campos do sul e bolsa
+- Bolsa por categoria e busca, estoque de defensivos existente, venda por item.
+- Expansão ao sul reconhece terrenos antigos; construção com prévia, rotação e reposicionamento preserva identificadores.
+- Plantio e instalações funcionais, acompanhantes e visitas com presença separada por cenário.
+- Validação autenticada e publicação em andamento.
+
+Validação 0.32: 253 testes e build passaram. Fluxos locais desktop/celular e autenticados no sandbox concluídos; publicação final e verificação pública registradas no relatório de entrega.

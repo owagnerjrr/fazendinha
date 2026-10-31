@@ -1,3 +1,4 @@
+import{buildingSite,buildingSize}from'./expansion-rules.js';
 import{availablePen,penCount,validPen,BARN_CAPACITY}from'./barn-slots.js';
 import {BUILDINGS,LAND_SITES,type LandBuilding} from './plots.js';import type {Farm} from './farm.js';import type {Animal,AnimalKind} from './content.js';
 export function habitatCapacity(b:LandBuilding){return b.kind==='coop'?6:b.kind==='pasture'?2:0;}
@@ -10,5 +11,5 @@ export function housingProblem(f:Farm,kind:AnimalKind,house:unknown,except?:stri
  if(house==='barn'){if(pen!==undefined&&!validPen(pen))return 'Escolha uma baia de 1 a 8.';const chosen=pen===undefined?availablePen(f.animals,except,slots):pen as number;if(chosen===undefined)return 'Todas as oito baias estão cheias (5 vagas por baia).';if(penCount(f.animals,chosen,except)+slots>5)return 'Esta baia está cheia: suporta 5 animais, incluindo ovos em incubação. Escolha outra baia.';}
  return housingCount(f,house,except)+slots>cap?'A instalação está cheia, contando os ovos em incubação.':null;
 }
-export function housingName(f:Farm,a:Animal){const b=f.buildings?.find(b=>b.id===a.housing);return b?`${BUILDINGS[b.kind].name} · ${LAND_SITES[b.site].name}`:'Celeiro'+(a.pen!==undefined?' · Baia '+(a.pen+1):'');}
-export function outdoorBox(b:LandBuilding){const s=LAND_SITES[b.site],spec=BUILDINGS[b.kind];return{x:s.x+b.col*40-18,y:s.y+b.row*40-18,width:spec.width*40-4,height:spec.height*40-4};}
+export function housingName(f:Farm,a:Animal){const b=f.buildings?.find(b=>b.id===a.housing);return b?`${BUILDINGS[b.kind].name} · ${b.area==='expansion'?'Campos do sul · ':''}${LAND_SITES[b.site].name}`:'Celeiro'+(a.pen!==undefined?' · Baia '+(a.pen+1):'');}
+export function outdoorBox(b:LandBuilding){const s=buildingSite(b)??LAND_SITES[b.site],spec=buildingSize(b);return{x:s.x+b.col*40-18,y:s.y+b.row*40-18,width:spec.width*40-4,height:spec.height*40-4};}

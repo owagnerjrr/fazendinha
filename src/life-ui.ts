@@ -15,7 +15,7 @@ import {BUILDINGS} from './plots';
 import { ANIMALS, DECOR,    SHIRT_COLORS, animalReady, animalHydrated, dogProtects, type Avatar, type AnimalKind } from './content';
 import {landShop} from './land-ui';
 import { CROPS, type Crop, type Farm, type Tool } from './farm';
-type Services={fish?:(id:string,fish:string)=>Promise<void>;atShop:()=>boolean;goShop:(tab:string)=>void;tendPlot:(id:number,tool:Tool)=>void;farm:()=>Farm;online:()=>boolean;now:()=>number;open:(title:string,html:string,kind?:'shop'|'other')=>void;close:()=>void;command:(c:any)=>Promise<{message?:string}>;enter:(room:'house'|'barn')=>void;equip:(tool:Tool)=>void;bond:(id:string,type:'pet-animal'|'play-animal')=>Promise<void>;preview:(avatar:Avatar)=>string;toast:(s:string)=>void};
+type Services={treatPlant?:(id:number)=>void;fish?:(id:string,fish:string)=>Promise<void>;atShop:()=>boolean;goShop:(tab:string)=>void;tendPlot:(id:number,tool:Tool)=>void;farm:()=>Farm;online:()=>boolean;now:()=>number;open:(title:string,html:string,kind?:'shop'|'other')=>void;close:()=>void;command:(c:any)=>Promise<{message?:string}>;enter:(room:'house'|'barn')=>void;equip:(tool:Tool)=>void;bond:(id:string,type:'pet-animal'|'play-animal')=>Promise<void>;preview:(avatar:Avatar)=>string;toast:(s:string)=>void};
 const $=<T extends HTMLElement=HTMLElement>(id:string)=>document.getElementById(id) as T;
 const esc=(s:string)=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
 const animalImage=(kind:AnimalKind,color='black')=>kind==='cat'?`/assets/v27/cat-${color}-right.png`:kind==='dog'?'/assets/v27/dog-stand-right.png':['chick','rooster'].includes(kind)?`/assets/v8/${kind}.png`:`/assets/v5/${kind}.png`;
