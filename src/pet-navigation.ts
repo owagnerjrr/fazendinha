@@ -5,3 +5,5 @@ export function petGoal(from:Point,player:Point,index:number,blocks:Obstacle[],b
 export function movePet(p:Point,route:Point[],speed:number,delta:number,blocked:(p:Point)=>boolean){let remaining=speed*Math.min(60,Math.max(0,delta))/1000,moved=0,dx=0,dy=0;while(route.length&&remaining>0){const q=route[0],x=q.x-p.x,y=q.y-p.y,d=Math.hypot(x,y);if(d<.5){route.shift();continue;}const step=Math.min(d,remaining),next={x:p.x+x/d*step,y:p.y+y/d*step};if(blocked(next)){route.length=0;break;}p.x=next.x;p.y=next.y;dx=x;dy=y;moved+=step;remaining-=step;if(step===d)route.shift();}return{moved,dx,dy};}
 
 export const petTouchReady=(pet:Point,player:Point)=>Math.abs(pet.y-player.y)<=9&&Math.abs(pet.x-player.x)>=22&&Math.hypot(pet.x-player.x,pet.y-player.y)<40;
+
+export const petFollowSpeed=(kind:string,distance:number)=>Math.min(kind==='dog'?205:190,Math.max(kind==='dog'?105:79,distance*1.85));
