@@ -13,6 +13,7 @@ export function expansionProblem(f:Farm,kind:BuildingKind,site:LandSite,col:numb
  if(!Object.hasOwn(BUILDINGS,kind)||!Object.hasOwn(EXPANSION_SITES,site)||!parcels(f).some(p=>p.site===site))return 'Este campo precisa de um terreno adquirido.';
  if(!Number.isInteger(col)||!Number.isInteger(row)||![0,1].includes(rotation))return 'Escolha uma posição e orientação válidas.';
  const size=buildingSize({kind,rotation});if(col<0||row<0||col+size.width>10||row+size.height>5)return 'A construção deve ficar inteira no campo liberado.';
+ const origin=EXPANSION_SITES[site];if(f.playerArea==='expansion'&&f.player.x>origin.x+col*40-32&&f.player.x<origin.x+(col+size.width)*40-8&&f.player.y>origin.y+row*40-25&&f.player.y<origin.y+(row+size.height)*40+1)return 'Afaste o personagem da área antes de construir.';
  for(let y=row;y<row+size.height;y++)for(let x=col;x<col+size.width;x++){
   if(x===5)return 'Mantenha o caminho central livre.';
   if(f.expansionPlots?.some(p=>p.id===expansionId(site,x,y)&&p.crop))return 'Colha as plantas antes de ocupar este espaço.';

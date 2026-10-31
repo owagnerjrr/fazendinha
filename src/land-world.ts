@@ -19,7 +19,7 @@ export class LandWorld{
  return true;}
  hints(player:{x:number;y:number},enabled:boolean){let closest:typeof this.labels[number]|undefined,best=125;for(const l of this.labels){l.outline.setVisible(l.owned);const distance=Math.hypot(player.x-l.x,player.y-l.y);if(enabled&&distance<best){best=distance;closest=l;}}if(closest){closest.outline.setVisible(true);}}
  buildingAt(f:Farm,p:{x:number;y:number}){return f.buildings?.find(b=>{if((b.area??'farm')!==this.area)return false;if(['coop','pasture'].includes(b.kind)){const q=outdoorBox(b);return p.x>q.x&&p.x<q.x+q.width&&p.y>q.y-30&&p.y<q.y+q.height;}const s=(buildingSite(b)??LAND_SITES[b.site]),x=s.x+b.col*40+20,y=s.y+b.row*40+58;return Math.abs(p.x-x)<42&&p.y<y+8&&p.y>y-94;});}
- access(b:NonNullable<Farm['buildings']>[number]){if(['coop','pasture'].includes(b.kind)){const q=outdoorBox(b);return{x:q.x+q.width/2,y:q.y+q.height+20};}const s=(buildingSite(b)??LAND_SITES[b.site]);return{x:s.x+b.col*40+20,y:s.y+b.row*40+85};}
+ access(b:NonNullable<Farm['buildings']>[number]){if(['coop','pasture'].includes(b.kind)){const q=outdoorBox(b);return{x:q.x+q.width/2,y:q.y+q.height+36};}const s=(buildingSite(b)??LAND_SITES[b.site]);return{x:s.x+b.col*40+20,y:s.y+b.row*40+85};}
  private habitat(b:NonNullable<Farm['buildings']>[number]){const q=outdoorBox(b),{x,y,width:w,height:h}=q;
  const g=this.scene.add.graphics().setDepth(y+1);this.objects.push(g);g.fillStyle(0x829e5a,.55).fillRect(x,y,w,h);for(let i=0;i<90;i++)g.fillStyle([0xaac17a,0x69894d,0xc8bf80][i%3],.65).fillRect(x+5+(i*23)%(w-10),y+5+(i*17)%(h-10),i%4?3:5,1);
  const board=(px:number,py:number,bw:number,bh:number,depth:number,angle=0)=>{const o=this.scene.add.tileSprite(px,py,bw,bh,'barn-board').setRotation(angle).setDepth(depth);this.objects.push(o);};

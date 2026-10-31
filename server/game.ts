@@ -80,7 +80,7 @@ export async function mutate(user: string, body: any, version?: string|null) {
       row.name=row.state.playerName;await db.query('UPDATE farms SET name=$2 WHERE user_id=$1',[user,row.name]);row.result=result;
     }else if(c.type==='position') move(row,body.position,now);
     else if(['work','buy','sell','expand',...LIFE_COMMANDS].includes(c.type)) {
-      if(['travel-area','prepare-expansion','cure-plant','fertilize','cast-line','reel-line','sell','till-ground'].includes(c.type))move(row,body.position,now);
+      if(['place-building','move-building','travel-area','prepare-expansion','cure-plant','fertilize','cast-line','reel-line','sell','till-ground'].includes(c.type))move(row,body.position,now);
       if(c.type==='work'||c.type==='fertilize'||c.type==='cure-plant'||c.type==='prepare-expansion') {
         move(row,body.position,now);
         const point=plotPosition(c.plot,row.state);if(!point)throw new GameError('Canteiro inválido.');
@@ -94,7 +94,7 @@ export async function mutate(user: string, body: any, version?: string|null) {
     // Older cached clients may play before seeing the new welcome flow. Preserve that farm too.
     if(c.type!=='position'&&c.type!=='initialize-profile'&&row.state.profileComplete===false)row.state.profileComplete=true;
     settleCoinDebt(row.state);
-    await db.query('UPDATE farms SET state=$2,revision=revision+1,last_action_at=CASE WHEN $4 THEN last_action_at ELSE now() END,position_at=CASE WHEN $3 THEN now() ELSE position_at END WHERE user_id=$1',[user,row.state,['position','work','travel-area','prepare-expansion','cure-plant','fertilize','cast-line','reel-line','sell','list','till-ground'].includes(c.type),background]);
+    await db.query('UPDATE farms SET state=$2,revision=revision+1,last_action_at=CASE WHEN $4 THEN last_action_at ELSE now() END,position_at=CASE WHEN $3 THEN now() ELSE position_at END WHERE user_id=$1',[user,row.state,['position','work','place-building','move-building','travel-area','prepare-expansion','cure-plant','fertilize','cast-line','reel-line','sell','list','till-ground'].includes(c.type),background]);
     await db.query('INSERT INTO action_receipts(user_id,id,hash,result) VALUES($1,$2,$3,$4)',[user,body.id,hash,row.result]);
     await db.query('COMMIT');
     return {...row.result,farm:row.state,revision:row.revision+1,name:row.name,now};
