@@ -31,4 +31,4 @@ export function drawStudioAnimal(c:CanvasRenderingContext2D,d:Definition,x:numbe
  }
  if(action==='play'){r(21,-4,7,7,'#bd7046');r(22,-4,3,2,'#f6d98d');}if(action==='pet'){r(-3,-47,3,3,'#e8a084');r(2,-47,3,3,'#e8a084');r(-2,-44,6,3,'#e8a084');r(0,-41,2,2,'#e8a084');}c.restore();
 }
-export function animalSheet(d:Definition){const cv=document.createElement('canvas');cv.width=96*4;cv.height=112*4;const c=cv.getContext('2d')!;for(let row=0;row<4;row++)for(let f=0;f<4;f++)drawStudioAnimal(c,d,f*96+48,row*112+109,row,f);return cv;}
+export function animalSheet(d:Definition,action='idle'){const cv=document.createElement('canvas');cv.width=96*4;cv.height=112*4;const c=cv.getContext('2d')!;for(let row=0;row<4;row++)for(let f=0;f<4;f++)drawStudioAnimal(c,d,f*96+48,row*112+109,row,f,action);return cv;}
