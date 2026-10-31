@@ -1,3 +1,4 @@
+import{isSpray}from'./plant-spray';
 import{barnSignature}from'./barn-state';
 import{penAssignments}from'./barn-slots';
 import {sleepPicker} from './sleep-picker';
@@ -85,6 +86,8 @@ export class InteriorScene extends Phaser.Scene {
   const route=findPath(this.player,access,this.blocks);if(!route.length)return Promise.reject(new Error('Não há passagem livre até o animal.'));
   return new Promise((resolve,reject)=>{this.bonding={id,type,phase:'arriving',start:this.time.now,resolve,reject};this.route=route;this.target={...access,run:()=>{if(!this.bonding)return;this.bonding.phase='contact';this.bonding.start=this.time.now;this.barn!.beginCare(id,type,this.time.now);this.dir=access.x<600?1:2;}};});
  }
+ faceDownForCall(){this.dir=0;}
+ cancelMovement(){this.route=[];this.target=null;this.player?.setVelocity(0);}
  exitRoom(){this.leave();}
  private leave(){if(this.bonding||this.pets?.locked||this.homeBusy||this.services.farm().home?.sleep)return;if(this.rest){this.releaseRest();return;}this.player.setVelocity(0);this.target=null;this.route=[];this.scene.stop();this.scene.wake(typeof this.services.parentScene==='function'?this.services.parentScene():this.services.parentScene??'Farm');this.services.exit();}
  interact(){if(this.services.modal()||this.bonding||this.pets?.locked||this.homeBusy)return;const focus=closestInReach(this.player,this.points.filter(p=>!p.pointerOnly&&(!p.enabled||p.enabled())),46);if(focus){focus.run();return;}if(this.pets.interact(this.player,this.dir))return;if(this.rest?.kind==='sit'){const s=this.services;s.open('Sofá',`<button id="sofa-tv">${s.farm().home?.tvOn?'Desligar':'Ligar'} TV</button><button id="sofa-rise">Levantar</button>`);document.getElementById('sofa-tv')!.onclick=()=>{(document.getElementById('panel') as HTMLDialogElement).close();this.useHouse('tv');};document.getElementById('sofa-rise')!.onclick=()=>{(document.getElementById('panel') as HTMLDialogElement).close();this.releaseRest();};return;}if(this.rest){this.releaseRest();return;}const nearest=closestInReach(this.player,this.points.filter(p=>!p.pointerOnly&&(!p.enabled||p.enabled())),110);nearest?.run();}
@@ -139,7 +142,7 @@ export class InteriorScene extends Phaser.Scene {
   if(this.pets.locked){vx=0;vy=0;this.target=null;this.route=[];this.dir=this.pets.direction==='left'?1:2;}
   const len=Math.hypot(vx,vy);this.player.setVelocity(len?vx/Math.max(1,len)*145:0,len?vy/Math.max(1,len)*145:0);if(len>.1)this.dir=Math.abs(vx)>Math.abs(vy)?vx<0?1:2:vy<0?3:0;
   const phase=this.breathing.frame(time,len>.1,!!bond,!display.breathing),idle=len<=.1&&!bond;
-  const tool=bond||this.pets.locked?'hand':s.tool(),base=tool==='hand'||tool==='rod'?'farmer-v2':`carry-${tool}`,key=idle?this.art.idleKey(base,appearanceOf(s.farm())):this.art.key(base,appearanceOf(s.farm())),frame=this.dir*4+(len>.1?Math.floor(time/140)%4:phase);this.actor.setTexture(key,frame).setScale(1.08).setOrigin(.5,base==='farmer-v2'?62/64:100/112).setPosition(this.player.x,this.player.y-2).setDepth(this.player.y);
+  const tool=bond||this.pets.locked||isSpray(s.tool())?'hand':s.tool(),base=tool==='hand'||tool==='rod'?'farmer-v2':`carry-${tool}`,key=idle?this.art.idleKey(base,appearanceOf(s.farm())):this.art.key(base,appearanceOf(s.farm())),frame=this.dir*4+(len>.1?Math.floor(time/140)%4:phase);this.actor.setTexture(key,frame).setScale(1.08).setOrigin(.5,base==='farmer-v2'?62/64:100/112).setPosition(this.player.x,this.player.y-2).setDepth(this.player.y);
   this.restFrame(time,phase);this.house?.updateHome(s.farm().home,time,this.rest?.kind==='sleep',this.reduced.matches);if(time>=this.nextUI){this.updateHouseControls();this.nextUI=time+100;}
   this.barn?.update(time,s.farm(),s.now(),this.player,this.pets.careId);this.gesture.clear();
   if(bond){

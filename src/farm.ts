@@ -18,7 +18,7 @@ export const CROPS = {
   sunflower: { name: 'Girassol', icon: '🌻', seconds: 5400, seedPrice: 24, sellPrice: 40, yield: 3 },
 } as const;
 export type Crop = keyof typeof CROPS;
-export type Tool = 'hand' | 'hoe' | 'seed' | 'water' | 'rod';
+export type Tool = 'hand' | 'hoe' | 'seed' | 'water' | 'rod' | 'fertilizer' | 'medicine';
 export type Plot = {climate?:{wet:number;stress:number;shade:boolean;drained:boolean}; fertilized?:boolean;growthDurationMs?:number;tilledAt?:number;position?:{x:number;y:number}; id: number; tilled: boolean; crop: Crop | null; wateredAt: number | null; pestAt?:number|null; stolen?:number;care?:{startedAt:number;lastWateredAt:number|null;growthMs:number;checkpointAt:number;illnessAt:number|null} };
 export type Farm = {southSettled?:1;playerArea?:'farm'|'expansion';expansionPlots?:Plot[];buildingStock?:Partial<Record<import('./plots.js').BuildingKind,number>>;barnVersion?:1;climateAt?:number;livingSince?:number;visitorCare?:boolean; version: 1; fertilizers?:number;fertilizerDebt?:number; houseDesign?:import('./home-design.js').HouseDesign; coinDebt?:number;wardrobe?:import('./wardrobe.js').Wardrobe; progressionVersion?:1; customPlots?:Plot[]; fishing?:FishingState; careVersion?:1;careStartedAt?:number;supplies?:{medicine:number;plantMedicine:number;bedding:number}; calendar?:Calendar;home?:HomeState; profileComplete?:boolean; playerName?:string; landOwned?:boolean; landParcels?:LandParcel[]; buildings?:LandBuilding[]; coins: number; seeds: Record<Crop, number>; inventory: Record<Crop, number>; plots: Plot[]; harvests: number; questClaimed: boolean; player: { x: number; y: number }; avatar:Avatar; animals:Animal[]; products:Record<AnimalProduct,number>; feed:number; decorations:Decoration[]; socialRaids:boolean;animalRaids?:boolean; raidProtectionUntil:number; visitLog:{name:string;action:string;at:number}[] };
 export const LEGACY_GROWTH={carrot:45,lettuce:90,tomato:150,strawberry:120,corn:180,tulip:100,sunflower:200};
@@ -37,6 +37,7 @@ export function remaining(plot: Plot, now = Date.now()) {
   return Math.max(0, (plot.growthDurationMs??LEGACY_GROWTH[plot.crop]*1000) - (plot.care?grownMs(plot,now):Math.max(0, now - plot.wateredAt)));
 }
 export function act(farm: Farm, id: number, tool: Tool, crop: Crop, now = Date.now()): { ok: boolean; message: string; harvest?: boolean } {
+  if(tool==='fertilizer'||tool==='medicine')return{ok:false,message:'Use o borrifador pelo comando de cuidado da planta.'};
   const plot = getPlot(farm,id);if(plot)ageSoil(plot,soilTime(farm,now));
   if (!plot || !plotUsable(farm,id)) return { ok: false, message: 'Este canteiro não existe.' };
   if (tool === 'hoe') {
