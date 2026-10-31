@@ -1,3 +1,7 @@
+## 0.29.3 — entrada por comando, sem círculos
+
+Aproximar-se das portas mostra Entrar; é necessário apertar o botão ou E para abrir casa, celeiro e venda. Chegar por caminhada ou por destino clicado não abre automaticamente. Mantida a ausência de círculos. Celeiro visitado usa o mesmo botão/ação próxima. 225 testes e build aprovados. Teclado (1280px) e joystick/botão (390px) testados nas três portas, aguardando antes de entrar e após sair/fechar a venda. Regressão em scripts/qa-manual-entry-0293.mjs substitui o roteiro anterior de entrada automática. Sem alteração de banco/economia.
+
 ## 0.29.2 — entrada automática
 
 Sem círculos de entrada ou destino. Casa, celeiro e venda abrem ao caminhar bem próximo e alinhado à porta. Trava até afastar-se evita reabrir ao sair ou fechar a venda. 225 testes e build aprovados; navegação real por teclado (1280px) e joystick (390px), passagem lateral e saída sem reentrada testadas. Scripts/qa-auto-entry-0292.mjs reproduz o fluxo em fixtures locais. Nenhuma mudança de banco ou economia.

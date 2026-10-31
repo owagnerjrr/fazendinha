@@ -1,0 +1,3 @@
+import test from'node:test';import assert from'node:assert/strict';import{doorwayAt,ENTRANCES}from'../src/entrances';
+test('door buttons require a close front position with comfortable horizontal tolerance',()=>{for(const e of ENTRANCES){assert.equal(doorwayAt(e)?.id,e.id);assert.equal(doorwayAt({x:e.x+24,y:e.y+25})?.id,e.id);for(const p of[{x:e.x+40,y:e.y},{x:e.x,y:e.y-60},{x:e.x,y:e.y+70}])assert.equal(doorwayAt(p),undefined);}});
+test('visiting can restrict the same door rule to the barn',()=>{const barn=ENTRANCES.filter(e=>e.id==='barn');assert.equal(doorwayAt(ENTRANCES[0],barn),undefined);assert.equal(doorwayAt(barn[0],barn)?.id,'barn');});

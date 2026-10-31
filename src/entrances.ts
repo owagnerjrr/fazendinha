@@ -9,9 +9,5 @@ export function nearestEntrance(point:Point,reach=85):Entrance|undefined{return 
 export function entranceAt(point:Point){return ENTRANCES.find(e=>point.x>e.hit.left&&point.x<e.hit.right&&point.y>e.hit.top&&point.y<e.hit.bottom);}
 export function entranceUnlocked(now:number,lockedUntil:number,inside:boolean,modal:boolean,working:boolean){return now>=lockedUntil&&!inside&&!modal&&!working;}
 
-/** Enter only at a narrow front doorstep while walking toward the door. */
-export class AutoEntrance {
- private held?:Entrance;
- hold(point:Point){this.held=nearestEntrance(point,70);}
- update(point:Point,towardDoor:boolean,enabled:boolean,entries:readonly Entrance[]=ENTRANCES){if(this.held){if(Math.abs(point.x-this.held.x)<36&&Math.abs(point.y-this.held.y)<48)return;this.held=undefined;}if(!enabled)return;const entry=entries.find(e=>Math.abs(point.x-e.x)<=18&&point.y>=e.y-10&&point.y<=e.y+8);if(!entry||!towardDoor)return;this.held=entry;return entry;}
-}
+/** Close to the front doorstep; no marker or exact pixel required. */
+export function doorwayAt(point:Point,entries:readonly Entrance[]=ENTRANCES){return entries.find(e=>Math.abs(point.x-e.x)<=26&&point.y>=e.y-(e.id==='shop'?40:10)&&point.y<=e.y+32);}
