@@ -1,5 +1,6 @@
+import{ENTRANCES}from'./entrances.js';
 import {CROPS,sellAll,type Farm,type Crop} from './farm.js';import {ANIMALS,type AnimalProduct} from './content.js';import {FISH,type Fish} from './fishing.js';
-export const VENDOR={x:1030,y:425};
+export const VENDOR=ENTRANCES.find(e=>e.id==='shop')!;
 export const atVendor=(p:{x:number;y:number})=>Math.hypot(p.x-VENDOR.x,p.y-VENDOR.y)<=85;
 export type SaleItem={id:string;name:string;quantity:number;price:number};
 export function saleItems(f:Farm):SaleItem[]{return[

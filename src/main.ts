@@ -1,3 +1,4 @@
+import{inventoryIcon}from'./inventory-icons';
 import{ClimateFX}from'./climate-fx';import{climateAt,settleClimate}from'./climate';
 import {PresenceChannel} from './presence-channel';
 import {FarmMusic} from './music';
@@ -141,7 +142,7 @@ dialog.addEventListener('click', e => { if(performance.now()-panelOpenedAt<400)r
 function cropImage(c:Crop){return ['carrot','lettuce','tomato'].includes(c)?`/assets/v2/${c}-3.png`:`/assets/${c==='sunflower'?'v29':'v5'}/${c}.png`;}
 function inventory() {
   if(onlineLoading){toast('Aguarde a conexão com sua conta.');return;}
-  openPanel('Seu inventário',`<button class="secondary" id="choose-equipment">Trocar equipamento</button>${saleItems(farm).map(i=>`<div class="item-row"><div class="item-info"><strong>${i.name}</strong><small>${i.quantity} unidades</small></div></div>`).join('')}<button class="secondary" id="inventory-animals">Cuidar dos animais</button>${cloud.active?'<button class="secondary" id="recover-reserved">Recuperar produtos reservados da antiga feira</button>':''}`);
+  openPanel('Seu inventário',`<button class="secondary" id="choose-equipment">Trocar equipamento</button>${saleItems(farm).map(i=>`<div class="item-row">${inventoryIcon(i.id)}<div class="item-info"><strong>${i.name}</strong><small>${i.quantity} unidades</small></div></div>`).join('')}<button class="secondary" id="inventory-animals">Cuidar dos animais</button>${cloud.active?'<button class="secondary" id="recover-reserved">Recuperar produtos reservados da antiga feira</button>':''}`);
   if($('recover-reserved'))$('recover-reserved').onclick=()=>{const b=$<HTMLButtonElement>('recover-reserved');b.disabled=true;void cloud.command({type:'return-market-reservations'}).then(r=>{toast(r.message??'Recuperados.');inventory();}).catch(e=>{toast((e as Error).message);b.disabled=false;});};
   $('choose-equipment').onclick=()=>life.equipment();$('inventory-animals').onclick=()=>life.animals();
 }
