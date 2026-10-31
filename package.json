@@ -1,13 +1,13 @@
 {
   "name": "fazendinha-wj",
-  "version": "0.35.0",
+  "version": "0.36.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "tsc --noEmit && vite build && node scripts/build-sw.mjs",
     "preview": "vite preview --host 0.0.0.0",
-    "test": "node --import tsx --test tests/*.test.ts"
+    "test": "node --import tsx --test tests/*.test.ts tests/*.test.mjs"
   },
   "dependencies": {
     "@neondatabase/auth": "^0.6.0-beta",
@@ -17,6 +17,7 @@
     "phaser": "3.90.0"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.5.13",
     "@types/node": "^24.0.0",
     "@types/pg": "^8.23.1",
     "tsx": "^4.21.0",

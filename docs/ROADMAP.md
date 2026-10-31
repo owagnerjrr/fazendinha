@@ -1,3 +1,6 @@
+## Runtime administrativo — em validação no sandbox
+
+Implementados catálogo consumido pelo jogo, animais novos separados dos registros antigos, prévia isolada, editor de terrenos, cenários com cultivo/colisão/portas/pesca, compras por transação existente, cosméticos/modelos no renderizador original, biblioteca PNG/WAV versionada, concessões idempotentes e configurações por público. 288 testes passaram. Validação autenticada e visual publicada em andamento; não declarar os exemplos completos concluídos antes dela. Nenhuma mudança aplicada ao banco de produção nesta etapa.
 ## Central administrativa — base em desenvolvimento
 
 Branch codex/admin-creation-studio: autenticação exclusiva no servidor, definições versionadas, grupos/públicos estáveis, consulta de contas/pedidos e coleta de atividade. 278 testes passaram e build passou. Migração aditiva 014 testada no banco isolado. Executor de conteúdo, editor visual, arquivos, concessões, edição estrutural do progresso e configuração efetiva do jogo ainda pendentes; não considerar o pedido completo. Consulte docs/ADMIN_GUIA.md. Sandbox autenticado confirmou autorização 401/403, recibos idempotentes, rascunhos persistentes, público self/grupos, suspensão, restauração sem alterar bens e consulta de pedidos/atividade. Interface 1280/390px: salvar/reabrir/buscar e acesso negado para conta comum, sem erro JS nem transbordamento. Ajustes numéricos e recuperação condicionada validados no sandbox. A central completa continua pendente; exemplos de espécies/cenários/roupas jogáveis ainda não implementados.
@@ -329,3 +332,13 @@ Validação 0.32: 253 testes e build passaram. Fluxos locais desktop/celular e a
 
 
 
+
+
+## 0.36 — criação dinâmica e administração integrada
+
+- Executor aditivo de espécies, itens, culturas, cosméticos/modelos, construções, lojas e cenários identificados por UUID.
+- Prévia isolada, editor de terrenos, biblioteca PNG/WAV com versões, composições/dependências e distribuição validada no servidor.
+- Configurações por público consumidas no jogo; migrações compatíveis com análise de impacto, sem substituição de fazendas.
+- Administração de condições/permissões, bloqueio e recuperação; atividade e histórico com retenção.
+- Pacotes versionados, contratos financeiros imutáveis e reconciliação com consulta oficial.
+- Pendências delimitadas no ADMIN_GUIA: edição arbitrária dos mapas/contas nativos, visitas aos cenários dinâmicos, produção/reprodução de novas espécies, clima/doenças nas novas culturas e mecanismos inéditos.

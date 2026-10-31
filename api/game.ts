@@ -1,17 +1,17 @@
+import{BlockedAccountError}from'../server/auth.js';
 import {presence,notifications,acknowledge} from '../server/social-live.js';
 import { identity } from '../server/auth.js';
-import {recordAction} from '../server/player-activity.js';
 import { requiresNewClient, CLIENT_UPDATE_MESSAGE } from '../src/client-compat.js';
 import { community, ensureFarm, GameError, mutate, snapshot, visit } from '../server/game.js';
 const json=(value:unknown,status=200)=>Response.json(value,{status,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
 async function handle(request:Request) {
   try {
     const user=await identity(request);
-    await ensureFarm(user.id,user.name,['5','6','7','8','9','10','11','12','13','14','15','16'].includes(request.headers.get('X-Farm-Version')??''),['13','14','15','16'].includes(request.headers.get('X-Farm-Version')??''),['14','15','16'].includes(request.headers.get('X-Farm-Version')??''));
+    await ensureFarm(user.id,user.name,['5','6','7','8','9','10','11','12','13','14','15','16','17'].includes(request.headers.get('X-Farm-Version')??''),['13','14','15','16','17'].includes(request.headers.get('X-Farm-Version')??''),['14','15','16','17'].includes(request.headers.get('X-Farm-Version')??''));
     const url=new URL(request.url);
     // Cached clients from before the new species cannot render their animal kinds safely.
     // Refuse their requests before mutating data and ask them to update the app.
-    if(request.headers.get('X-Farm-Version')!=='16'){
+    if(request.headers.get('X-Farm-Version')!=='17'){
       const existing=await snapshot(user.id);
       if(requiresNewClient(existing.farm,request.headers.get('X-Farm-Version')))return json({error:CLIENT_UPDATE_MESSAGE},409);
     }
@@ -28,9 +28,9 @@ async function handle(request:Request) {
     if(url.searchParams.has('presence'))return json(await presence(user.id,body));
     if(url.searchParams.has('notifications'))return json(await acknowledge(user.id,body));
     const result=await mutate(user.id,body,request.headers.get('X-Farm-Version'));
-    try{await recordAction(user.id,body.command,result);}catch{console.error('activity_event_failed');}
     return json(result);
   } catch(error) {
+    if(error instanceof BlockedAccountError)return json({error:error.message},403);
     if(error instanceof Error && error.message==='UNAUTHORIZED') return json({error:'Entre na sua conta para continuar.'},401);
     if(error instanceof GameError) return json({error:error.message},error.status);
     console.error('game_request_failed',error instanceof Error ? error.name : 'unknown');

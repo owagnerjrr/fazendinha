@@ -31,4 +31,4 @@ export function drawOutfitCap(c:CanvasRenderingContext2D,a:Avatar,row:number,nec
  if(row===0){c.fillStyle='#f2dcac';c.fillRect(x-1,y-5,3,3);}c.restore();
 }
 
-export function outfitSleeveColor(a:Avatar){return a.outfit?PALETTE[a.outfit]?.sleeve??SHIRT_COLORS[a.shirt]:SHIRT_COLORS[a.shirt];}
+export function outfitSleeveColor(a:Avatar){return a.outfit?PALETTE[a.outfit]?.sleeve??(a.studioColor??SHIRT_COLORS[a.shirt]):(a.studioColor??SHIRT_COLORS[a.shirt]);}

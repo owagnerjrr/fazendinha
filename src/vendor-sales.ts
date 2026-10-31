@@ -6,6 +6,7 @@ export type SaleItem={id:string;name:string;quantity:number;price:number};
 export function saleItems(f:Farm):SaleItem[]{return[
  ...(Object.keys(CROPS) as Crop[]).flatMap(k=>[{id:`crop:${k}`,name:CROPS[k].name,quantity:f.inventory[k],price:CROPS[k].sellPrice},{id:`seed:${k}`,name:`Semente de ${CROPS[k].name.toLowerCase()}`,quantity:f.seeds[k],price:Math.max(1,Math.floor(CROPS[k].seedPrice/2))}]),
  ...(['egg','milk','goatMilk'] as AnimalProduct[]).map(k=>{const a=Object.values(ANIMALS).find(a=>a.product===k)!;return{id:`product:${k}`,name:a.productName,quantity:f.products[k],price:a.sellPrice};}),
+ ...(f.studio?.owned??[]).filter(e=>e.definition.kind==='crop').map(e=>({id:'studio:'+e.id,name:e.definition.name,quantity:f.studio?.inventory[e.id+':harvest']??0,price:e.definition.sellPrice})),
  ...(Object.keys(FISH) as Fish[]).map(k=>({id:`fish:${k}`,name:FISH[k].name,quantity:f.fishing?.fish[k]??0,price:FISH[k].price}))
  ].filter(i=>i.quantity>0);}
 export function applyVendorSale(f:Farm,c:{type?:unknown;item?:unknown;quantity?:unknown;all?:unknown}){
@@ -14,6 +15,6 @@ export function applyVendorSale(f:Farm,c:{type?:unknown;item?:unknown;quantity?:
  const row=saleItems(f).find(i=>i.id===c.item),quantity=c.quantity;
  if(!row||typeof quantity!=='number'||!Number.isSafeInteger(quantity)||quantity<1||quantity>row.quantity)return{ok:false,message:'Quantidade ou produto inválido.'};
  if(c.all===true&&quantity!==row.quantity)return{ok:false,message:'O estoque mudou. Atualize a venda antes de vender tudo.'};
- const [kind,key]=row.id.split(':');if(kind==='crop')f.inventory[key as Crop]-=quantity;else if(kind==='seed')f.seeds[key as Crop]-=quantity;else if(kind==='product')f.products[key as AnimalProduct]-=quantity;else f.fishing!.fish[key as Fish]-=quantity;
+ const [kind,key]=row.id.split(':');if(kind==='crop')f.inventory[key as Crop]-=quantity;else if(kind==='seed')f.seeds[key as Crop]-=quantity;else if(kind==='product')f.products[key as AnimalProduct]-=quantity;else if(kind==='studio')f.studio!.inventory[key+':harvest']-=quantity;else f.fishing!.fish[key as Fish]-=quantity;
  const total=row.price*quantity;f.coins+=total;return{ok:true,message:`${quantity} × ${row.name}: +${total} moedas.`};
 }

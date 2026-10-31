@@ -1,0 +1,8 @@
+import type{Farm}from'./farm.js';import type{StudioEntry}from'./studio-runtime.js';import{newStudio,petNeeds}from'./studio-runtime.js';import{worldTime}from'./world-time.js';import{vitalAt}from'./living-animals.js';
+
+export function applyStudioConfigs(f:Farm,catalog:StudioEntry[],now:number){const entries=catalog.filter(e=>e.definition.kind==='config');if(!entries.length)return;const version=entries.map(e=>e.id+':'+e.version).join('|');if(f.studio?.ruleVersion===version)return;f.studio??=newStudio();const rules={...f.studio.rules};for(const e of [...entries].reverse())Object.assign(rules,e.definition.data);const minuteMs=Number(rules.minuteMs??f.calendar?.minuteMs??1000);f.calendar??={startedAt:now,offsetMinutes:0};if((f.calendar.minuteMs??1000)!==minuteMs){const at=f.calendar.sleepAt??now,absolute=worldTime(f.calendar,at).absolute;f.calendar.weatherSeed??=f.calendar.startedAt;f.calendar.startedAt=at;f.calendar.offsetMinutes=absolute-360;f.calendar.minuteMs=minuteMs;}
+ if(rules.nightScale!==undefined)f.calendar.lightScale=Number(rules.nightScale);if(rules.weather!==undefined)f.calendar.weather=String(rules.weather) as NonNullable<Farm['calendar']>['weather'];
+ for(const a of f.animals)if(a.vital){a.vital=vitalAt(a,now)!;a.vital.scale=Number(rules.animalNeedsScale??a.vital.scale??1);a.vital.offlineCap=Number(rules.offlineCapSeconds??120)*1000;}
+ for(const p of f.studio.animals){const d=f.studio.owned.find(e=>e.id===p.content)?.definition;if(d)Object.assign(p,petNeeds(p,d,now));p.scale=Number(rules.animalNeedsScale??p.scale??1);p.offlineCap=Number(rules.offlineCapSeconds??120)*1000;}
+ f.studio.rules=rules;f.studio.ruleVersion=version;
+}

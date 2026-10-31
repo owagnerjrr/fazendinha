@@ -1,5 +1,6 @@
 import type { Farm } from './farm.js';
 export function requiresNewClient(farm:Farm,version:string|null|undefined):boolean {
+ if(version==='17')return false;if(farm.studio?.owned.length||farm.studio?.ruleVersion||farm.studio?.recoveryId)return true;
  if(version==='16')return false;if(farm.animals.some(a=>a.summon))return true;
  if(version==='15')return false;
  if(farm.playerArea||farm.expansionPlots?.length||farm.buildingStock||farm.buildings?.some(b=>b.area==='expansion'))return true;

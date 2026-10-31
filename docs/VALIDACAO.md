@@ -1,3 +1,6 @@
+## Runtime administrativo — em validação no sandbox
+
+Implementados catálogo consumido pelo jogo, animais novos separados dos registros antigos, prévia isolada, editor de terrenos, cenários com cultivo/colisão/portas/pesca, compras por transação existente, cosméticos/modelos no renderizador original, biblioteca PNG/WAV versionada, concessões idempotentes e configurações por público. 288 testes passaram. Validação autenticada e visual publicada em andamento; não declarar os exemplos completos concluídos antes dela. Nenhuma mudança aplicada ao banco de produção nesta etapa.
 Conferência pública 0.35.0: jogo carregou em 1280/390px, pagamentos prontos e APIs protegidas. Ajustada mensagem de sessão ausente do painel para português após o SDK retornar Unauthorized. Nenhum dado ou controle administrativo exposto sem sessão.
 
 ## Central administrativa — base em desenvolvimento
@@ -631,3 +634,22 @@ Limites: celular validado por emulação de viewport/toque no Edge, sem aparelho
 
 
 
+
+
+## Central de criação dinâmica — 0.36 (31/10/2026)
+
+- 298 testes automatizados passaram, incluindo contratos de pagamentos em PostgreSQL local isolado (PGlite), crédito/estorno idempotentes, preços por versão, propriedades antigas preservadas, construções/receitas, migrações conflitantes, dependências sem concessão indevida, caminhos e recortes de animação. TypeScript e build passaram.
+- Sandbox separado fazendinha-wj-mp-test: duas contas sintéticas, sem escrita de testes nas fazendas de produção. Espécie inédita comprada ao preço do servidor; repetição do recibo mantém um animal; alimentação e acompanhamento persistem.
+- Cenário com água e cerca bloqueia passagem, pesca entrega peixe no inventário existente, cultivo permite preparar/plantar/regar/colher e vender quantidade ou tudo daquele produto. Porta retorna à fazenda.
+- Roupa com PNG próprio concedida uma vez somente ao grupo escolhido, equipada e recuperada em nova consulta; outra conta não recebe o arquivo. Desativação de recurso em uso foi recusada.
+- Configuração de relógio aplicada somente ao grupo, alterada e restaurada como nova publicação; conta externa conserva regra anterior e aquisições permanecem.
+- Compra por loja aplica preço/limite do servidor; receita consome material e estrutura uma vez; horta reposicionada leva sua planta. Migração que bloquearia a segunda célula da estrutura é recusada; versão compatível preserva planta e bens. Composição resolve dependências com público isolado.
+- APIs administrativas negam jogador comum (403) e ausência de login (401). Bloqueio reversível impede game/studio/store/admin; bloquear o próprio administrador é recusado.
+- Checkout hospedado de cartão criado somente em sandbox para pacote versionado. Cotação antiga recusada (409); reenvio do pedido após alterar preço preserva ID, 123 moedas e R$1,99 originais. Reconciliação consulta pagamento pendente sem crédito. Pacote sintético foi pausado. Nenhuma cobrança/aprovação/reembolso real foi executada.
+- Navegador Edge/Playwright 1280×900 e 390×900: novos animais alternam quadros reais e pixels distintos nas patas; cenário jogável, controles, carinho, retorno e ausência de erros JavaScript. Prévia isolada do administrador tem canvas real, arte em quatro direções e executor em memória. Foram encontradas e corrigidas falhas de montagem da tela e cotação de versão zero do rascunho.
+- Migrações 015/016 são aditivas, sem reset, sem substituição de fazendas e sem reprecificar pedidos. A 016 troca a restrição de catálogo por contratos históricos imutáveis e valida snapshots novos por versão; altera somente a guarda de preço fixo do fertilizante, preservando lógica existente de reembolso/dívida/idempotência. Aplicadas primeiro no sandbox e testadas repetidamente em banco local.
+
+Guia de uso e limites efetivos em ADMIN_GUIA.md. Não há validação física de todos os celulares, avaliação auditiva humana de arquivos enviados nem teste de compras reais nesta auditoria. Os exemplos mutáveis foram executados nas contas sintéticas; a sessão pessoal do proprietário em produção não foi assumida. Verificação de publicação e evidências adicionais ficam no relatório de entrega.
+
+- Verificação final de produção das migrações 015/016: 37 fazendas, 2 pedidos e 2 registros de pagamentos antes/depois; resumo criptográfico dos contratos dos pedidos permaneceu idêntico. Administrador exclusivo mantido. Nenhuma fazenda foi atualizada pelas migrações.
+- Identificada no navegador e corrigida consulta de jogador com filtros de data vazios: parâmetros vazios eram enviados como texto ao PostgreSQL. Agora são normalizados como ausência de filtro.

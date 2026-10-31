@@ -1,5 +1,5 @@
 import {dayLight} from './day-light.js';
-export type Calendar={startedAt:number;offsetMinutes:number;sleepAt?:number};
+export type Calendar={minuteMs?:number;lightScale?:number;weatherSeed?:number;weather?:'auto'|'clear'|'sun'|'cloud'|'light'|'rain'|'storm';startedAt:number;offsetMinutes:number;sleepAt?:number};
 export type HomeState={tvOn:boolean;lightsOn?:boolean;sleep?:{startedAt:number;morning:number;targetMinute?:number}};
 export const GAME_MINUTE_MS=1000,DAY_MINUTES=1440,SEASON_DAYS=28,SLEEP_MS=6000;
 export const SEASONS=['Primavera','Verão','Outono','Inverno'] as const;
@@ -7,7 +7,7 @@ export const SEASONS=['Primavera','Verão','Outono','Inverno'] as const;
 export const LEGACY_CLOCK_START=Date.UTC(2026,9,28);
 export function worldTime(calendar:Calendar|undefined,now:number){
  const c=calendar??{startedAt:LEGACY_CLOCK_START,offsetMinutes:0};
- const absolute=360+Math.floor(Math.max(0,Math.min(now,c.sleepAt??now)-c.startedAt)/GAME_MINUTE_MS)+c.offsetMinutes;
+ const absolute=360+Math.floor(Math.max(0,Math.min(now,c.sleepAt??now)-c.startedAt)/(c.minuteMs??GAME_MINUTE_MS))+c.offsetMinutes;
  const dayIndex=Math.floor(absolute/DAY_MINUTES),minuteOfDay=absolute%DAY_MINUTES,hour=Math.floor(minuteOfDay/60),minute=minuteOfDay%60;
  return {absolute,day:dayIndex+1,dayOfSeason:dayIndex%SEASON_DAYS+1,year:Math.floor(dayIndex/(SEASON_DAYS*4))+1,season:SEASONS[Math.floor(dayIndex/SEASON_DAYS)%4],hour,minute,minuteOfDay,period:hour<5?'Madrugada':hour<12?'Manhã':hour<17?'Tarde':hour<20?'Anoitecer':'Noite',text:`${String(hour).padStart(2,'0')}:${String(minute).padStart(2,'0')}`};
 }
