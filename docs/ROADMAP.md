@@ -1,6 +1,6 @@
 ## 0.40 — criações na venda e interação normal
 
-Catálogo publicado integrado às categorias da venda, Novidades e roupas. Controles E/Usar e toque reconhecem animais criados. 315 testes; validação visual isolada em andamento.
+Catálogo publicado integrado às categorias da venda, Novidades e roupas. Controles E/Usar e toque reconhecem animais criados. 317 testes e build passaram; sandbox autenticado PC/celular validou E/mão, toque, cuidados, compra única, roupas inéditas e persistência. Proteção impede o gesto de abertura de clicar nos botões da nova janela.
 
 ## 0.39 — criações integradas aos cuidados e guarda-roupa
 
