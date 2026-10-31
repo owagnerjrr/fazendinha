@@ -333,7 +333,6 @@ class FarmScene extends Phaser.Scene {
     void journey.start(hadLocalFarm);
   }
   resize() { this.cameras.main.setZoom(this.scale.width < 600 ? (farm.animals.filter(a=>a.walking).length>4?.9:1.1) : this.scale.height < 560 ? .9 : 1.08); this.vignette?.setDisplaySize(this.scale.width, this.scale.height); }
-  holdEntrance(){this.entranceControl?.hold();}
   cancelMovement() { this.destination = null; this.route = []; this.queuedDestination = null; this.player?.setVelocity(0); this.input.keyboard?.resetKeys(); joystick.x = 0; joystick.y = 0; }
   paintFields() {
     for(const p of farm.customPlots??[])if(!this.fields[p.id]){const q=p.position!;this.fields[p.id]={...q,id:p.id,soil:this.add.image(q.x,q.y,'plot-raw').setDepth(1),plant:this.add.image(q.x,q.y+11,'carrot-0').setOrigin(.5,1).setDepth(q.y+2),label:this.add.text(q.x,q.y-27,'').setVisible(false)};}
@@ -451,15 +450,10 @@ class FarmScene extends Phaser.Scene {
     this.activeWork={clock:new ActionClock('water',this.time.now),field:-1,crop:selected,ground:point};
     this.player.setVelocity(0);
   }
-  enterNearbyPlace(facingOnly=false){if(facingOnly){const e=nearestEntrance(this.player,60),v={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]}[this.direction];if(!e||(e.x-this.player.x)*v[0]+(e.y-this.player.y)*v[1]<-4)return false;}
-    if(this.entranceControl.enter(115))return true;
-    if(!entranceUnlocked(performance.now(),entranceLockedUntil,inside,modal,!!this.activeWork))return false;
-    const entrance=nearestEntrance(this.player,170);if(!entrance)return false;
-    this.navigate({x:entrance.x,y:entrance.y,[entrance.id]:true});return true;
-  }
+  enterNearbyPlace(facingOnly=false){if(facingOnly&&this.direction!=='up')return false;return this.entranceControl.enter();}
   interactNearest() {
     if (modal || this.activeWork || this.outdoorBond || this.pets.locked || performance.now()<entranceLockedUntil) return;
-    if(tool==='hand'&&this.enterNearbyPlace(true))return;
+    if(this.enterNearbyPlace(true))return;
     if(tool==='hand'&&this.pets.interact(this.player,DIRECTION_ROW[this.direction]))return;
     const cropDistance=this.fields.filter(f=>getPlot(farm,f.id)?.crop&&Math.hypot(f.x-this.player.x,f.y-this.player.y)<65).reduce((d,f)=>Math.min(d,Math.hypot(f.x-this.player.x,f.y-this.player.y)),Infinity);
     if(this.outdoor.distance(this.player)<cropDistance&&this.outdoor.interact(this.player))return;
@@ -499,7 +493,7 @@ class FarmScene extends Phaser.Scene {
       if(distance<8&&this.route.length>1){this.route.shift();return;}
       if (distance < 8) {
         this.destination = null;
-        if (target.field !== undefined) this.useField(target.field); else if (target.shop) shop(); else if (target.barn) enterInterior('barn');else if(target.house)enterInterior('house');else if(target.building){const b=farm.buildings?.find(b=>b.id===target.building);if(b?.kind==='shed')life.equipment();else if(b&&['coop','pasture'].includes(b.kind))life.enclosure(b.id);else if(b)openPanel('Coreto do jardim','<p>Seu cantinho para descansar e aproveitar a fazenda.</p>');}target.run?.();
+        if (target.field !== undefined) this.useField(target.field); else if (target.shop||target.barn||target.house) {this.cancelMovement();}else if(target.building){const b=farm.buildings?.find(b=>b.id===target.building);if(b?.kind==='shed')life.equipment();else if(b&&['coop','pasture'].includes(b.kind))life.enclosure(b.id);else if(b)openPanel('Coreto do jardim','<p>Seu cantinho para descansar e aproveitar a fazenda.</p>');}target.run?.();
       } else { vx = dx / distance; vy = dy / distance; }
       if (Math.hypot(this.player.x - this.previous.x, this.player.y - this.previous.y) < .15) this.stuck += Math.min(delta,100); else this.stuck = 0;
       if (this.stuck > 700) { this.destination = null; this.stuck = 0; this.route=[];toast('Passagem bloqueada.'); }
@@ -527,7 +521,7 @@ stick.addEventListener('pointermove', moveStick);
 const releaseStick = (e: PointerEvent) => { if (e.pointerId !== stickPointer) return; stickPointer = null; joystick = { x: 0, y: 0 }; knob.style.transform = ''; };
 stick.addEventListener('pointerup', releaseStick); stick.addEventListener('pointercancel', releaseStick); stick.addEventListener('lostpointercapture', releaseStick);
 $('fish-action').onclick=()=>{if(!inside&&!modal)void scene.fishingView.use();};
-$('enter-place').onclick = () => { if(!scene?.enterNearbyPlace()&&!inside&&!modal)toast('Fora de alcance.'); };
+$('enter-place').onclick = () => {if(visiting){(game.scene.getScene('Visit') as VisitScene).enterNearbyBarn();return;}if(!scene?.enterNearbyPlace()&&!inside&&!modal)toast('Aproxime-se da frente da porta.');};
 function useAction(){if(modal||onlineLoading)return;joystick={x:0,y:0};$('joystick-knob').style.transform='';if(friendBarnActive){(game.scene.getScene('FriendBarn') as InteriorScene).interact();return;}if(visiting){(game.scene.getScene('Visit') as VisitScene).interact();return;}joystick={x:0,y:0};$('joystick-knob').style.transform='';if(inside)(game.scene.getScene('Interior') as InteriorScene).interact();else{scene?.cancelMovement();scene?.interactNearest();}}
 bindPressAction($('touch-action'),useAction);
 cloud.salePosition=()=>!visiting&&!inside&&scene?.player&&atVendor(scene.player)?{x:scene.player.x,y:scene.player.y}:undefined;
@@ -546,7 +540,7 @@ async function lifeCommand(c:any){
  const result=c.type==='buy'?{ok:buySeeds(farm,c.crop),message:'+5 sementes guardadas!'}:applyLife(farm,c,Date.now());
  if(!result.ok)throw new Error(result.message||'Moedas insuficientes.');save();syncUI();scene?.paintFields();return result;
 }
-function finishInteriorExit(){scene.holdEntrance();entranceLockedUntil=performance.now()+600;currentInterior=null;inside=false;$('hint').hidden=false;setTool(tool);$('exit-interior').hidden=true;$('interior-view').hidden=true;$('world-place').textContent='VALE DO SOSSEGO';scene.cancelMovement();}
+function finishInteriorExit(){entranceLockedUntil=performance.now()+600;currentInterior=null;inside=false;$('hint').hidden=false;setTool(tool);$('exit-interior').hidden=true;$('interior-view').hidden=true;$('world-place').textContent='VALE DO SOSSEGO';scene.cancelMovement();}
 function recoverInterior(error:Error,room:'house'|'barn'){
  game.scene.stop('Interior');game.scene.wake('Farm');finishInteriorExit();
  openPanel('Não foi possível abrir o cômodo',`<p>A fazenda foi recuperada e seu progresso foi mantido.</p><p>Detalhe da falha:</p><pre id="room-error-detail" style="white-space:pre-wrap;overflow-wrap:anywhere"></pre><button class="primary" id="retry-room">Tentar entrar novamente</button><button class="secondary" id="continue-farm">Continuar na fazenda</button>`);
