@@ -1,3 +1,7 @@
+## 0.40 — criações na venda e interação normal
+
+Catálogo publicado integrado às categorias da venda, Novidades e roupas. Controles E/Usar e toque reconhecem animais criados. 317 testes e build passaram; sandbox autenticado PC/celular validou E/mão, toque, cuidados, compra única, roupas inéditas e persistência. Proteção impede o gesto de abertura de clicar nos botões da nova janela.
+
 ## 0.39 — criações integradas aos cuidados e guarda-roupa
 
 Animais publicados usam comandos e estoques comuns, aparecem em Meus animais e nos alertas de cuidados. Passeios coletivos incluem espécies compatíveis. Roupas criadas integram o guarda-roupa e trocam corretamente com as originais. 312 testes e build passaram. Sandbox autenticado em PC/celular validou presentes, nome/cuidados, estoques, animações reais, roupas, persistência e acompanhamento casa/celeiro/fazenda. Permanecem os limites de mecânicas inéditas, produção/reprodução dinâmica e cuidados de espécies criadas nas visitas.
