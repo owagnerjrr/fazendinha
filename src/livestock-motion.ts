@@ -1,3 +1,4 @@
+import {ellipseDistance} from './gait-distance.js';
 import type {Obstacle} from './pathfinding.js';
 /** Smooth closed walk and genuine rest, inside a private cell so herd members cannot overlap. */
 export function livestockMotion(box:Obstacle,index:number,count:number,size:{width:number;height:number},time:number,seed=0,kind='default'){
@@ -6,5 +7,5 @@ export function livestockMotion(box:Obstacle,index:number,count:number,size:{wid
  const pace=({cow:.8,goat:1.05,chicken:1.3,rooster:1.2,chick:1.4,cat:1.1} as Record<string,number>)[kind]??1;
  const t=((time*pace+index*2300+seed*1900)%36000+36000)%36000,walking=t<26000,s=walking?t/26000:1,ease=s*s*(3-2*s),angle=ease*Math.PI*2;
  const vx=walking?Math.cos(angle):1;
- return{x:box.x+cw*(col+.5)+Math.sin(angle)*rx,y:box.y+ch*(row+1)-9-(1-Math.cos(angle))*ry/2,walking,flip:vx<0,frame:walking?Math.floor(ease*Math.PI*2*Math.max(rx,ry)/2.8)%8:0};
+ return{x:box.x+cw*(col+.5)+Math.sin(angle)*rx,y:box.y+ch*(row+1)-9-(1-Math.cos(angle))*ry/2,walking,flip:vx<0,frame:walking?Math.floor(ellipseDistance(angle,rx,ry)/2.8)%8:0};
 }
