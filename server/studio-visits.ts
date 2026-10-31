@@ -6,7 +6,7 @@ import{assetReferences}from'./studio-media.js';
 import{check,uuid}from'../src/studio-schema.js';
 import{studioEntries}from'../src/studio-runtime.js';
 import{validAvatar}from'../src/content.js';
-import{sharedEntries,sharedProjection,guestSpawn,guestDoor,visitPosition,applyStudioGuest,type StudioPosition}from'../src/studio-visit-rules.js';
+import{sharedEntries,sharedProjection,guestSpawn,guestDoor,visitPosition,applyStudioGuest,safeGuestPosition,type StudioPosition}from'../src/studio-visit-rules.js';
 import type{Farm}from'../src/farm.js';
 
 async function context(db:PoolClient,user:string,code:unknown,lock=false){
@@ -29,14 +29,14 @@ export async function readStudioVisit(request:Request){const user=await identity
  return{owner:{code:ctx.host.public_code,name:ctx.host.name},scenes};}
  check(uuid(scene),'Cenário inválido.');const entries=sharedEntries(ctx.host.state,ctx.ownCatalog,ctx.visitorEntries,scene);
  const p=(await db.query('SELECT scene,x,y,direction FROM studio_presence WHERE user_id=$1 AND owner_id=$2 AND scene=$3 AND updated_at>now()-interval \'12 seconds\'',[user.id,ctx.host.user_id,scene])).rows[0]??guestSpawn(entries,scene);
- const projection=sharedProjection(ctx.host.state,entries,{code:ctx.host.public_code,name:ctx.host.name},p,Date.now());projection.players=await peers(db,user.id,ctx.host.user_id,scene);return projection;
+ const projection=sharedProjection(ctx.host.state,entries,{code:ctx.host.public_code,name:ctx.host.name},safeGuestPosition(ctx.host.state,entries,p),Date.now());projection.players=await peers(db,user.id,ctx.host.user_id,scene);return projection;
  }finally{db.release();}}
 
 export async function scenePresence(user:string,input:Record<string,any>){const db=await pool.connect();try{
  if(input.leave===true){await db.query('DELETE FROM studio_presence WHERE user_id=$1',[user]);return{players:[]};}
  const ctx=await context(db,user,input.code);check(uuid(input.scene),'Cenário inválido.');
  let p:StudioPosition;let entries:ReturnType<typeof sharedEntries>|undefined;if(ctx.host.user_id===user){p=ctx.host.state.studio?.position;check(p?.scene===input.scene,'Entre neste cenário primeiro.');}
- else{entries=sharedEntries(ctx.host.state,ctx.ownCatalog,ctx.visitorEntries,input.scene);p=(await db.query('SELECT scene,x,y,direction FROM studio_presence WHERE user_id=$1 AND owner_id=$2 AND scene=$3 AND updated_at>now()-interval \'12 seconds\'',[user,ctx.host.user_id,input.scene])).rows[0];check(p,'Sua visita terminou. Entre novamente.');}
+ else{entries=sharedEntries(ctx.host.state,ctx.ownCatalog,ctx.visitorEntries,input.scene);p=(await db.query('SELECT scene,x,y,direction FROM studio_presence WHERE user_id=$1 AND owner_id=$2 AND scene=$3 AND updated_at>now()-interval \'12 seconds\'',[user,ctx.host.user_id,input.scene])).rows[0];check(p,'Sua visita terminou. Entre novamente.');p=safeGuestPosition(ctx.host.state,entries,p);}
  await savePresence(db,user,ctx.host.user_id,p);const players=await peers(db,user,ctx.host.user_id,p.scene);if(entries){const visit=sharedProjection(ctx.host.state,entries,{code:ctx.host.public_code,name:ctx.host.name},p,Date.now());visit.players=players;return{players,visit};}return{players};
  }finally{db.release();}}
 
@@ -48,6 +48,7 @@ export async function mutateStudioVisit(db:PoolClient,user:string,visitor:Farm,c
  if(c.action==='enter'){p=stored?.scene===c.scene&&now-Number(new Date(stored.updated_at))<12000?stored:guestSpawn(entries,c.scene);message='Você chegou ao cenário de '+ctx.host.name+'.';}
  else{
   check(stored?.scene===c.scene&&now-Number(new Date(stored.updated_at))<12000,'A visita terminou. Entre novamente.');
+  const safe=safeGuestPosition(ctx.host.state,entries,p);if(safe.x!==p.x||safe.y!==p.y){await savePresence(db,user,ctx.host.user_id,safe);return{ok:true,message:'A área mudou. Você voltou à entrada em segurança.',studioVisit:safe};}
   if(c.action==='move'){p=visitPosition(ctx.host.state,entries,p,c);message='Posição da visita salva.';}
   else if(c.action==='door'){
    const destination=guestDoor(ctx.host.state,entries,p,c);if(destination==='farm'){await db.query('DELETE FROM studio_presence WHERE user_id=$1',[user]);return{ok:true,message:'Visita encerrada.',studioVisit:{exit:true}};}

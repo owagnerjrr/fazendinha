@@ -74,3 +74,5 @@ export function guestDoor(host:Farm,entries:StudioEntry[],position:StudioPositio
  return cell.destination;
 }
 export function guestSpawn(entries:StudioEntry[],scene:string){const e=entries.find(e=>e.id===scene);check(e?.definition.kind==='scene','Cenário indisponível.');return{scene,...mapSpawn(e.definition),direction:0};}
+
+export function safeGuestPosition(host:Farm,entries:StudioEntry[],p:StudioPosition){const d=entries.find(e=>e.id===p.scene)?.definition;check(d?.kind==='scene','Cenário indisponível.');let free=mapWalkable(d,p.x,p.y);for(const b of host.studio?.structures??[]){if(b.scene!==p.scene)continue;const bd=entries.find(e=>e.id===b.content)?.definition;if(!bd||bd.data.function==='garden')continue;const size=footprint(bd,b.rotation);if(p.x>=b.x&&p.x<b.x+size.width&&p.y>=b.y&&p.y<b.y+size.height)free=false;}return free?p:guestSpawn(entries,p.scene);}
