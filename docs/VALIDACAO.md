@@ -686,3 +686,7 @@ Guia de uso e limites efetivos em ADMIN_GUIA.md. Não há validação física de
 ## 0.40 — venda e controles de criações
 
 317 testes passaram e build passou: proteção do gesto de abertura da janela (sem perder clique/teclado legítimos), alvo próximo/frontal, recusa de alvo distante/atrás, presente publicado comprável sem alterar o animal original, estoque/propriedade após nova compra e categorias/lojas exclusivas. Sandbox autenticado 1280/390px: E no PC e mão/Usar por toque no celular abriram o painel; clique/toque no animal além do alcance abriu o painel sem falha silenciosa; ração normal consumiu uma unidade e carinho executou a textura animada real. Coelho presenteado apareceu em Animais e ração; clique duplo de compra descontou uma única vez e manteve o animal original. Novidades e roupa inédita comprável na loja de roupas foram verificadas; moedas, aquisições e animais persistiram após recarga. Sem erro JS nem transbordamento. Reproduzido/corrigido no celular o clique de soltar o gesto que acionava um botão da janela recém-aberta. Sem migração ou redistribuição de presentes; nenhuma escrita em contas reais.
+
+## 0.40.1 — padronização visual dos cuidados
+
+Cartão animal-card e painel animal-detail compartilhados com os animais originais, imagem do sprite publicado e opções de nome/local recolhidas. Nome oculto no cenário, com alertas de necessidades preservados. Validação visual autenticada em andamento; sem mudança nas regras de cuidado ou no estado salvo.

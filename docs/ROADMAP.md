@@ -1,3 +1,7 @@
+## 0.40.1 — cuidados no padrão dos outros animais
+
+Painel compacto compartilhado, retrato real do animal criado, Mais opções e ausência de nome permanente sobre o sprite. Validação visual em andamento.
+
 ## 0.40 — criações na venda e interação normal
 
 Catálogo publicado integrado às categorias da venda, Novidades e roupas. Controles E/Usar e toque reconhecem animais criados. 317 testes e build passaram; sandbox autenticado PC/celular validou E/mão, toque, cuidados, compra única, roupas inéditas e persistência. Proteção impede o gesto de abertura de clicar nos botões da nova janela.
