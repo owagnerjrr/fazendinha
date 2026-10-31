@@ -1,0 +1,7 @@
+import {playerCatalog} from '../server/studio.js';
+import {identity} from '../server/auth.js';
+import {pool} from '../server/db.js';
+import {heartbeat} from '../server/player-activity.js';
+import {StudioValidationError} from '../src/studio-schema.js';
+export async function GET(r:Request){try{return Response.json({catalog:await playerCatalog(r)},{headers:{'Cache-Control':'no-store'}});}catch(e){return Response.json({error:e instanceof Error&&e.message==='UNAUTHORIZED'?'Entre na sua conta.':'Catálogo indisponível.'},{status:e instanceof Error&&e.message==='UNAUTHORIZED'?401:503,headers:{'Cache-Control':'no-store'}});}}
+export async function POST(r:Request){try{const u=await identity(r);const valid=await pool.query('SELECT 1 FROM neon_auth."user" WHERE id=$1 AND NOT coalesce(banned,false)',[u.id]);if(!valid.rowCount)return Response.json({error:'Acesso indisponível.'},{status:403});if(!r.headers.get('content-type')?.startsWith('application/json'))return Response.json({error:'Envie JSON.'},{status:415});const raw=await r.text();if(raw.length>2000)return Response.json({error:'Pedido muito grande.'},{status:413});return Response.json(await heartbeat(u.id,JSON.parse(raw)),{headers:{'Cache-Control':'no-store'}});}catch(e){return Response.json({error:'Não foi possível registrar atividade.'},{status:e instanceof Error&&e.message==='UNAUTHORIZED'?401:e instanceof StudioValidationError||e instanceof SyntaxError?400:503,headers:{'Cache-Control':'no-store'}});}}

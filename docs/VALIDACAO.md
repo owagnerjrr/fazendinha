@@ -1,3 +1,6 @@
+## Central administrativa — base em desenvolvimento
+
+Branch codex/admin-creation-studio: autenticação exclusiva no servidor, definições versionadas, grupos/públicos estáveis, consulta de contas/pedidos e coleta de atividade. 276 testes passaram e build passou. Migração aditiva 014 testada no banco isolado. Executor de conteúdo, editor visual, arquivos, concessões, ajustes de progresso e configuração efetiva do jogo ainda pendentes; não considerar o pedido completo. Consulte docs/ADMIN_GUIA.md. Validação autenticada publicada em andamento.
 ## 0.31.0 — passeios felizes, cuidados nas visitas e seleção na baia
 
 Iniciar passeio completa a felicidade e ela permanece cheia enquanto o passeio estiver ativo. Baia com vários animais abre uma lista numerada com nomes, espécies e condição; funciona no portão e ao escolher animais, inclusive gatos/cães, na fazenda própria e no celeiro visitado.
@@ -622,3 +625,4 @@ Limites: celular validado por emulação de viewport/toque no Edge, sem aparelho
 - Fertilizante e defensivo são itens equipáveis separados na bolsa: borrifadores com ícones e estoque próprios, frasco preso à mão, bombeamento e névoa na aplicação. Fertilizante reduz crescimento; defensivo trata doença. Consumo somente após sucesso nos comandos existentes do servidor; falhas e repetição conservam estoque.
 - Chamados usam oito quadros de pose que substituem os braços originais, com mão na boca e orientação consistente. O gesto tem elevação e retorno, sem braços extras nem círculos grandes. Ações incompatíveis são bloqueadas durante o chamado.
 - 269 testes e build passaram. Playwright local em 1280×900, 390×780 e 844×390: equipar pela bolsa, borrifar fertilizante/defensivo, cura e consumo únicos, recusa de repetição, aplicação no sul, limites de Construir e pose efetivamente renderizada. Sandbox publicado com contas sintéticas: fertilizante (1280 px) e defensivo (390 px) equipados pela bolsa e aplicados na planta por clique, com dose exata e estado atualizado pela API real; chamado com pose nova, passagem para o sul e Construir separado do controle de ação, sem erros JS/API. A conferência de produção fica no relatório de entrega.
+

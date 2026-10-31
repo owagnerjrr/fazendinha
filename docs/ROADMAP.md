@@ -1,3 +1,6 @@
+## Central administrativa — base em desenvolvimento
+
+Branch codex/admin-creation-studio: autenticação exclusiva no servidor, definições versionadas, grupos/públicos estáveis, consulta de contas/pedidos e coleta de atividade. 276 testes passaram e build passou. Migração aditiva 014 testada no banco isolado. Executor de conteúdo, editor visual, arquivos, concessões, ajustes de progresso e configuração efetiva do jogo ainda pendentes; não considerar o pedido completo. Consulte docs/ADMIN_GUIA.md. Validação autenticada publicada em andamento.
 ## 0.31.0 — passeios felizes, cuidados nas visitas e seleção na baia
 
 Iniciar passeio completa a felicidade e ela permanece cheia enquanto o passeio estiver ativo. Baia com vários animais abre uma lista numerada com nomes, espécies e condição; funciona no portão e ao escolher animais, inclusive gatos/cães, na fazenda própria e no celeiro visitado.
@@ -323,3 +326,4 @@ Validação 0.32: 253 testes e build passaram. Fluxos locais desktop/celular e a
 0.33: consulta remota de cuidados dos animais de amigos; ajuda com deslocamento até o animal; organização automática de construções antigas no sul sem recriar bens; chamados temporários para gato e cachorro com gesto, áudio e aproximação.
 
 0.34: Construir fora dos controles de movimento/ação; fertilizante e defensivo como borrifadores equipáveis; gesto de chamada em quadros de sprite com braço substituído, não sobreposto.
+
