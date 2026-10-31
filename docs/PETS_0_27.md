@@ -11,7 +11,7 @@
 - Cliente de jogo 11; clientes antigos são impedidos de alterar fazendas com escolha de pet até atualizar. Não alteramos autenticação ou pagamentos.
 
 ## Verificações
-- 201 testes automatizados e build TypeScript/Vite/PWA.
+- 202 testes automatizados e build TypeScript/Vite/PWA.
 - Regressões de configuração individual, restauração, preservação dos campos econômicos/cuidados/IDs, proprietário inválido, espécie inválida, modo inválido e compatibilidade de clientes.
 - Navegação pura desvia de mobiliário e permanece dentro dos limites livres.
 - Navegador desktop: gato e cachorro receberam carinho e brincaram em fazenda, casa e celeiro. Conferência visual de cabeça/mão, bolinha, varinha e novos sprites.
