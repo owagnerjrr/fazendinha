@@ -1,3 +1,7 @@
+## 0.29.2 — entrada automática
+
+Sem círculos de entrada ou destino. Casa, celeiro e venda abrem ao caminhar bem próximo e alinhado à porta. Trava até afastar-se evita reabrir ao sair ou fechar a venda. 225 testes e build aprovados; navegação real por teclado (1280px) e joystick (390px), passagem lateral e saída sem reentrada testadas. Scripts/qa-auto-entry-0292.mjs reproduz o fluxo em fixtures locais. Nenhuma mudança de banco ou economia.
+
 ## 0.29.1 — entradas, inventário e relógio
 
 Correção dos pontos de chegada às portas, retorno dos ícones no inventário e alinhamento do relógio. [Detalhes e testes](CORRECOES_0_29_1.md).
