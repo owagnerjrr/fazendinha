@@ -22,12 +22,13 @@ import { soilTime, getPlot, allPlots, upgradeFarm, hasPests, remaining, CROPS, t
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const codePattern = /^[A-Z0-9]{10}$/;
 export class GameError extends Error { constructor(message: string, public status = 400) { super(message); } }
-export async function ensureFarm(id: string, name: string,care=false,living=false) {
+export async function ensureFarm(id: string, name: string,care=false,living=false,barn=false) {
   const account=await pool.query('SELECT name FROM neon_auth."user" WHERE id=$1 AND banned IS NOT TRUE',[id]);
   if(!account.rowCount) throw new GameError('Conta não encontrada.',401);
   await pool.query('INSERT INTO farms(user_id,name,state) VALUES($1,$2,$3) ON CONFLICT DO NOTHING',[id,String(account.rows[0].name || name).slice(0,40),newOnlineFarm(Date.now())]);
   // Add only the missing calendar. Existing state and revision remain intact; simultaneous openings serialize this row update.
   await pool.query("UPDATE farms SET state=jsonb_set(state,'{calendar}',jsonb_build_object('startedAt',floor(extract(epoch FROM now())*1000),'offsetMinutes',0)) WHERE user_id=$1 AND NOT (state ? 'calendar')",[id]);
+  if(barn)await pool.query("UPDATE farms SET state=jsonb_set(state,'{barnVersion}','1'::jsonb) WHERE user_id=$1 AND NOT(state ? 'barnVersion')",[id]);
   if(living)await pool.query("UPDATE farms SET state=jsonb_set(state,'{livingSince}',to_jsonb(floor(extract(epoch FROM now())*1000))) WHERE user_id=$1 AND NOT(state ? 'livingSince')",[id]);
   if(care)await pool.query("UPDATE farms SET state=state || jsonb_build_object('careVersion',1,'careStartedAt',floor(extract(epoch FROM now())*1000)) WHERE user_id=$1 AND NOT (state ? 'careVersion')",[id]);
 }

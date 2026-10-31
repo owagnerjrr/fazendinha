@@ -1,5 +1,7 @@
 import type { Farm } from './farm.js';
 export function requiresNewClient(farm:Farm,version:string|null|undefined):boolean {
+ if(version==='14')return false;
+ if(farm.barnVersion===1||farm.animals.some(a=>a.pen!==undefined))return true;
  if(version==='13')return false;
  if(farm.livingSince!=null)return true;
  if(version==='12')return false;

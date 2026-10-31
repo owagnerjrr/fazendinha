@@ -1,3 +1,11 @@
+## 0.30.0 — oito baias e cuidados equilibrados
+
+Cada baia suporta cinco animais de qualquer espécie; total de 40 vagas no celeiro. Compra e transferência permitem escolher a baia, com contagem individual e validação no servidor. Ovos em incubação reservam vaga na baia da mãe. Redistribuição aditiva dos animais antigos sem baia; IDs, saldos, nomes, produção, cuidados e configurações de acompanhamento são preservados. Protocolo 14 impede que clientes antigos sobrescrevam a nova distribuição.
+
+Todos os animais recebem texto FOME, SEDE, DOENTE, LIMPEZA ou DESCANSO quando aplicável. Doença tem prioridade; necessidades simultâneas alternam o aviso. Cuidados completos duram aproximadamente 90min para comida, 75min para água, 120min para limpeza, 90min de energia de passeio/felicidade, com variações por espécie. Avisos abaixo de 30%. Novos animais começam com 70% de reserva; os estados já salvos não são preenchidos nem apagados. Offline limitado a 2min por retorno. Não há punição extra por sono.
+
+235 testes e build aprovados. Navegador 1280/390px: escolha na compra e transferência de cachorro, 40 animais misturados desenhados nas baias, recusa de sexto sem débito, avisos, carinho no cachorro e peixe ao gato com portões abertos e retorno, recuperação após recarregar. Script: scripts/qa-barn-pens030.mjs. Validação autenticada isolada antes da publicação.
+
 ## 0.29.4 — compra de cachorro e confirmação
 
 Vídeo recebido mostra celeiro cheio e saldo inalterado de 3.617 moedas; a capacidade continua 12 incluindo incubação. Vagas e impedimento agora ficam junto à compra. Confirmação Compra feita! por toast e no cartão somente após retorno bem-sucedido. Layout dos animais legível no celular. Nova compra de cachorro respeita destino Celeiro, sem alterar cães existentes (configuração anterior preservada).

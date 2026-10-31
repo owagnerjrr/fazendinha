@@ -46,7 +46,7 @@ export class InteriorScene extends Phaser.Scene {
 
   }else{
    block(145,130,20,690);block(1035,130,20,690);block(150,130,900,90);block(150,807,380,18);block(670,807,380,18);
-   this.barn=buildBarn(this,s.farm(),block,id=>s.animals(id),()=>s.equipment(),id=>{if(this.homeBusy)return;this.homeBusy=true;void(s.collect?.(id)??Promise.resolve()).catch(e=>s.toast(e.message)).finally(()=>{this.homeBusy=false;});});this.points.push(...this.barn.points);this.animalSignature=JSON.stringify(s.farm().animals.filter(a=>!isPet(a)).map(a=>[a.id,a.kind,a.housing,a.walking]));
+   this.barn=buildBarn(this,s.farm(),block,id=>s.animals(id),()=>s.equipment(),id=>{if(this.homeBusy)return;this.homeBusy=true;void(s.collect?.(id)??Promise.resolve()).catch(e=>s.toast(e.message)).finally(()=>{this.homeBusy=false;});});this.points.push(...this.barn.points);this.animalSignature=JSON.stringify(s.farm().animals.map(a=>[a.id,a.kind,a.housing,a.walking,a.pen,a.petMode]));
   }
   bakeFloor(this,this.room==='house'?{x:258,y:154,width:686,height:580}:{x:140,y:130,width:920,height:700});
   const exitY=this.room==='house'?697:790;this.points.push({x:600,y:exitY,name:'Voltar à fazenda',run:()=>this.leave()});
@@ -75,7 +75,7 @@ export class InteriorScene extends Phaser.Scene {
  async bond(id:string,type:'pet-animal'|'play-animal'):Promise<void>{
   if(this.bonding||this.pets.locked)throw Error('Aguarde a interação atual.');
   if(this.services.farm().animals.some(a=>a.id===id&&isPet(a))){this.pets.update(this.time.now,this.player);return this.pets.bond(id,type);}
-  const signature=JSON.stringify(this.services.farm().animals.filter(a=>!isPet(a)).map(a=>[a.id,a.kind,a.housing,a.walking]));
+  const signature=JSON.stringify(this.services.farm().animals.map(a=>[a.id,a.kind,a.housing,a.walking,a.pen,a.petMode]));
   if(this.room==='barn'&&this.animalSignature!==signature){const created=new Promise<void>(resolve=>this.events.once('create',resolve));this.scene.restart({room:'barn'});await created;}
   if(this.bonding)return Promise.reject(new Error('Aguarde a interação atual.'));
   const access=this.barn?.access(id);if(!access||!this.services.farm().animals.some(a=>a.id===id))return Promise.reject(new Error('Animal não encontrado no celeiro.'));
@@ -138,7 +138,7 @@ export class InteriorScene extends Phaser.Scene {
   const phase=this.breathing.frame(time,len>.1,!!bond,!display.breathing),idle=len<=.1&&!bond;
   const tool=bond||this.pets.locked?'hand':s.tool(),base=tool==='hand'||tool==='rod'?'farmer-v2':`carry-${tool}`,key=idle?this.art.idleKey(base,appearanceOf(s.farm())):this.art.key(base,appearanceOf(s.farm())),frame=this.dir*4+(len>.1?Math.floor(time/140)%4:phase);this.actor.setTexture(key,frame).setScale(1.08).setOrigin(.5,base==='farmer-v2'?62/64:100/112).setPosition(this.player.x,this.player.y-2).setDepth(this.player.y);
   this.restFrame(time,phase);this.house?.updateHome(s.farm().home,time,this.rest?.kind==='sleep',this.reduced.matches);if(time>=this.nextUI){this.updateHouseControls();this.nextUI=time+100;}
-  this.barn?.update(time,s.farm(),s.now(),this.player);this.gesture.clear();
+  this.barn?.update(time,s.farm(),s.now(),this.player,this.pets.careId);this.gesture.clear();
   if(bond){
    if(bond.phase==='contact'&&time-bond.start>=3000){
     const access=this.barn?.access(bond.id);if(!access||Math.hypot(this.player.x-access.x,this.player.y-access.y)>20){this.finishBond(new Error('Fora de alcance.'));return;}
@@ -155,6 +155,6 @@ export class InteriorScene extends Phaser.Scene {
    }
    if(time-bond.start>15000&&bond.phase==='arriving')this.finishBond(new Error('O caminho até o animal ficou bloqueado.'));
   }
-  if(this.barn&&!s.modal()&&this.animalSignature!==JSON.stringify(s.farm().animals.filter(a=>!isPet(a)).map(a=>[a.id,a.kind,a.housing,a.walking])))this.scene.restart({room:'barn'});
+  if(this.barn&&!s.modal()&&this.animalSignature!==JSON.stringify(s.farm().animals.map(a=>[a.id,a.kind,a.housing,a.walking,a.pen,a.petMode])))this.scene.restart({room:'barn'});
  }
 }
