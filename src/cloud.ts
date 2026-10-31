@@ -26,7 +26,7 @@ export class CloudFarm {
   async request(path='',body?:unknown,endpoint='/api/game',timeoutMs=15000) {
     const a=await auth(), token=sessionToken(await a.token()); if(!token) throw new Error('Sua sessão expirou. Entre novamente.');
     this.accessToken=token;
-    const r=await fetch(`${endpoint}${path}`,{method:body?'POST':'GET',headers:{'X-Farm-Version':'15',Authorization:`Bearer ${token}`,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,cache:'no-store',signal:AbortSignal.timeout(timeoutMs)});
+    const r=await fetch(`${endpoint}${path}`,{method:body?'POST':'GET',headers:{'X-Farm-Version':'16',Authorization:`Bearer ${token}`,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,cache:'no-store',signal:AbortSignal.timeout(timeoutMs)});
     const result=await r.json(); if(!r.ok) { const error=new Error(result.error??'Falha ao sincronizar.') as Error & {status:number}; error.status=r.status; throw error; } return result;
   }
   accept(snapshot:Snapshot,initial=false) { if(!initial&&snapshot.revision<this.revision) return; this.revision=snapshot.revision; this.offset=snapshot.now-Date.now(); this.code=snapshot.code??this.code; this.name=snapshot.name??this.name; this.onSnapshot(snapshot,initial); this.onStatus('Progresso online sincronizado'); }

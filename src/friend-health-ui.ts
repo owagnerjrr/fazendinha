@@ -1,0 +1,16 @@
+import type{Animal}from'./content';import{ANIMALS}from'./content';import{animalNeeds}from'./animal-needs';import{animalMeters}from'./care-ui';import{housingName}from'./housing';import type{Farm}from'./farm';
+const esc=(s:string)=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
+export function friendAnimalHealth(a:Animal,now:number){const n=animalNeeds(a,now);return animalMeters(n.food,n.water,n.clean,n.health,n.energy??100,n.happy??75)+(n.sick?'<p class="animal-sick">Doente · precisa de cuidados e tratamento.</p>':'');}
+type View={name:string;now:number;animals:Animal[];buildings:Farm['buildings'];visitorCare?:boolean};
+export function friendHealthUI(s:{fetch:(code:string)=>Promise<View>;open:(title:string,html:string)=>void;close:()=>void;help:(code:string,id:string)=>Promise<void>;toast:(text:string)=>void}){
+ let timer:ReturnType<typeof setTimeout>|undefined,session=0;
+ async function open(code:string){const token=++session;if(timer)clearTimeout(timer);s.open('Saúde dos animais do amigo','<p id="friend-health-loading">Consultando os cuidados…</p>');
+  const load=async(first=false)=>{try{const v=await s.fetch(code);if(!document.getElementById('friend-health-board'))first=true;if(token!==session||!document.getElementById(first?'friend-health-loading':'friend-health-board'))return;
+   const cards=v.animals.map((a,i)=>`<article class="friend-health-card"><h3>${esc(a.name??ANIMALS[a.kind].name)}</h3><small>${esc(ANIMALS[a.kind].name)} · ${esc(housingName(v,a))}</small><div class="need-grid">${friendAnimalHealth(a,v.now)}</div><button data-health-help="${i}" ${v.visitorCare?'':'disabled'}>Visitar e ajudar</button></article>`).join('')||'<p>Seu amigo ainda não tem animais.</p>';
+   const html=`<p>100% significa bem cuidado. Você pode consultar daqui; para ajudar, vá até o animal. Ração, palha e remédio saem da sua bolsa.</p>${v.visitorCare?'':'<p>O dono ainda não permitiu cuidados de visitantes.</p>'}<p id="friend-health-updated">Atualizado agora · atualização automática a cada 5 segundos</p><button id="friend-health-refresh">Atualizar agora</button><div id="friend-health-cards">${cards}</div>`;
+   if(first)s.open('Animais de '+v.name,'<section id="friend-health-board">'+html+'</section>');else{const top=document.getElementById('panel-content')?.scrollTop??0;document.getElementById('friend-health-board')!.innerHTML=html;const p=document.getElementById('panel-content');if(p)p.scrollTop=top;}
+   document.getElementById('friend-health-refresh')!.onclick=()=>{if(timer)clearTimeout(timer);void load();};document.querySelectorAll<HTMLButtonElement>('[data-health-help]').forEach(b=>b.onclick=()=>{session++;if(timer)clearTimeout(timer);s.close();void s.help(code,v.animals[Number(b.dataset.healthHelp)].id).catch(e=>s.toast(e.message));});
+  }catch(e){const el=document.getElementById(first?'friend-health-loading':'friend-health-updated');if(el)el.textContent='Não foi possível atualizar: '+(e as Error).message;document.querySelectorAll<HTMLButtonElement>('[data-health-help]').forEach(b=>b.disabled=true);}
+  if(token===session&&(document.getElementById('friend-health-board')||document.getElementById('friend-health-loading')))timer=setTimeout(()=>void load(),5000);};await load(true);
+ }return{open};
+}
