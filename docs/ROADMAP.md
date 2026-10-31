@@ -1,3 +1,7 @@
+## 0.29.0 — Vale vivo
+
+Clima, cuidados, áudio, convites e visitas ao curral integrados. [Escopo, regras e evidências](VALE_VIVO_0_29.md). 223 testes, build e fluxos autenticados no sandbox aprovados. Publicação pelo PR #12.
+
 ## 0.28.2 — chegada confiável nas visitas
 
 Correção da sincronização de presença ao entrar e cuidar dos canteiros. [Causas e testes](VISITAS_0_28_2.md).

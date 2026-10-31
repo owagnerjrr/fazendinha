@@ -1,3 +1,4 @@
+import{effectsAudio}from'./sound';
 import Phaser from 'phaser';
 import { waterPoint, type Point } from './action-timing';
 
@@ -35,11 +36,12 @@ export class WorkEffects {
       this.graphics.fillStyle(0xe0f6ed, 1 - t).fillRect(splash.x - spread, splash.y - Math.sin(t * Math.PI) * 4, 1, 2).fillRect(splash.x + spread, splash.y - Math.sin(t * Math.PI) * 3, 1, 1);
     }
   }
-  wetSoil(target: Point) {
+  plant(target:Point){effectsAudio.play('seed');this.harvest(target,false);}
+  wetSoil(target: Point) {effectsAudio.play('water');
     const sheen = this.scene.add.ellipse(target.x, target.y + 3, 34, 16, 0x8dbab2, .28).setDepth(target.y + 3).setScale(.3);
     this.scene.tweens.add({ targets: sheen, scaleX: 1.15, scaleY: .85, alpha: 0, duration: 700, ease: 'Sine.easeOut', onComplete: () => sheen.destroy() });
   }
-  dirt(target: Point) {
+  dirt(target: Point) {effectsAudio.play('hoe');
     for (let i = 0; i < 14; i++) {
       const color = [0xa07a49, 0x6b4831, 0xd1aa65][i % 3];
       const chunk = this.scene.add.rectangle(target.x, target.y, i % 3 ? 3 : 4, 2, color).setDepth(1750);
@@ -47,7 +49,7 @@ export class WorkEffects {
       this.scene.tweens.addCounter({ from: 0, to: 1, duration: 500 + i * 8, onUpdate: tween => { const t = tween.getValue() ?? 0; chunk.setPosition(target.x + vx * t, target.y + vy * t + 44 * t * t).setAlpha(1 - t).setAngle(t * vx * 4); }, onComplete: () => chunk.destroy() });
     }
   }
-  harvest(target: Point) {
+  harvest(target: Point,sound=true) {if(sound)effectsAudio.play('hand');
     for (let i = 0; i < 8; i++) { const spark = this.scene.add.rectangle(target.x + Phaser.Math.Between(-9, 9), target.y, 2, 3, 0xf3d581).setDepth(1750); this.scene.tweens.add({ targets: spark, y: target.y - 30, alpha: 0, duration: 550, delay: i * 15, onComplete: () => spark.destroy() }); }
   }
 }

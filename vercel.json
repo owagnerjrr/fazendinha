@@ -27,6 +27,10 @@
   ],
   "rewrites": [
     {
+      "source": "/convite/:code",
+      "destination": "/api/invite?code=:code"
+    },
+    {
       "source": "/api/auth/:path*",
       "destination": "/api/auth?path=:path*"
     }
