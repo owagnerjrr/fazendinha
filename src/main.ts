@@ -104,6 +104,7 @@ function syncUI() {
   $('online-bar').hidden = false;
   $('progression').hidden=!cloud.active;$('community').hidden=!cloud.active;
   if (cloud.active) { const f=farm as OnlineFarm; $('progression').textContent = `Nível ${levelOf(f.xp)}`; }
+  const hand=$('active-tool');hand.dataset.tool='hand';delete hand.dataset.selectedTool;hand.setAttribute('aria-label','Mão: interagir');const handImage=hand.querySelector('img');if(handImage?.getAttribute('src')!=='/assets/v2/hand.svg')handImage?.setAttribute('src','/assets/v2/hand.svg');const handLabel=hand.querySelector('span:nth-child(2)');if(handLabel)handLabel.textContent='Mão';
   if(equippedTool==='rod'&&!farm.fishing?.rod)equippedTool='water';
   document.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach(b=>{b.hidden=b.dataset.tool==='rod'&&!farm.fishing?.rod;});
   const icons:Record<Tool,string>={hand:'/assets/v2/hand.svg',hoe:'/assets/v2/icon-hoe.png',seed:'/assets/v2/icon-seed.png',water:'/assets/v2/icon-water.png',rod:'/assets/v10/rod.svg'},names:Record<Tool,string>={hand:'Mão',hoe:'Enxada',seed:'Plantar',water:'Regar',rod:'Pescar'};
