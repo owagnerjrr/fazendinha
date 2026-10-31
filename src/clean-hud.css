@@ -64,3 +64,8 @@
 #panel [data-friend-care]{background:#466947;color:#fff1d1;border:1px solid #bda46b;border-radius:12px;padding:12px;margin:4px;min-height:44px}#visitor-care-option{margin-right:8px}
 
 .friend-barn #visit-banner{display:none}
+
+/* Four clock lines must fit inside the panel, including weather and date. */
+.world-clock{width:178px;height:auto;min-height:62px;grid-template-columns:62px minmax(0,1fr);grid-template-rows:24px 11px 11px;row-gap:1px;box-sizing:border-box;padding:6px 10px}.world-clock strong{line-height:24px}.world-clock span{white-space:nowrap;line-height:12px}.world-clock small{line-height:11px;white-space:nowrap}.inventory-icon{position:relative;display:grid;place-items:center;width:48px;height:52px;flex-shrink:0}.inventory-icon>img{max-width:42px;max-height:48px;object-fit:contain;image-rendering:pixelated}.inventory-icon>.inventory-seed{position:absolute;right:0;bottom:0;width:20px;height:20px;filter:drop-shadow(0 1px 1px #f8f0d5)}.inventory-emoji{font-size:30px}
+@media(max-width:520px){.world-clock{width:154px;min-height:60px;grid-template-columns:57px minmax(0,1fr);grid-template-rows:22px 10px 10px;padding:6px 8px;column-gap:5px}.world-clock strong{line-height:22px}.world-clock small{line-height:10px}.music-toggle{left:174px}}
+@media(max-width:360px){.music-toggle{top:76px;left:64px}}

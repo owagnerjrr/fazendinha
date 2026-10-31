@@ -1,3 +1,4 @@
+import{ENTRANCES}from'./entrances';
 import{BUILDINGS}from'./plots';
 import{ClimateFX}from'./climate-fx';import{TimeLighting}from'./time-lighting';
 import {PetWorld} from './pet-world';
@@ -18,7 +19,7 @@ export class VisitScene extends Phaser.Scene{
  private work?:{clock:ActionClock;id:number;crop:Crop;action:VisitAction;settled:boolean};private effects!:WorkEffects;
  pets!:PetWorld;remote?:RemoteFarmers;
  animalsMenu(){const choices=[{id:'barn',name:'Celeiro'},...(this.view.buildings??[]).filter(b=>['coop','pasture'].includes(b.kind)).map(b=>({id:b.id,name:BUILDINGS[b.kind].name}))];this.s.open('Conhecer os animais do amigo',choices.map(c=>'<button data-visit-house="'+c.id+'">'+c.name+'</button>').join(''));document.querySelectorAll<HTMLButtonElement>('[data-visit-house]').forEach(b=>b.onclick=()=>{this.s.close();this.enterBarn(b.dataset.visitHouse);});}
- enterBarn(housing='barn'){if(this.arriving){this.pendingBarn=housing;this.s.toast('Confirmando sua chegada. Você seguirá para a instalação.');return;}if(this.busy||this.s.modal())return;const building=this.view.buildings?.find(b=>b.id===housing),point=housing==='barn'?{x:1050,y:840}:building?this.land.access(building):null;if(!point)return;this.route=findPath(this.player,point,this.blocks);if(this.route.length)this.target={point,run:()=>this.s.enterBarn?.(housing)};else this.s.toast('Não há passagem até a instalação.');}
+ enterBarn(housing='barn'){if(this.arriving){this.pendingBarn=housing;this.s.toast('Confirmando sua chegada. Você seguirá para a instalação.');return;}if(this.busy||this.s.modal())return;const building=this.view.buildings?.find(b=>b.id===housing),point=housing==='barn'?ENTRANCES.find(e=>e.id==='barn')!:building?this.land.access(building):null;if(!point)return;this.route=findPath(this.player,point,this.blocks);if(this.route.length)this.target={point,run:()=>this.s.enterBarn?.(housing)};else this.s.toast('Não há passagem até a instalação.');}
  clockFarm(){return this.publicFarm;}
  farmCode(){return this.view.code;}
  presencePosition(){return this.player?{x:this.player.x,y:this.player.y,direction:this.dir}:null;}
