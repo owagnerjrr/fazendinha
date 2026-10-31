@@ -690,3 +690,7 @@ Guia de uso e limites efetivos em ADMIN_GUIA.md. Não há validação física de
 ## 0.40.1 — padronização visual dos cuidados
 
 Cartão animal-card e painel animal-detail compartilhados com os animais originais, imagem do sprite publicado e opções de nome/local recolhidas. Nome oculto no cenário, com alertas de necessidades preservados. 317 testes e build passaram. Sandbox autenticado em 1280/390px comparou painel original e criado: largura do painel, colunas, tamanho da imagem e cor dos botões iguais. Retrato real com pixels visíveis e seis indicadores; Mais opções recolhido; renomear e trocar local persistiram; carinho executou a textura animada; reabrir preservou imagem e identidade. Ausência de nome no cenário confirmada, inclusive após renomear; aviso FOME continuou visível quando necessário. Sem erros JS nem transbordamento. Nenhuma migração, redistribuição ou escrita em contas reais.
+
+## 0.40.2 — organização de amigos e venda
+
+Cartões de amigos separam identificação e ações em linhas próprias, com botões alinhados e opções recolhidas. Animais criados usam a mesma linha e imagem da venda, sem subtítulo de origem. Sem mudança em permissões, preços ou dados. Validação visual em andamento.

@@ -362,3 +362,7 @@ Visitas autenticadas e sujeitas à amizade, bloqueios e público de publicação
 ## 0.38 — criação por modelos e publicação guiada
 
 Galeria com 12 bases funcionais, busca/filtro, campos básicos primeiro, ajustes técnicos opcionais, prévia isolada e salvamento direto para escolha de público. Jogadores/grupos selecionados pelo nome, revisão dos destinatários antes de publicar e auditoria preservada. Mecânicas e limites do executor permanecem os mesmos.
+
+## 0.40.2 — organização de amigos e venda
+
+Cartões de amigos separam identificação e ações em linhas próprias, com botões alinhados e opções recolhidas. Animais criados usam a mesma linha e imagem da venda, sem subtítulo de origem. Sem mudança em permissões, preços ou dados. Validação visual em andamento.
