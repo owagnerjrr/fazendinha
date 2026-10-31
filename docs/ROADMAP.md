@@ -251,3 +251,5 @@ Nome, identidade definitiva e monetização continuam em aberto. Não há compro
 - 0.25.3: removida duplicação do item escolhido no espaço da mão na barra.
 
 - 0.26.0: auditoria com correções reproduzidas e escopo/limites em CHECKUP_0_26.md.
+
+- 0.26.1: restauração do botão da mão mesmo com interface antiga em memória; regressão de ícones desktop/móvel.
