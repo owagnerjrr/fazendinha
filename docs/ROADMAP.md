@@ -1,3 +1,7 @@
+## 0.29.0 — Vale vivo
+
+Clima, cuidados, áudio, convites e visitas ao curral integrados. [Escopo, regras e evidências](VALE_VIVO_0_29.md). Em validação remota antes da publicação.
+
 ## 0.28.2 — chegada confiável nas visitas
 
 Correção da sincronização de presença ao entrar e cuidar dos canteiros. [Causas e testes](VISITAS_0_28_2.md).

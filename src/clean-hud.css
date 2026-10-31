@@ -58,3 +58,7 @@
 
 .sale-row input{width:62px;min-height:40px;padding:7px;border:1px solid #a28d61;border-radius:5px;background:#fff5d4}.sale-row label{font-size:11px;display:grid;gap:3px}#choose-equipment{min-height:44px;width:100%;margin-bottom:12px}
 .sale-actions{display:grid;gap:5px;min-width:140px}.sale-actions button{margin:0}.sale-actions small{font-size:11px;color:#655338}.sale-row{display:grid;grid-template-columns:minmax(0,1fr) 62px auto;gap:10px}.sale-row .item-info{min-width:0;overflow-wrap:anywhere}#sleep-form label{display:grid;gap:8px}#wake-time{font:inherit;min-height:48px;padding:8px}#sleep-form button{min-height:44px;margin:6px}#music-volume{width:100%;min-height:44px}#panel-content:has(#music-volume)>label{display:block;margin:20px 0}@media(max-width:520px){.sale-row{grid-template-columns:minmax(0,1fr) 62px}.sale-actions{grid-column:1/-1;grid-template-columns:1fr 1fr}.sale-actions small{grid-column:1/-1}.sale-actions button{font-size:12px;padding:8px;min-height:44px}}
+
+.music-toggle{position:fixed;z-index:120;top:12px;left:46%;width:40px;min-height:40px;padding:4px;white-space:nowrap;line-height:1;font-size:18px;background:#304f3f;color:#fff2c8;border:1px solid #b8a16c;border-radius:12px}.music-toggle[aria-pressed=false]{opacity:.65}@media(max-width:600px){.music-toggle{top:12px;left:145px;width:34px;min-height:34px;font-size:18px}}
+
+#panel [data-friend-care]{background:#466947;color:#fff1d1;border:1px solid #bda46b;border-radius:12px;padding:12px;margin:4px;min-height:44px}#visitor-care-option{margin-right:8px}

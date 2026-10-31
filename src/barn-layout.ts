@@ -6,7 +6,7 @@ export const ANIMAL_SIZE:Record<AnimalKind,{width:number;height:number}>={cat:{w
 const capacity:Record<AnimalKind,number>={cat:4,cow:2,goat:3,dog:4,chicken:6,rooster:6,chick:6};
 export type BarnPen=Obstacle&{id:number;side:'left'|'right';animals:Animal[];kind?:AnimalKind;purpose:string;access:{x:number;y:number}};
 export function barnLayout(animals:Animal[]):BarnPen[]{
- animals=animals.filter(a=>a.kind!=='cat'&&a.kind!=='dog'&&(!a.housing||a.housing==='barn'));
+ animals=animals.filter(a=>a.kind!=='cat'&&a.kind!=='dog'&&!a.walking&&(!a.housing||a.housing==='barn'));
  const pens:BarnPen[]=Array.from({length:8},(_,id)=>({id,x:id%2?680:185,y:260+Math.floor(id/2)*132,width:335,height:110,side:id%2?'right':'left',animals:[],purpose:['Feno e cama limpa','Reserva de ração','Palha seca','Utensílios limpos'][Math.floor(id/2)],access:{x:id%2?650:550,y:323+Math.floor(id/2)*132}}));
  const preferred:Record<AnimalKind,number[]>={cat:[6,4,2,0,7,5,3,1],rooster:[1,3,5,7,0,2,4,6],chick:[1,3,5,7,0,2,4,6],cow:[0,2,4,6,1,3,5,7],goat:[2,4,6,0,3,5,7,1],chicken:[1,3,5,7,0,2,4,6],dog:[7,5,3,1,6,4,2,0]};
  for(const kind of ['cow','goat','chicken','dog','cat'] as AnimalKind[]){const group=animals.filter(a=>kind==='chicken'?['chicken','rooster','chick'].includes(a.kind):a.kind===kind);while(group.length){const p=preferred[kind].map(id=>pens[id]).find(p=>!p.kind);if(!p)throw new Error('O celeiro comporta até 12 animais.');p.kind=kind;p.width={cat:290,cow:335,goat:315,chicken:285,dog:290,rooster:285,chick:285}[kind];if(p.side==='left')p.x=520-p.width;p.animals=group.splice(0,capacity[kind]);p.purpose=kind==='chicken'?'Galinheiro · ninhos e poleiros':kind==='cat'?'Cantinho dos gatos':kind==='dog'?'Cantinho dos cães':kind==='cow'?'Baias das vacas':'Baias das cabras';}}

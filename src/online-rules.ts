@@ -1,3 +1,5 @@
+import{settleClimate}from'./climate.js';
+import{settleVitals}from'./living-animals.js';
 import {levelOf,progressionProblem} from './progression.js';
 export {levelOf} from './progression.js';
 import {applyVendorSale} from './vendor-sales.js';
@@ -18,7 +20,7 @@ export function replenish(farm: OnlineFarm, now: number) {
 export function applyCommand(farm: OnlineFarm, input: unknown, now: number): { ok: boolean; message: string; harvest?: boolean;caught?:import('./fishing.js').Fish } {
   const c = input as Command & Record<string,any>;
   if (!c || typeof c !== 'object') return { ok: false, message: 'Ação inválida.' };
-  upgradeFarm(farm);replenish(farm, now);
+  settleClimate(farm,now);settleVitals(farm,now);upgradeFarm(farm);replenish(farm, now);
   const blocked=progressionProblem(farm,c);if(blocked)return{ok:false,message:blocked};
   if((LIFE_COMMANDS as readonly string[]).includes(c.type)){const result=applyLife(farm,c,now);if(result.ok){if(result.caught)farm.xp+=5;if(String(c.type)==='collect-animal')farm.xp+=8;}return result;}
   if (c.type === 'work') {

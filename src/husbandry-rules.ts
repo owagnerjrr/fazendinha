@@ -1,3 +1,4 @@
+import{boostVital}from'./living-animals.js';
 import {getPlot} from './farm.js';
 import {ANIMALS,type Animal} from './content.js';import {animalNeeds,productionAt,ANIMAL_CARE} from './animal-needs.js';
 import {plantNeeds,settlePlant,PLANT_CARE} from './plant-care.js';import {housingProblem} from './housing.js';import {plotUsable} from './plots.js';import type {Farm} from './farm.js';
@@ -17,13 +18,13 @@ export function applyHusbandry(f:Farm,c:any,now:number){
   settlePlant(p,now);p.care.illnessAt=null;p.care.checkpointAt=now;p.pestAt=now+PLANT_CARE.pestReturnMs;f.supplies.plantMedicine--;return{ok:true,message:'Planta tratada! O crescimento foi retomado.'};
  }
  const original=f.animals.find(a=>a.id===c.id);if(!original)return fail('Animal não encontrado.');const a=settledAnimal(original,now),needs=animalNeeds(a,now),house=a.housing??'barn';
- const commit=(message:string)=>{Object.assign(original,a);return{ok:true,message};};
+ const commit=(message:string)=>{boostVital(a,c.type,now);Object.assign(original,a);return{ok:true,message};};
  if(c.type==='feed-animal'){
-  if(needs.food>ANIMAL_CARE.refillAt)return fail('O comedouro ainda está abastecido.');if(f.feed<1)return fail('Compre ração na venda.');
-  f.feed--;a.fedAt=now;return commit('Comedouro abastecido. A ração dura até 48 horas.');
+  if(needs.food>ANIMAL_CARE.refillAt&&a.fedAt!==null)return fail('O comedouro ainda está abastecido.');if(f.feed<1)return fail('Compre ração na venda.');
+  f.feed--;a.fedAt=now;return commit('Comedouro abastecido. Fique de olho no indicador de alimentação.');
  }
  if(c.type==='water-animal'){
-  if(needs.water>ANIMAL_CARE.refillAt)return fail('O bebedouro ainda tem água fresca.');a.wateredAt=now;return commit('Bebedouro abastecido com água fresca por até 48 horas.');
+  if(needs.water>ANIMAL_CARE.refillAt&&a.wateredAt!=null)return fail('O bebedouro ainda tem água fresca.');a.wateredAt=now;return commit('Bebedouro abastecido com água fresca disponível.');
  }
  if(c.type==='clean-animal'){
   if(needs.clean>ANIMAL_CARE.refillAt)return fail('A cama do animal ainda está limpa.');if(f.supplies.bedding<1)return fail('Compre palha limpa na venda.');
@@ -37,7 +38,7 @@ export function applyHusbandry(f:Farm,c:any,now:number){
   if(c.housing===house)return fail('O animal já está neste local.');const error=housingProblem(f,a.kind,c.housing,a.id,1+(a.incubationAt!=null?1:0));if(error)return fail(error);
   a.housing=c.housing;return commit('Animal transferido com seus cuidados e produção preservados.');
  }
- const cared=needs.food>0&&needs.water>0&&needs.clean>0&&!needs.sick;
+ const cared=a.fedAt!=null&&a.wateredAt!=null&&needs.food>0&&needs.water>0&&needs.clean>0&&!needs.sick;
  if(c.type==='start-incubation'){
   if(a.kind!=='chicken'||a.incubationAt!=null)return fail('Escolha uma galinha que não esteja chocando.');
   if(!cared||!f.animals.some(r=>r.kind==='rooster'&&(r.housing??'barn')===house&&(()=>{const n=animalNeeds(r,now);return n.food>0&&n.water>0&&!n.sick;})()))return fail('A galinha e um galo saudáveis precisam de ração, água e estar na mesma instalação.');

@@ -21,7 +21,7 @@ import { AvatarArt } from './avatar-art';
 import { buildBarn, type RoomPoint } from './barn-art';
 import type { Farm, Tool } from './farm';
 import { findPath } from './pathfinding';
-type Services={farm:()=>Farm;stick:()=>{x:number;y:number};modal:()=>boolean;tool:()=>Tool;now:()=>number;avatar:()=>void;wardrobe?:()=>void;animals:(id?:string)=>void;equipment:()=>void;toast:(s:string)=>void;open:(title:string,html:string)=>void;exit:()=>void;collect?:(id:string)=>Promise<unknown>;home?:(c:{type:'home';action:'tv'|'lights'|'sleep'|'wake';on?:boolean;wakeAt?:number})=>Promise<unknown>;care?:(c:{type:'pet-animal'|'play-animal';id:string})=>Promise<unknown>;failed?:(error:Error,room:'house'|'barn')=>void};
+type Services={parentScene?:string;farm:()=>Farm;stick:()=>{x:number;y:number};modal:()=>boolean;tool:()=>Tool;now:()=>number;avatar:()=>void;wardrobe?:()=>void;animals:(id?:string)=>void;equipment:()=>void;toast:(s:string)=>void;open:(title:string,html:string)=>void;exit:()=>void;collect?:(id:string)=>Promise<unknown>;home?:(c:{type:'home';action:'tv'|'lights'|'sleep'|'wake';on?:boolean;wakeAt?:number})=>Promise<unknown>;care?:(c:{type:'pet-animal'|'play-animal';id:string})=>Promise<unknown>;failed?:(error:Error,room:'house'|'barn')=>void};
 export class InteriorScene extends Phaser.Scene {
  pets!:PetWorld;private sleepShade!:Phaser.GameObjects.Rectangle;private failed=false;
  private bonding:{id:string;type:'pet-animal'|'play-animal';phase:'arriving'|'contact'|'saving'|'reacting';start:number;resolve:()=>void;reject:(e:Error)=>void}|null=null;private gesture!:Phaser.GameObjects.Graphics;private reduced=matchMedia('(prefers-reduced-motion: reduce)');
@@ -30,7 +30,7 @@ export class InteriorScene extends Phaser.Scene {
  private rest:{kind:'sit'|'sleep'|'leaving';start:number;from:{x:number;y:number}}|null=null;
  private houseButton:HTMLButtonElement|null=null;private tvButton:HTMLButtonElement|null=null;
  private room:'house'|'barn'='house';private overview=false;private player!:Phaser.Physics.Arcade.Sprite;private actor!:Phaser.GameObjects.Sprite;private art!:AvatarArt;private keys!:Record<string,Phaser.Input.Keyboard.Key>;private dir=0;private target:{x:number;y:number;run?:()=>void}|null=null;private route:{x:number;y:number}[]=[];private blocks:{x:number;y:number;width:number;height:number}[]=[];private points:RoomPoint[]=[];private barn?:ReturnType<typeof buildBarn>;private animalSignature='';
- constructor(private services:Services){super('Interior');}
+ constructor(private services:Services,key='Interior'){super(key);}
  init(data:{room:'house'|'barn'}){this.failed=false;this.bonding=null;this.rest=null;this.homeBusy=false;this.nextUI=0;this.house=undefined;this.breathing.reset();this.room=data.room;this.overview=false;this.target=null;this.route=[];this.blocks=[];this.points=[];this.barn=undefined;this.animalSignature='';}
  create(){try{this.createRoom();}catch(error){this.failRoom(error);}}
  private createRoom(){
@@ -46,7 +46,7 @@ export class InteriorScene extends Phaser.Scene {
 
   }else{
    block(145,130,20,690);block(1035,130,20,690);block(150,130,900,90);block(150,807,380,18);block(670,807,380,18);
-   this.barn=buildBarn(this,s.farm(),block,id=>s.animals(id),()=>s.equipment(),id=>{if(this.homeBusy)return;this.homeBusy=true;void(s.collect?.(id)??Promise.resolve()).catch(e=>s.toast(e.message)).finally(()=>{this.homeBusy=false;});});this.points.push(...this.barn.points);this.animalSignature=JSON.stringify(s.farm().animals.filter(a=>!isPet(a)).map(a=>[a.id,a.kind,a.housing]));
+   this.barn=buildBarn(this,s.farm(),block,id=>s.animals(id),()=>s.equipment(),id=>{if(this.homeBusy)return;this.homeBusy=true;void(s.collect?.(id)??Promise.resolve()).catch(e=>s.toast(e.message)).finally(()=>{this.homeBusy=false;});});this.points.push(...this.barn.points);this.animalSignature=JSON.stringify(s.farm().animals.filter(a=>!isPet(a)).map(a=>[a.id,a.kind,a.housing,a.walking]));
   }
   bakeFloor(this,this.room==='house'?{x:258,y:154,width:686,height:580}:{x:140,y:130,width:920,height:700});
   const exitY=this.room==='house'?697:790;this.points.push({x:600,y:exitY,name:'Voltar à fazenda',run:()=>this.leave()});
@@ -75,7 +75,7 @@ export class InteriorScene extends Phaser.Scene {
  async bond(id:string,type:'pet-animal'|'play-animal'):Promise<void>{
   if(this.bonding||this.pets.locked)throw Error('Aguarde a interação atual.');
   if(this.services.farm().animals.some(a=>a.id===id&&isPet(a))){this.pets.update(this.time.now,this.player);return this.pets.bond(id,type);}
-  const signature=JSON.stringify(this.services.farm().animals.filter(a=>!isPet(a)).map(a=>[a.id,a.kind,a.housing]));
+  const signature=JSON.stringify(this.services.farm().animals.filter(a=>!isPet(a)).map(a=>[a.id,a.kind,a.housing,a.walking]));
   if(this.room==='barn'&&this.animalSignature!==signature){const created=new Promise<void>(resolve=>this.events.once('create',resolve));this.scene.restart({room:'barn'});await created;}
   if(this.bonding)return Promise.reject(new Error('Aguarde a interação atual.'));
   const access=this.barn?.access(id);if(!access||!this.services.farm().animals.some(a=>a.id===id))return Promise.reject(new Error('Animal não encontrado no celeiro.'));
@@ -83,8 +83,8 @@ export class InteriorScene extends Phaser.Scene {
   return new Promise((resolve,reject)=>{this.bonding={id,type,phase:'arriving',start:this.time.now,resolve,reject};this.route=route;this.target={...access,run:()=>{if(!this.bonding)return;this.bonding.phase='contact';this.bonding.start=this.time.now;this.barn!.beginCare(id,type,this.time.now);this.dir=access.x<600?1:2;}};});
  }
  exitRoom(){this.leave();}
- private leave(){if(this.bonding||this.pets?.locked||this.homeBusy||this.services.farm().home?.sleep)return;if(this.rest){this.releaseRest();return;}this.player.setVelocity(0);this.target=null;this.route=[];this.scene.stop();this.scene.wake('Farm');this.services.exit();}
- interact(){if(this.services.modal()||this.bonding||this.pets?.locked||this.homeBusy)return;if(this.pets.interact(this.player))return;if(this.rest?.kind==='sit'){const s=this.services;s.open('Sofá',`<button id="sofa-tv">${s.farm().home?.tvOn?'Desligar':'Ligar'} TV</button><button id="sofa-rise">Levantar</button>`);document.getElementById('sofa-tv')!.onclick=()=>{(document.getElementById('panel') as HTMLDialogElement).close();this.useHouse('tv');};document.getElementById('sofa-rise')!.onclick=()=>{(document.getElementById('panel') as HTMLDialogElement).close();this.releaseRest();};return;}if(this.rest){this.releaseRest();return;}const nearest=closestInReach(this.player,this.points.filter(p=>!p.pointerOnly&&(!p.enabled||p.enabled())),110);nearest?.run();}
+ private leave(){if(this.bonding||this.pets?.locked||this.homeBusy||this.services.farm().home?.sleep)return;if(this.rest){this.releaseRest();return;}this.player.setVelocity(0);this.target=null;this.route=[];this.scene.stop();this.scene.wake(this.services.parentScene??'Farm');this.services.exit();}
+ interact(){if(this.services.modal()||this.bonding||this.pets?.locked||this.homeBusy)return;const focus=closestInReach(this.player,this.points.filter(p=>!p.pointerOnly&&(!p.enabled||p.enabled())),46);if(focus){focus.run();return;}if(this.pets.interact(this.player,this.dir))return;if(this.rest?.kind==='sit'){const s=this.services;s.open('Sofá',`<button id="sofa-tv">${s.farm().home?.tvOn?'Desligar':'Ligar'} TV</button><button id="sofa-rise">Levantar</button>`);document.getElementById('sofa-tv')!.onclick=()=>{(document.getElementById('panel') as HTMLDialogElement).close();this.useHouse('tv');};document.getElementById('sofa-rise')!.onclick=()=>{(document.getElementById('panel') as HTMLDialogElement).close();this.releaseRest();};return;}if(this.rest){this.releaseRest();return;}const nearest=closestInReach(this.player,this.points.filter(p=>!p.pointerOnly&&(!p.enabled||p.enabled())),110);nearest?.run();}
  getActivity(){return this.homeBusy?'Salvando':this.rest?.kind==='sit'?'Sentada no sofá':this.rest?.kind==='sleep'?'Dormindo na cama':this.rest?.kind==='leaving'?'Levantando':this.target?'Caminhando':'Em pé';}
  requestHouseInteraction(kind:string){
   if(this.room!=='house'||this.services.modal()||this.homeBusy||this.services.farm().home?.sleep)return;
@@ -126,7 +126,7 @@ export class InteriorScene extends Phaser.Scene {
  private finishBond(error?:Error){const bond=this.bonding;this.bonding=null;this.barn?.endCare();this.gesture.clear();this.target=null;this.route=[];if(error)bond?.reject(error);else bond?.resolve();}
  update(time:number){if(this.failed)return;try{this.updateRoom(time);}catch(error){this.failRoom(error);}}
  private failRoom(error:unknown){if(this.failed)return;this.failed=true;if(this.player?.body)this.player.setVelocity(0);const detail=error instanceof Error?error:new Error(String(error));queueMicrotask(()=>{if(this.services.failed)this.services.failed(detail,this.room);else this.services.toast(`Não foi possível abrir o cômodo: ${detail.message}`);});}
- private updateRoom(time:number){if(!this.player)return;const s=this.services;this.pets.update(time,this.player,s.modal()||!!this.rest||!!this.bonding);const sleep=s.farm().home?.sleep,cam=this.cameras.main,fade=sleep?Math.min(1,Math.max(0,(s.now()-sleep.startedAt)/800)):Math.max(0,this.sleepShade.alpha-.04);this.sleepShade.setPosition(cam.width/2,cam.height/2).setSize(cam.width/cam.zoom+4,cam.height/cam.zoom+4).setAlpha(fade);this.lighting.update(s.farm().calendar,s.now(),this.room==='house'?s.farm().home?.lightsOn!==false:undefined);if(this.room==='house'&&s.farm().home?.sleep&&!this.rest)this.rest={kind:'sleep',start:time,from:{x:this.player.x,y:this.player.y-2}};if(this.rest?.kind==='sleep'&&!s.farm().home?.sleep)this.releaseRest();let vx=0,vy=0;
+ private updateRoom(time:number){if(!this.player)return;const s=this.services;this.pets.update(time,this.player,s.modal()||!!this.rest||!!this.bonding,this.dir);const sleep=s.farm().home?.sleep,cam=this.cameras.main,fade=sleep?Math.min(1,Math.max(0,(s.now()-sleep.startedAt)/800)):Math.max(0,this.sleepShade.alpha-.04);this.sleepShade.setPosition(cam.width/2,cam.height/2).setSize(cam.width/cam.zoom+4,cam.height/cam.zoom+4).setAlpha(fade);this.lighting.update(s.farm().calendar,s.now(),this.room==='house'?s.farm().home?.lightsOn!==false:undefined);if(this.room==='house'&&s.farm().home?.sleep&&!this.rest)this.rest={kind:'sleep',start:time,from:{x:this.player.x,y:this.player.y-2}};if(this.rest?.kind==='sleep'&&!s.farm().home?.sleep)this.releaseRest();let vx=0,vy=0;
   if(!s.modal()){const stick=s.stick();vx=Number(this.keys.D.isDown||this.keys.RIGHT.isDown)-Number(this.keys.A.isDown||this.keys.LEFT.isDown)+stick.x;vy=Number(this.keys.S.isDown||this.keys.DOWN.isDown)-Number(this.keys.W.isDown||this.keys.UP.isDown)+stick.y;
    if(this.rest&&(vx||vy))this.releaseRest();
    if(this.bonding||this.pets.locked||this.rest||this.homeBusy){vx=0;vy=0;}
@@ -155,6 +155,6 @@ export class InteriorScene extends Phaser.Scene {
    }
    if(time-bond.start>15000&&bond.phase==='arriving')this.finishBond(new Error('O caminho até o animal ficou bloqueado.'));
   }
-  if(this.barn&&!s.modal()&&this.animalSignature!==JSON.stringify(s.farm().animals.filter(a=>!isPet(a)).map(a=>[a.id,a.kind,a.housing])))this.scene.restart({room:'barn'});
+  if(this.barn&&!s.modal()&&this.animalSignature!==JSON.stringify(s.farm().animals.filter(a=>!isPet(a)).map(a=>[a.id,a.kind,a.housing,a.walking])))this.scene.restart({room:'barn'});
  }
 }

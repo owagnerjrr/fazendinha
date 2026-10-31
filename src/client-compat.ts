@@ -1,5 +1,7 @@
 import type { Farm } from './farm.js';
 export function requiresNewClient(farm:Farm,version:string|null|undefined):boolean {
+ if(version==='13')return false;
+ if(farm.livingSince!=null)return true;
  if(version==='12')return false;
  if(farm.calendar?.sleepAt!==undefined||farm.home?.sleep?.targetMinute!==undefined)return true;
  if(version==='11')return false;
