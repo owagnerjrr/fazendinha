@@ -1,3 +1,4 @@
+import{activitySnapshot,recordAction}from'./player-activity.js';
 import {catalogFor,reconcileStudio} from './studio.js';
 import {applyStudio} from '../src/studio-runtime.js';
 import {StudioValidationError} from '../src/studio-schema.js';
@@ -67,7 +68,7 @@ export async function mutate(user: string, body: any, version?: string|null) {
     await db.query('BEGIN');
     // Serializes the beta economy, including trades involving two farms. Replace with ordered row locks at scale.
     await db.query("SELECT pg_advisory_xact_lock(hashtext('fazendinha-economy-v1'))");
-    const row = await getFarm(db,user), now = Date.now();
+    const row = await getFarm(db,user), now = Date.now(),activityBefore=activitySnapshot(row.state);
     if(requiresNewClient(row.state,version))throw new GameError(CLIENT_UPDATE_MESSAGE,409);
     const old = await db.query('SELECT hash,result FROM action_receipts WHERE user_id=$1 AND id=$2',[user,body.id]);
     if (old.rows[0]) {
@@ -100,6 +101,7 @@ export async function mutate(user: string, body: any, version?: string|null) {
     settleCoinDebt(row.state);
     await db.query('UPDATE farms SET state=$2,revision=revision+1,last_action_at=CASE WHEN $4 THEN last_action_at ELSE now() END,position_at=CASE WHEN $3 THEN now() ELSE position_at END WHERE user_id=$1',[user,row.state,['position','work','place-building','move-building','travel-area','prepare-expansion','cure-plant','fertilize','cast-line','reel-line','sell','list','till-ground'].includes(c.type),background]);
     await db.query('INSERT INTO action_receipts(user_id,id,hash,result) VALUES($1,$2,$3,$4)',[user,body.id,hash,row.result]);
+    await db.query('SAVEPOINT activity_event');try{await recordAction(user,c,{farm:row.state,revision:row.revision+1},db,activityBefore);}catch{await db.query('ROLLBACK TO SAVEPOINT activity_event');console.error('activity_event_failed');}await db.query('RELEASE SAVEPOINT activity_event');
     await db.query('COMMIT');
     return {...row.result,farm:row.state,revision:row.revision+1,name:row.name,now};
   } catch(error) { await db.query('ROLLBACK'); throw error; } finally { db.release(); }

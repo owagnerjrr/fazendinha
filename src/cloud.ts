@@ -16,7 +16,7 @@ export async function googleSignIn(link=false,chooseCharacter=false){
 }
 export class CloudFarm {
   salePosition:()=>Farm['player']|undefined=()=>undefined;
-  active=false; busy=false; revision=0; code=''; name=''; offset=0;
+  relocating=false;active=false; busy=false; revision=0; code=''; name=''; offset=0;
   private accessToken='';
   private pendingCount=0;
   private queue:Promise<unknown>=Promise.resolve();
@@ -41,6 +41,7 @@ export class CloudFarm {
     catch(error) { if((error as any).status&& (error as any).status<500) {sessionStorage.removeItem('wj-pending-action');this.accept(await this.request());return null;} else throw error; }
   }
   command(command:unknown,position?:Farm['player']):Promise<Snapshot> {
+    if(this.relocating)return Promise.reject(new Error('Sua posição foi corrigida pela administração. O jogo será reaberto.'));
     if((command as {type?:string})?.type==='list'){position??=this.salePosition();if(!position)return Promise.reject(new Error('Vá até a venda para anunciar produtos na feira.'));}
     this.pendingCount++;this.busy=true;
     const task=this.queue.then(async()=>{
@@ -60,7 +61,7 @@ export class CloudFarm {
     }); this.queue=task.catch(()=>{}); return task;
   }
   flushPosition(position:Farm['player']) {
-    if(!this.active||this.busy||!this.accessToken||sessionStorage.getItem('wj-pending-action'))return;
+    if(this.relocating||!this.active||this.busy||!this.accessToken||sessionStorage.getItem('wj-pending-action'))return;
     const body={id:crypto.randomUUID(),revision:this.revision,command:{type:'position'},position};
     sessionStorage.setItem('wj-pending-action',JSON.stringify({code:this.code,body}));
     // Persist a receipt first: a new page can safely confirm the same request after closing this one.

@@ -1,6 +1,7 @@
 import{auth}from'./cloud';import{sessionToken}from'./session-token';
 export type MediaRef={asset:string;version:number};
 const images=new Map<string,HTMLImageElement>(),pending=new Map<string,Promise<void>>(),sources=new Map<string,string>();let generation=0;
+export const audioSource=(ref:MediaRef|undefined)=>ref?sources.get(ref.asset+':'+ref.version):undefined;
 export const mediaGeneration=()=>generation;
 export function imageAsset(ref:MediaRef|undefined){return ref?images.get(ref.asset+':'+ref.version):undefined;}
 export async function loadAsset(ref:MediaRef,admin=false){const key=ref.asset+':'+ref.version;if(sources.has(key))return;if(pending.has(key))return pending.get(key);const promise=(async()=>{const token=sessionToken(await(await auth()).token());if(!token)throw Error('Entre na sua conta.');const url=admin?'/api/admin?view=asset&id='+ref.asset+'&version='+ref.version:'/api/studio?asset='+ref.asset+'&version='+ref.version;const r=await fetch(url,{headers:{Authorization:'Bearer '+token},cache:'no-store'}),data=await r.json();if(!r.ok)throw Error(data.error??'Recurso indisponível.');if(!['image/png','audio/wav'].includes(data.mime))throw Error('Formato incompatível.');const src='data:'+data.mime+';base64,'+data.data;if(data.mime==='image/png'){const image=new Image();image.src=src;await image.decode();images.set(key,image);}sources.set(key,src);generation++;})();pending.set(key,promise);try{await promise;}catch(e){pending.delete(key);throw e;}}

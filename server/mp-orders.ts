@@ -1,10 +1,11 @@
+import{orderContract}from'./order-contract.js';
 import {PURCHASE_PACKS as COIN_PACKS,type PackId} from '../src/store-catalog.js';
 import {StoreError,type MPConfig} from './mercadopago.js';
 export const providerOrderId=(value:unknown):value is string=>typeof value==='string'&&/^ORD[A-Z0-9]{20,50}$/.test(value);
 /** Monetary strings are parsed without floating point rounding or coercion. */
 export function orderCents(value:unknown){if(typeof value!=='string'||!/^\d{1,10}(\.\d{1,2})?$/.test(value))throw new StoreError('Valor da order inválido.',409);const [whole,fraction='']=value.split('.');return Number(whole)*100+Number(fraction.padEnd(2,'0'));}
 export function orderPayload(order:any,email:string,methods:any[]){
- const pack=COIN_PACKS[order.package as PackId],amount=(pack.cents/100).toFixed(2),back=`${order.origin}/?store=return&order=${order.id}`;
+ const pack=orderContract(order),amount=(pack.cents/100).toFixed(2),back=`${order.origin}/?store=return&order=${order.id}`;
  const allowed=(m:any)=>order.method==='pix'?m.id==='pix':m.payment_type_id==='credit_card';
  if(!Array.isArray(methods)||!methods.some(m=>allowed(m)&&m.status==='active')){console.error('mercado_pago_method_unavailable',{method:order.method,available:Array.isArray(methods)?methods.map(m=>({id:String(m.id).slice(0,50),type:String(m.payment_type_id).slice(0,50),status:String(m.status).slice(0,50)})):[]});throw new StoreError('Forma de pagamento indisponível na conta recebedora.',503);}
  // Use the enum returned by the live Orders schema, which currently rejects "wallet".
@@ -12,7 +13,7 @@ export function orderPayload(order:any,email:string,methods:any[]){
  const types=[...new Set<string>(methods.filter(m=>!allowed(m)).map(m=>String(m.payment_type_id)).filter(t=>supported.has(t)&&!methods.some(m=>allowed(m)&&m.payment_type_id===t)).concat(['account_money']))];
  const excludedIds=[...new Set<string>(methods.filter(m=>!allowed(m)&&!methods.some(a=>allowed(a)&&a.id===m.id)).map(m=>String(m.id)))];
  return{type:'online',processing_mode:'manual',total_amount:amount,external_reference:order.id,expiration_time:order.method==='pix'?'PT30M':'P1D',
-  payer:{email},items:[{title:`Fazenda Feliz · ${order.package==='f5'?'5 fertilizantes':pack.coins+' moedas'}`,unit_price:amount,quantity:1,external_code:order.package}],
+  payer:{email},items:[{title:`Fazenda Feliz · ${pack.label}`,unit_price:amount,quantity:1,external_code:order.package}],
   config:{online:{success_url:back,failure_url:back,pending_url:back,auto_return:'approved',callback_url:order.origin+'/api/mp-webhook',retries:{allowed:false}},payment_method:{max_installments:1,default_installments:1,not_allowed_types:types,not_allowed_ids:excludedIds}}};
 }
 /** Only call with a response obtained from the authenticated Orders API. */
