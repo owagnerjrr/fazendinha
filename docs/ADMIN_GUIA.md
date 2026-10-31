@@ -17,6 +17,10 @@ Abra `/admin/` depois de entrar no jogo. A API verifica o JWT existente, o bloqu
 - Atividade coletada a partir desta implantação: heartbeat a cada 20 segundos enquanto a página estiver visível, foco e entrada recente (30 segundos). Ativo significa heartbeat há até 45 segundos e entrada há até 60 segundos. Tempo ativo é aproximado e não serve como prova de presença. Abas compartilham o relógio da conta, sem somar o mesmo intervalo duas vezes.
 - Eventos de ações confirmadas, com revisão/saldo/XP, sem conteúdo de chat, teclas, email, IP ou credenciais. Eventos têm retenção de 90 dias e sessões 30 dias; limpeza diária oportunista no heartbeat. Agregados por conta e auditoria são mantidos. Não há histórico retroativo de sessões.
 
+## Corrigir valores de uma conta
+
+Em Jogadores, consulte a conta e escolha moedas, XP, ração, fertilizantes ou um item já registrado em sementes, colheitas, produtos ou cuidados. Confira o valor anterior e o novo, confirme e informe o motivo. A revisão da fazenda impede sobrescrever progresso concorrente. A opção de restaurar um ajuste modifica somente aquele valor e é bloqueada se ele já tiver mudado depois. Não substitui o estado inteiro da conta.
+
 ## Cadastrar e publicar uma definição
 
 1. Em Criações, escolha Nova criação e informe tipo, nome, descrição, cor, preços e parâmetros estruturados.
@@ -35,8 +39,9 @@ Abra `/admin/` depois de entrar no jogo. A API verifica o JWT existente, o bloqu
 - Biblioteca/versionamento de imagens e áudio, validação dos arquivos e referências em uso.
 - Configurações aplicadas efetivamente às regras existentes e à renderização.
 - Concessões gratuitas de bens e roupas; validação de dependências e migrações de mapas individuais.
-- Correções administrativas de saldo, inventário e progresso com recuperação controlada.
+- Edição de animais, plantações, terrenos, roupas individuais, posição e permissões (somente valores numéricos básicos estão disponíveis).
 - Gerência de pacotes de pagamento e reprocessamento validado (pedidos estão somente em consulta).
 - Os sete exemplos completos pedidos pelo proprietário ainda não foram validados.
 
 Não há execução livre de código, gerador automático de arte, aprovação simulada de pagamento ou substituição de dados reais por demonstração.
+
