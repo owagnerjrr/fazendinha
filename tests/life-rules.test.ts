@@ -37,16 +37,16 @@ test('a reserved nest counts towards capacity and cannot be overbooked',()=>{
  const f=makeFarm(),hen=f.animals[0];f.coins=10000;f.products.egg=1;
  assert.equal(applyLife(f,{type:'buy-animal',kind:'rooster'},0).ok,true);const rooster=f.animals.at(-1)!;
  for(const a of [hen,rooster]){applyLife(f,{type:'feed-animal',id:a.id},100);applyLife(f,{type:'water-animal',id:a.id},100);}
- for(let i=0;i<9;i++)assert.equal(applyLife(f,{type:'buy-animal',kind:'chicken'},200+i).ok,true);
- assert.equal(f.animals.length,11);assert.equal(applyLife(f,{type:'start-incubation',id:hen.id},1000).ok,true);
+ for(let i=0;i<2;i++)assert.equal(applyLife(f,{type:'buy-animal',kind:'chicken',pen:0},200+i).ok,true);for(let pen=1;pen<8;pen++)for(let i=0;i<5;i++)assert.equal(applyLife(f,{type:'buy-animal',kind:'chicken',pen},300+pen*5+i).ok,true);
+ assert.equal(f.animals.length,39);assert.equal(applyLife(f,{type:'start-incubation',id:hen.id},1000).ok,true);
  assert.equal(applyLife(f,{type:'buy-animal',kind:'chick'},1001).ok,false);
- assert.equal(applyLife(f,{type:'hatch-chick',id:hen.id},121000).ok,true);assert.equal(f.animals.length,12);
+ assert.equal(applyLife(f,{type:'hatch-chick',id:hen.id},121000).ok,true);assert.equal(f.animals.length,40);
 });
 
 test('legacy client cannot modify farms containing new kinds',async()=>{
  const {requiresNewClient}=await import('../src/client-compat');const f=makeFarm();assert.equal(requiresNewClient(f,null),false);
  f.coins=500;assert.equal(applyLife(f,{type:'buy-animal',kind:'rooster'},5).ok,true);
- assert.equal(requiresNewClient(f,null),true);assert.equal(requiresNewClient(f,'2'),false);
+ assert.equal(requiresNewClient(f,null),true);assert.equal(requiresNewClient(f,'14'),false);
 });
 
 test('buying extra land preserves old crops and grants twelve usable plots exactly once',()=>{

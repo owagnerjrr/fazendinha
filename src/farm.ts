@@ -1,3 +1,4 @@
+import{assignBarnPens}from'./barn-slots.js';
 import {settleCoinDebt} from './wallet.js';
 import {safeRiverPosition} from './river-boundary.js';
 import {restoreFishing,sellFish,type FishingState} from './fishing.js';
@@ -18,7 +19,7 @@ export const CROPS = {
 export type Crop = keyof typeof CROPS;
 export type Tool = 'hand' | 'hoe' | 'seed' | 'water' | 'rod';
 export type Plot = {climate?:{wet:number;stress:number;shade:boolean;drained:boolean}; fertilized?:boolean;growthDurationMs?:number;tilledAt?:number;position?:{x:number;y:number}; id: number; tilled: boolean; crop: Crop | null; wateredAt: number | null; pestAt?:number|null; stolen?:number;care?:{startedAt:number;lastWateredAt:number|null;growthMs:number;checkpointAt:number;illnessAt:number|null} };
-export type Farm = {climateAt?:number;livingSince?:number;visitorCare?:boolean; version: 1; fertilizers?:number;fertilizerDebt?:number; houseDesign?:import('./home-design.js').HouseDesign; coinDebt?:number;wardrobe?:import('./wardrobe.js').Wardrobe; progressionVersion?:1; customPlots?:Plot[]; fishing?:FishingState; careVersion?:1;careStartedAt?:number;supplies?:{medicine:number;plantMedicine:number;bedding:number}; calendar?:Calendar;home?:HomeState; profileComplete?:boolean; playerName?:string; landOwned?:boolean; landParcels?:LandParcel[]; buildings?:LandBuilding[]; coins: number; seeds: Record<Crop, number>; inventory: Record<Crop, number>; plots: Plot[]; harvests: number; questClaimed: boolean; player: { x: number; y: number }; avatar:Avatar; animals:Animal[]; products:Record<AnimalProduct,number>; feed:number; decorations:Decoration[]; socialRaids:boolean;animalRaids?:boolean; raidProtectionUntil:number; visitLog:{name:string;action:string;at:number}[] };
+export type Farm = {barnVersion?:1;climateAt?:number;livingSince?:number;visitorCare?:boolean; version: 1; fertilizers?:number;fertilizerDebt?:number; houseDesign?:import('./home-design.js').HouseDesign; coinDebt?:number;wardrobe?:import('./wardrobe.js').Wardrobe; progressionVersion?:1; customPlots?:Plot[]; fishing?:FishingState; careVersion?:1;careStartedAt?:number;supplies?:{medicine:number;plantMedicine:number;bedding:number}; calendar?:Calendar;home?:HomeState; profileComplete?:boolean; playerName?:string; landOwned?:boolean; landParcels?:LandParcel[]; buildings?:LandBuilding[]; coins: number; seeds: Record<Crop, number>; inventory: Record<Crop, number>; plots: Plot[]; harvests: number; questClaimed: boolean; player: { x: number; y: number }; avatar:Avatar; animals:Animal[]; products:Record<AnimalProduct,number>; feed:number; decorations:Decoration[]; socialRaids:boolean;animalRaids?:boolean; raidProtectionUntil:number; visitLog:{name:string;action:string;at:number}[] };
 export const LEGACY_GROWTH={carrot:45,lettuce:90,tomato:150,strawberry:120,corn:180,tulip:100,sunflower:200};
 export const soilTime=(f:Pick<Farm,'calendar'>,now:number)=>now+(f.calendar?.offsetMinutes??0)*1000;
 export const SOIL_AGE_MS=3*1440000;
@@ -103,7 +104,7 @@ export function restoreFarm(raw: string | null): Farm {
 }
 
 export function upgradeFarm<T extends Farm>(data:T):T {
- settleCoinDebt(data);if('unlockedPlots' in data)(data as T & {unlockedPlots:number}).unlockedPlots=Math.max(24,Number((data as any).unlockedPlots)||0);data.player=safeRiverPosition(data.player);restoreFishing(data);data.calendar??={startedAt:LEGACY_CLOCK_START,offsetMinutes:0};
+ if(data.barnVersion===1)assignBarnPens(data);settleCoinDebt(data);if('unlockedPlots' in data)(data as T & {unlockedPlots:number}).unlockedPlots=Math.max(24,Number((data as any).unlockedPlots)||0);data.player=safeRiverPosition(data.player);restoreFishing(data);data.calendar??={startedAt:LEGACY_CLOCK_START,offsetMinutes:0};
  data.landParcels??=data.landOwned?[{site:'west',startId:24}]:[];data.buildings??=[];
  data.avatar=validAvatar(data.avatar)?data.avatar:{...DEFAULT_AVATAR};data.animals??=[{id:'starter-hen',kind:'chicken',fedAt:null,collectedAt:0}];data.products??={egg:0,milk:0,goatMilk:0};data.feed??=5;data.decorations??=[];data.socialRaids??=false;data.raidProtectionUntil??=0;data.visitLog??=[];for(const c of crops){data.seeds[c]??=0;data.inventory[c]??=0;}completeCare(data,CROPS);return data;
 }
