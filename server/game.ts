@@ -1,7 +1,7 @@
 import{applyLife}from'../src/life-rules.js';
 import{settleClimate}from'../src/climate.js';
 import{settleVitals}from'../src/living-animals.js';
-import {housingProblem,outdoorBox} from '../src/housing.js';
+import {outdoorBox} from '../src/housing.js';
 import {settleCoinDebt} from '../src/wallet.js';
 import {claimInvitation,settleVerifiedInvitation,referralSummary} from './referrals.js';
 import {progressionProblem} from '../src/progression.js';
@@ -122,32 +122,12 @@ async function social(db:PoolClient,user:string,row:any,c:any,now:number) {
     if(!allowed.rowCount) throw new GameError('Aceitem a amizade antes de ajudar.',403);
     if(c.type==='visit-animal-care'){
  if(target.state.visitorCare!==true)throw new GameError('O dono não permitiu cuidados por visitantes.',403);
- if(!['feed-animal','water-animal','pet-animal','play-animal','clean-animal'].includes(c.mode))throw new GameError('Cuidado de visitante inválido.');
+ if(!['feed-animal','water-animal','pet-animal','play-animal','clean-animal','feed-cat-fish'].includes(c.mode))throw new GameError('Cuidado de visitante inválido.');
  const animal=target.state.animals.find((a:any)=>a.id===c.animal);if(!animal)throw new GameError('Animal não encontrado.');const building=target.state.buildings?.find((b:any)=>b.id===animal.housing),box=building?outdoorBox(building):null,spot=box?{x:box.x+box.width/2,y:box.y+box.height+20}:{x:1050,y:840};const nearby=await db.query("SELECT 1 FROM farm_presence WHERE user_id=$1 AND owner_id=$2 AND updated_at>now()-interval '12 seconds' AND sqrt(power(x-$3,2)+power(y-$4,2))<180",[user,target.user_id,spot.x,spot.y]);if(!nearby.rowCount)throw new GameError('Entre no celeiro do amigo para cuidar.');
- const host=structuredClone(target.state);settleVitals(host,now);host.feed=row.state.feed;host.supplies={...row.state.supplies};const result=applyLife(host,{type:c.mode,id:c.animal},now);if(!result.ok)throw new GameError(result.message);row.state.feed=host.feed;row.state.supplies=host.supplies;target.state.animals=host.animals;
+ const host=structuredClone(target.state);settleVitals(host,now);host.feed=row.state.feed;host.fishing=structuredClone(row.state.fishing);host.supplies={...row.state.supplies};const result=applyLife(host,{type:c.mode,id:c.animal,fish:c.fish,quantity:c.quantity},now);if(!result.ok)throw new GameError(result.message);row.state.feed=host.feed;row.state.fishing=host.fishing;row.state.supplies=host.supplies;target.state.animals=host.animals;
  await db.query('UPDATE farms SET state=$2,revision=revision+1 WHERE user_id=$1',[target.user_id,target.state]);await db.query("INSERT INTO social_notifications(user_id,actor_id,kind) VALUES($1,$2,'visit_help')",[target.user_id,user]);return result;
  }
  if(c.type==='steal-animal')throw new GameError('Animais pertencem ao dono. Visitantes podem apenas cuidar.',403);
- if(c.type==='steal-animal'){
-      if(!row.state.animalRaids||!target.state.animalRaids)throw new GameError('Os dois amigos precisam ativar o roubo de animais separadamente.');
-      const animal=target.state.animals.find((a:any)=>a.id===c.animal);
-      if(!row.state.socialRaids||!target.state.socialRaids)throw new GameError('Os dois amigos precisam ativar a brincadeira de roubo.');
-      if(dogProtects(target.state.animals,now)||target.state.raidProtectionUntil>now)throw new GameError('Esta fazenda está protegida.');
-      if(!animal||animal.kind==='dog'||animal.incubationAt!=null||target.state.animals.length<=1)throw new GameError('Este animal não pode ser levado. O último animal sempre fica com o dono.');
-      if(row.state.animals.some((a:any)=>a.id===animal.id))throw new GameError('Este animal já está na sua fazenda.');
-      const space=housingProblem(row.state,animal.kind,'barn');if(space)throw new GameError(space);
-      const habitat=animal.housing&&animal.housing!=='barn'?target.state.buildings?.find((b:any)=>b.id===animal.housing):null;
-      if(animal.housing&&animal.housing!=='barn'&&!habitat)throw new GameError('Instalação não encontrada.');
-      const box=habitat?outdoorBox(habitat):null,animalPoint=box?{x:box.x+box.width/2,y:box.y+box.height+20}:{x:1050,y:795};
-      const live=await db.query("SELECT 1 FROM farm_presence WHERE user_id=$1 AND owner_id=$2 AND updated_at>now()-interval '12 seconds' AND sqrt(power(x-$3,2)+power(y-$4,2))<180",[user,target.user_id,animalPoint.x,animalPoint.y]);if(!live.rowCount)throw new GameError('Visite a fazenda e aproxime-se do celeiro.');
-      if((await db.query('SELECT 1 FROM farm_raids WHERE visitor=$1 AND owner=$2 AND day=$3',[user,target.user_id,new Date(now).toISOString().slice(0,10)])).rowCount)throw new GameError('Você já pegou algo deste amigo hoje.');
-      target.state.animals=target.state.animals.filter((a:any)=>a.id!==animal.id);row.state.animals.push({...animal,housing:'barn'});target.state.raidProtectionUntil=now+86400000;
-      await db.query('INSERT INTO farm_raids(visitor,owner,day,plot) VALUES($1,$2,$3,-1)',[user,target.user_id,new Date(now).toISOString().slice(0,10)]);
-      target.state.visitLog.unshift({name:row.name,action:'levou um animal na brincadeira',at:now});target.state.visitLog=target.state.visitLog.slice(0,20);
-      await db.query('UPDATE farms SET state=$2,revision=revision+1 WHERE user_id=$1',[target.user_id,target.state]);
-      await db.query("INSERT INTO social_notifications(user_id,actor_id,kind) VALUES($1,$2,'visit_steal')",[target.user_id,user]);
-      return{ok:true,message:'Animal levado para seu celeiro. O amigo ganhou 24 horas de proteção.'};
-    }
     if(!Number.isInteger(c.plot)||c.plot<0||!plotUsable(target.state,c.plot)) throw new GameError('Canteiro inválido.');
     if(!plotUsable(target.state,c.plot))throw new GameError('Este espaço não está disponível para cultivo.');
     const spot=plotPosition(c.plot,target.state)!;

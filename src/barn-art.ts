@@ -1,3 +1,4 @@
+import{vitalAt}from'./living-animals';
 import {catArt,catTexture} from './cat-art';
 import {nearestPenAnimal} from './barn-interaction';
 import {barnDetails,decorateBarnPen} from './barn-design';
@@ -60,7 +61,7 @@ export function buildBarn(scene:Phaser.Scene,farm:Farm,block:Block,animals:(id?:
   visitor=player;
   if(gateState!==(care?.pen.id??null)){gateState=care?.pen.id??null;for(const pen of pens){const gate=gates.get(pen.id)!;const gateX=pen.side==='left'?pen.x+pen.width-10:pen.x-2;gateLeaves.get(pen.id)?.setVisible(care?.pen.id!==pen.id);gate.clear().lineStyle(2,0xc09759,.65);if(care?.pen.id===pen.id){gate.lineBetween(gateX,pen.y+39,gateX+(pen.side==='left'?-27:27),pen.y+39);}else{gate.strokeRect(gateX,pen.y+39,12,39);gate.lineBetween(gateX,pen.y+42,gateX+12,pen.y+75);}}}
 
-  for(const a of actors){const pose=animalPose(a.pen,a.index,time),kind=a.pen.animals[a.index].kind;
+  for(const a of actors){const pose=animalPose(a.pen,a.index,time),kind=a.pen.animals[a.index].kind;if(vitalAt(current.animals.find(v=>v.id===a.pen.animals[a.index].id)??a.pen.animals[a.index],now)?.resting){pose.walking=false;pose.eating=false;pose.x=a.sprite.x;pose.y=a.sprite.y;}
    if(pose.dog&&scene.textures.exists('dog-walk')&&scene.textures.exists('dog-rest'))a.sprite.setTexture(dogTexture(pose.dog.walking,pose.dog.walking?pose.dog.frame:(pose.dog.resting?4:0)+pose.dog.facing));
    else if(pose.walking&&scene.textures.exists(`walk-${kind}`))a.sprite.setTexture(`walk-${kind}`,pose.frame);else a.sprite.setTexture(`life-${kind}${pose.blink?'-blink':''}`);
    if(kind==='cat')a.sprite.setTexture(catTexture(a.pen.animals[a.index].color),pose.walking?pose.frame:0);

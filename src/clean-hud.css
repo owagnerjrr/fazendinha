@@ -62,3 +62,5 @@
 .music-toggle{position:fixed;z-index:120;top:12px;left:46%;width:40px;min-height:40px;padding:4px;white-space:nowrap;line-height:1;font-size:18px;background:#304f3f;color:#fff2c8;border:1px solid #b8a16c;border-radius:12px}.music-toggle[aria-pressed=false]{opacity:.65}@media(max-width:600px){.music-toggle{top:12px;left:145px;width:34px;min-height:34px;font-size:18px}}
 
 #panel [data-friend-care]{background:#466947;color:#fff1d1;border:1px solid #bda46b;border-radius:12px;padding:12px;margin:4px;min-height:44px}#visitor-care-option{margin-right:8px}
+
+.friend-barn #visit-banner{display:none}
