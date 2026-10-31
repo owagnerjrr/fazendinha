@@ -638,7 +638,7 @@ Limites: celular validado por emulação de viewport/toque no Edge, sem aparelho
 
 ## Central de criação dinâmica — 0.36 (31/10/2026)
 
-- 297 testes automatizados passaram, incluindo contratos de pagamentos em PostgreSQL local isolado (PGlite), crédito/estorno idempotentes, preços por versão, propriedades antigas preservadas, construções/receitas, migrações conflitantes, dependências sem concessão indevida, caminhos e recortes de animação. TypeScript e build passaram.
+- 298 testes automatizados passaram, incluindo contratos de pagamentos em PostgreSQL local isolado (PGlite), crédito/estorno idempotentes, preços por versão, propriedades antigas preservadas, construções/receitas, migrações conflitantes, dependências sem concessão indevida, caminhos e recortes de animação. TypeScript e build passaram.
 - Sandbox separado fazendinha-wj-mp-test: duas contas sintéticas, sem escrita de testes nas fazendas de produção. Espécie inédita comprada ao preço do servidor; repetição do recibo mantém um animal; alimentação e acompanhamento persistem.
 - Cenário com água e cerca bloqueia passagem, pesca entrega peixe no inventário existente, cultivo permite preparar/plantar/regar/colher e vender quantidade ou tudo daquele produto. Porta retorna à fazenda.
 - Roupa com PNG próprio concedida uma vez somente ao grupo escolhido, equipada e recuperada em nova consulta; outra conta não recebe o arquivo. Desativação de recurso em uso foi recusada.
@@ -650,3 +650,6 @@ Limites: celular validado por emulação de viewport/toque no Edge, sem aparelho
 - Migrações 015/016 são aditivas, sem reset, sem substituição de fazendas e sem reprecificar pedidos. A 016 troca a restrição de catálogo por contratos históricos imutáveis e valida snapshots novos por versão; altera somente a guarda de preço fixo do fertilizante, preservando lógica existente de reembolso/dívida/idempotência. Aplicadas primeiro no sandbox e testadas repetidamente em banco local.
 
 Guia de uso e limites efetivos em ADMIN_GUIA.md. Não há validação física de todos os celulares, avaliação auditiva humana de arquivos enviados nem teste de compras reais nesta auditoria. Os exemplos mutáveis foram executados nas contas sintéticas; a sessão pessoal do proprietário em produção não foi assumida. Verificação de publicação e evidências adicionais ficam no relatório de entrega.
+
+- Verificação final de produção das migrações 015/016: 37 fazendas, 2 pedidos e 2 registros de pagamentos antes/depois; resumo criptográfico dos contratos dos pedidos permaneceu idêntico. Administrador exclusivo mantido. Nenhuma fazenda foi atualizada pelas migrações.
+- Identificada no navegador e corrigida consulta de jogador com filtros de data vazios: parâmetros vazios eram enviados como texto ao PostgreSQL. Agora são normalizados como ausência de filtro.
