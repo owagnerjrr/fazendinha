@@ -1,6 +1,6 @@
 ## 0.40.1 — cuidados no padrão dos outros animais
 
-Painel compacto compartilhado, retrato real do animal criado, Mais opções e ausência de nome permanente sobre o sprite. Validação visual em andamento.
+Painel compacto compartilhado, retrato real do animal criado, Mais opções e ausência de nome permanente sobre o sprite. 317 testes/build passaram. Comparação autenticada PC/celular confirmou métricas iguais às do painel original, imagem real, nome oculto no cenário, aviso de fome e persistência das interações.
 
 ## 0.40 — criações na venda e interação normal
 
