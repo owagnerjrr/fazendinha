@@ -1,4 +1,4 @@
-import{guestWalking,guestWalk,GUEST_CARE}from'../src/guest-animal-care.js';
+import{guestWalking,guestWalk,GUEST_CARE,publicAnimals}from'../src/guest-animal-care.js';
 import{applyLife}from'../src/life-rules.js';
 import{settleClimate}from'../src/climate.js';
 import{settleVitals}from'../src/living-animals.js';
@@ -46,7 +46,7 @@ export async function visit(id: string, code: string) {
   const { rows } = await pool.query(`SELECT f.state,f.name,f.public_code AS code FROM farms f WHERE f.public_code=$2 AND EXISTS(SELECT 1 FROM friendships WHERE accepted AND ((sender=$1 AND recipient=f.user_id) OR (recipient=$1 AND sender=f.user_id)))`,[id,code]);
   if (!rows[0]|| (await pool.query('SELECT 1 FROM social_blocks WHERE (owner=$1 AND blocked=(SELECT user_id FROM farms WHERE public_code=$2)) OR (blocked=$1 AND owner=(SELECT user_id FROM farms WHERE public_code=$2))',[id,code])).rowCount) throw new GameError('A visita precisa de uma amizade aceita.',403);
   upgradeFarm(rows[0].state);
-  return { unlockedPlots:rows[0].state.unlockedPlots, avatar:rows[0].state.avatar, decorations:rows[0].state.decorations, socialRaids:rows[0].state.socialRaids,animalRaids:rows[0].state.animalRaids===true,protected:dogProtects(rows[0].state.animals,Date.now())||rows[0].state.raidProtectionUntil>Date.now(), plots:allPlots(rows[0].state),landOwned:rows[0].state.landOwned,landParcels:rows[0].state.landParcels,buildings:rows[0].state.buildings,calendar:rows[0].state.calendar,visitorCare:rows[0].state.visitorCare===true,animals:rows[0].state.animals, name: rows[0].name, code: rows[0].code, now: Date.now() };
+  return { unlockedPlots:rows[0].state.unlockedPlots, avatar:rows[0].state.avatar, decorations:rows[0].state.decorations, socialRaids:rows[0].state.socialRaids,animalRaids:rows[0].state.animalRaids===true,protected:dogProtects(rows[0].state.animals,Date.now())||rows[0].state.raidProtectionUntil>Date.now(), plots:allPlots(rows[0].state),landOwned:rows[0].state.landOwned,landParcels:rows[0].state.landParcels,buildings:rows[0].state.buildings,calendar:rows[0].state.calendar,visitorCare:rows[0].state.visitorCare===true,animals:publicAnimals(rows[0].state.animals,Date.now()), name: rows[0].name, code: rows[0].code, now: Date.now() };
 }
 function move(row: any, position: any, now: number) {
   if (!position || !Number.isFinite(position.x) || !Number.isFinite(position.y) || position.x<100 || position.x>1480 || position.y<180 || position.y>1090) throw new GameError('Posição inválida.');

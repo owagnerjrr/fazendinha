@@ -4,7 +4,7 @@ Iniciar passeio completa a felicidade e ela permanece cheia enquanto o passeio e
 
 Visitantes autorizados podem alimentar, dar água, limpar, medicar, brincar, acariciar, oferecer peixe ao gato e iniciar/encerrar passeio. Recursos saem do visitante, informado no painel. Passeio mantém proprietário, baia, instalação e configuração original; concessão temporária de 45s renovada a cada 8s de visita ativa. Sair tenta devolver imediatamente; queda de conexão/aba suspensa deixa expirar e retorna ao local original. Outro visitante não pode tomar o passeio; dono pode revogar cuidados ou retomar o controle.
 
-241 testes e build aprovados. Navegador 1280/390px: seleção dos 5 animais por teclado/toque, felicidade cheia, cuidados completos no celeiro com estoque do visitante, acompanhamento real/brincadeira na fazenda e devolução sem mudar proprietário/baia. Regressão da assinatura estável do celeiro impede reiniciar a cena por renovação do passeio. Roteiro scripts/qa-friend-care031.mjs; validação autenticada isolada antes da publicação. Nenhuma migração de tabela nem teste destrutivo em produção.
+242 testes e build aprovados. Navegador 1280/390px: seleção dos 5 animais por teclado/toque, felicidade cheia, cuidados completos no celeiro com estoque do visitante, acompanhamento real/brincadeira na fazenda e devolução sem mudar proprietário/baia. Regressão da assinatura estável do celeiro impede reiniciar a cena por renovação do passeio. Roteiro scripts/qa-friend-care031.mjs; validação autenticada e interface publicada no sandbox aprovadas, preservando propriedade, baia, recursos e permissão. Nenhuma migração de tabela nem teste destrutivo em produção.
 
 ## 0.30.0 — oito baias e cuidados equilibrados
 
