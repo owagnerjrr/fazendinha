@@ -1,0 +1,2 @@
+export type CreatedPoint={id:string;x:number;y:number};
+export function createdTarget(player:{x:number;y:number},direction:number,animals:CreatedPoint[],reach=65){const facing=[[0,1],[-1,0],[1,0],[0,-1]][direction]??[0,1];return animals.map(a=>({a,dx:a.x-player.x,dy:a.y-player.y,d:Math.hypot(a.x-player.x,a.y-player.y)})).filter(p=>p.d<=reach&&(p.d<22||p.dx*facing[0]+p.dy*facing[1]>=-8)).sort((a,b)=>a.d-b.d)[0]?.a.id;}

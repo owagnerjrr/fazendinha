@@ -107,3 +107,9 @@ Animais criados aparecem em Meus animais, inclusive presentes anteriores. É pos
 Roupas criadas e recebidas aparecem no guarda-roupa e podem ser reequipadas gratuitamente. Escolher uma roupa original remove a sobreposição criada, preservando a propriedade. Editar o avatar original desativa o modelo criado equipado, sem apagar o modelo adquirido.
 
 Configurações comuns de cuidados são compartilhadas com animais originais; dieta, ambientes e capacidades explicitamente definidos continuam respeitados. Mecânicas inéditas, produção/reprodução de espécies dinâmicas e integração de cuidados de espécies criadas nas visitas ainda exigem implementação própria. Esta atualização não recria nem redistribui presentes existentes.
+
+## 0.40 — venda automática e interação direta
+
+Todo conteúdo comprável publicado entra automaticamente na venda do público escolhido, inclusive presentes. Animais aparecem em Animais e ração; sementes, cuidados e obras entram nas categorias correspondentes; Novidades do vale reúne todos. Roupas/modelos ainda não adquiridos aparecem também na loja de roupas. O preço é o cadastrado; presentes existentes não são cobrados novamente. Rascunhos, conteúdos desativados e restritos a outras contas não aparecem. Uma loja exclusiva configurada explicitamente continua exclusiva. Cenários/configurações não viram itens compráveis.
+
+Toque/clique no animal criado para abrir seu painel; o comando E/Usar com a mão seleciona o animal próximo à frente, em fazenda, interiores e expansão. Portas e pontos próximos do interior mantêm prioridade. Carinho/brincadeira aproximam o animal antes da animação.
