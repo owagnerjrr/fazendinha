@@ -1,3 +1,6 @@
+import {petStroke} from './pet-motion';
+import {PetWorld} from './pet-world';
+import {isPet,petMode} from './pet-rules';
 import {valleyScenery} from './valley-scenery';
 import {homeDesignUI} from './home-design-ui';
 import './valley-refresh.css';
@@ -167,7 +170,7 @@ class FarmScene extends Phaser.Scene {
   activeWork: Work | null = null;
   actor!: Phaser.GameObjects.Sprite;
   flock!: ChickenFlock;private outdoor!:OutdoorAnimals;private collecting=false;
-  private dogCompanions!: DogCompanions;
+  pets!:PetWorld;
   private atmosphere!: Atmosphere;
   private timeLighting!:TimeLighting;
   avatarArt!:AvatarArt;
@@ -273,7 +276,7 @@ class FarmScene extends Phaser.Scene {
     this.actor = this.add.sprite(this.player.x, this.player.y - 2, 'farmer-down-0').setOrigin(.5, 62 / 64).setScale(1.08);
     this.workEffects = new WorkEffects(this);this.outdoor=new OutdoorAnimals(this,()=>farm,()=>Date.now()+cloud.offset,id=>life.animals(id),id=>{if(this.collecting)return;this.collecting=true;void lifeCommand({type:'collect-animal',id}).then(r=>toast(r.message??'Coletado.')).catch(e=>toast(e.message)).finally(()=>this.collecting=false);});
     this.physics.add.collider(this.player, this.obstacles);
-    this.dogCompanions = new DogCompanions(this, this.player, this.obstacles,this.flock.sprites());
+    this.pets=new PetWorld(this,'farm',()=>farm,()=>this.obstacles.getChildren().map(o=>{const b=(o as Phaser.GameObjects.Zone).body as Phaser.Physics.Arcade.StaticBody;return{x:b.x,y:b.y,width:b.width,height:b.height};}),{x:105,y:190,width:1375,height:880},id=>life.animals(id),lifeCommand);
     // A saved spawn may become blocked if a future map changes.
     const inObstacle = this.obstacles.getChildren().some(o => { if((o as Phaser.GameObjects.Zone).getData('river'))return false;const b = (o as Phaser.GameObjects.Zone).body as Phaser.Physics.Arcade.StaticBody; return Phaser.Geom.Rectangle.Contains(new Phaser.Geom.Rectangle(b.x - 10, b.y - 10, b.width + 20, b.height + 20), this.player.x, this.player.y - 5); });
     if (inObstacle) this.player.setPosition(710, 650);
@@ -302,11 +305,12 @@ class FarmScene extends Phaser.Scene {
     this.input.keyboard!.addCapture([Phaser.Input.Keyboard.KeyCodes.SPACE, Phaser.Input.Keyboard.KeyCodes.UP, Phaser.Input.Keyboard.KeyCodes.DOWN]);
     this.input.keyboard!.on('keydown', (e: KeyboardEvent) => { if (modal) return; const tools: Record<string, Tool> = { '1': 'hand', '2': 'hoe', '3': 'seed', '4': 'water','5':'rod' }; if(e.key==='Escape'&&farm.fishing?.cast){void this.fishingView.cancel();return;}if (tools[e.key]) setTool(tools[e.key]); if (e.key.toLowerCase() === 'e' && !inside&&!visiting && !e.repeat && claimInteractionEvent(e)) this.interactNearest(); });
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-      if (modal) return;
+      if (modal||this.pets.locked||this.outdoorBond) return;
       if(this.fishingView.locked){void this.fishingView.use();return;}
       const p = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
       if(tool==='rod'&&nearFishing(this.player)){this.fishingView.aim(p,this.player);return;}
       if(tool==='hoe'&&!this.fields.some(f=>Math.abs(f.x-p.x)<25&&Math.abs(f.y-p.y)<25)&&groundAllowed(farm,groundPosition(p))){this.navigate({...groundPosition(p),y:groundPosition(p).y+42,run:()=>void this.prepareGround(groundPosition(p))});return;}
+      const pet=this.pets.hit(p);if(pet){life.animals(pet);return;}
       const animal=this.outdoor.hit(p);if(animal){this.navigate(animal);return;}
       const building=this.landWorld.buildingAt(farm,p);if(building){this.navigate({...this.landWorld.access(building),building:building.id});return;}
       const field = this.fields.find(f => Math.abs(f.x - p.x) < 20 && Math.abs(f.y - p.y) < 20);
@@ -329,7 +333,7 @@ class FarmScene extends Phaser.Scene {
     for(const field of this.fields)if(field.id>=60&&!getPlot(farm,field.id)){field.soil.setVisible(false);field.plant.setVisible(false);}
     const now = Date.now() + (cloud.active ? cloud.offset : 0);
     const signature=JSON.stringify(farm.decorations);if(signature!==this.decorSignature){this.decorSprites.forEach(x=>x.destroy());this.decorSprites=[];this.decorSignature=signature;for(const d of farm.decorations){const slot=DECOR_SLOTS[d.slot],item=DECOR[d.kind];if(slot&&item)this.decorSprites.push(this.add.image(slot.x,slot.y,`life-${item.texture}`).setOrigin(.5,1).setDepth(slot.y).setScale(d.kind==='cocoaTree'?.85:.65));}}
-    if(this.landWorld?.update(farm))this.dogCompanions?.invalidateObstacles();
+    this.landWorld?.update(farm);
     for(const b of farm.buildings??[]){const site=LAND_SITES[b.site],cx=site.x+b.col*40+20,cy=site.y+b.row*40+38;if(this.player&&Math.abs(this.player.x-cx)<43&&Math.abs(this.player.y-cy)<30){this.cancelMovement();const access=this.landWorld.access(b);this.player.setPosition(access.x,access.y);}}
     for (const field of this.fields) {
       const point=plotPosition(field.id,farm);const usable=plotUsable(farm,field.id);field.soil.setVisible(!!point&&usable);if(!point||!usable){field.plant.setVisible(false);field.label.setVisible(false);continue;}field.x=point.x;field.y=point.y;field.soil.setPosition(point.x,point.y);field.plant.setPosition(point.x,point.y+11).setDepth(point.y+2);field.label.setPosition(point.x,point.y-27);
@@ -409,6 +413,8 @@ class FarmScene extends Phaser.Scene {
     if (work.clock.finished(time)) { this.activeWork = null; const next=this.queuedDestination;this.queuedDestination=null;if(next)this.navigate(next); }
   }
   buildingAccess(b:NonNullable<Farm['buildings']>[number]){return this.landWorld.access(b);}
+  outdoorBond=false;
+  async bondOutdoor(id:string,type:'pet-animal'|'play-animal'){const animal=farm.animals.find(a=>a.id===id),building=farm.buildings?.find(b=>b.id===animal?.housing);if(!animal||!building)throw Error('Animal não encontrado.');setTool('hand');return new Promise<void>((resolve,reject)=>{let settled=false;const timeout=this.time.delayedCall(22000,()=>{if(!settled){settled=true;reject(Error('Não há passagem livre até o animal.'));}});this.navigate({...this.buildingAccess(building),run:()=>{if(settled)return;timeout.remove();this.outdoorBond=true;this.outdoor.beginCare(id);const g=this.add.graphics(),skin=parseInt(SKIN_TONES[farm.avatar.skin].slice(1),16),shirt=parseInt(outfitSleeveColor(appearanceOf(farm)).slice(1),16);this.tweens.addCounter({from:0,to:3100,duration:3100,onUpdate:t=>{const p=this.outdoor.contact(id);if(!p)return;const side=p.x<this.player.x?-1:1;this.direction=side<0?'left':'right';const head={x:p.x-side*10,y:p.y-(animal.kind==='cow'?28:animal.kind==='goat'?23:17)},pose=petStroke(this.player,head,side,t.getValue()??0),{shoulder:s,elbow:e,hand:h}=pose;g.clear().setDepth(Math.max(p.y,this.player.y)+3);if(pose.visible)g.lineStyle(4,shirt).lineBetween(s.x,s.y,e.x,e.y).lineStyle(3,skin).lineBetween(e.x,e.y,h.x,h.y).fillStyle(skin).fillRect(h.x-2,h.y-1,5,3);if(type==='play-animal')g.fillStyle(0xc0bd6b).fillRect(head.x-3,head.y+Math.sin((t.getValue()??0)/250)*2,7,3);},onComplete:()=>{void lifeCommand({type,id}).then(()=>{settled=true;resolve();}).catch(reject).finally(()=>{g.destroy();this.outdoor.endCare();this.outdoorBond=false;});}});}});});}
   careHeart(id:string){const p=this.outdoor.contact(id);if(!p)return;const arm=this.add.graphics(),skin=parseInt(SKIN_TONES[farm.avatar.skin].slice(1),16),shirt=parseInt(outfitSleeveColor(appearanceOf(farm)).slice(1),16);this.direction=p.x<this.player.x?'left':'right';this.tweens.addCounter({from:0,to:1,duration:1400,onUpdate:t=>{const pet=this.outdoor.contact(id);if(!pet)return;const side=pet.x<this.player.x?-1:1,hx=this.player.x+side*Math.min(45,Math.abs(pet.x-this.player.x)),hy=this.player.y-26+Math.sin((t.getValue()??0)*Math.PI*8)*2;arm.clear().setDepth(Math.max(pet.y,this.player.y)+2).lineStyle(6,shirt).lineBetween(this.player.x+side*8,this.player.y-30,this.player.x+side*20,this.player.y-24).lineStyle(4,skin).lineBetween(this.player.x+side*20,this.player.y-24,hx,hy).fillStyle(skin).fillRoundedRect(hx-4,hy-3,8,5,2);},onComplete:()=>arm.destroy()});const heart=this.add.text(p.x,p.y-45,'♥',{fontFamily:'monospace',fontSize:'18px',color:'#f0a47e',stroke:'#4e4734',strokeThickness:2}).setDepth(p.y+2);this.tweens.add({targets:heart,y:p.y-67,alpha:0,duration:1100,onComplete:()=>heart.destroy()});}
   tendPlot(id:number,next:Tool){const field=this.fields.find(f=>f.id===id);if(!field)return;setTool(next);const blocks=this.obstacles.getChildren().map(o=>{const b=(o as Phaser.GameObjects.Zone).body as Phaser.Physics.Arcade.StaticBody;return{x:b.x,y:b.y,width:b.width,height:b.height};});const target=[[42,10],[-42,10],[0,45],[0,-45]].map(([dx,dy])=>({x:field.x+dx,y:field.y+dy,field:id})).find(p=>findPath(this.player,p,blocks).length);if(target)this.navigate(target);else toast('Não há passagem livre.');}
   renderAvatar(time: number, moving: boolean) {
@@ -445,7 +451,8 @@ class FarmScene extends Phaser.Scene {
     this.navigate({x:entrance.x,y:entrance.y,[entrance.id]:true});return true;
   }
   interactNearest() {
-    if (modal || this.activeWork || performance.now()<entranceLockedUntil) return;
+    if (modal || this.activeWork || this.outdoorBond || this.pets.locked || performance.now()<entranceLockedUntil) return;
+    if(tool==='hand'&&this.pets.interact(this.player))return;
     if(tool==='hand'&&this.enterNearbyPlace())return;
     const cropDistance=this.fields.filter(f=>getPlot(farm,f.id)?.crop&&Math.hypot(f.x-this.player.x,f.y-this.player.y)<65).reduce((d,f)=>Math.min(d,Math.hypot(f.x-this.player.x,f.y-this.player.y)),Infinity);
     if(this.outdoor.distance(this.player)<cropDistance&&this.outdoor.interact(this.player))return;
@@ -471,7 +478,9 @@ class FarmScene extends Phaser.Scene {
     if(farm.home?.sleep&&!inside&&!modal){enterInterior('house');return;}
     this.entranceControl.update();
     if(time>=this.nextContext){this.nextContext=time+100;this.contextLabels();}
-    this.outdoor.update(time);this.flock.update(time, delta); this.dogCompanions.update(farm); this.atmosphere.update(time); this.workEffects.update(time);
+    this.outdoor.update(time);this.flock.update(time, delta); this.pets.update(time,this.player,modal); this.atmosphere.update(time); this.workEffects.update(time);
+    if(this.outdoorBond){this.cancelMovement();this.renderAvatar(time,false);return;}
+    if(this.pets.locked){this.cancelMovement();this.direction=this.pets.direction;this.renderAvatar(time,false);return;}
     if(this.fishingView.locked){this.cancelMovement();this.direction=this.fishingView.showingFish?'down':this.fishingView.facing;this.renderAvatar(time,false);return;}
     if (this.activeWork) { this.updateWork(time); this.player.setVelocity(0); this.renderAvatar(time, false); return; }
     if (modal) { this.player.setVelocity(0); this.renderAvatar(time, false); return; }
@@ -539,6 +548,7 @@ function recoverInterior(error:Error,room:'house'|'barn'){
  $('retry-room').onclick=()=>{closePanel();entranceLockedUntil=0;enterInterior(room);};$('continue-farm').onclick=closePanel;
 }
 function enterInterior(room:'house'|'barn'){
+ if(scene?.pets?.locked||scene?.outdoorBond){toast('Aguarde a interação terminar.');return;}
  if(visiting){toast('Volte à sua fazenda antes de entrar em um cômodo.');return;}
  if(farm.home?.sleep&&room!=='house'){toast('Aguarde a personagem acordar.');return;}
  if(performance.now()<entranceLockedUntil||(inside&&currentInterior===room))return;entranceLockedUntil=performance.now()+600;
@@ -547,7 +557,9 @@ function enterInterior(room:'house'|'barn'){
  inside=true;$('hint').hidden=true;$('enter-place').hidden=true;$('hint').textContent='Toque no cômodo para andar. Use E ou Usar perto dos objetos.';$('exit-interior').hidden=false;$('interior-view').hidden=false;$('interior-view').textContent='Ver cômodo inteiro';$('world-place').textContent=room==='house'?'SUA CASA':'SEU CELEIRO';game.scene.start('Interior',{room});
 }
 async function bondAnimal(id:string,type:'pet-animal'|'play-animal'){
- closePanel();const animal=farm.animals.find(a=>a.id===id);if(animal?.housing&&animal.housing!=='barn'){if(inside)(game.scene.getScene('Interior') as InteriorScene).exitRoom();if(inside)throw new Error('Aguarde a personagem acordar.');const b=farm.buildings?.find(b=>b.id===animal.housing);if(!b)throw new Error('Instalação não encontrada.');scene.navigate({...scene.buildingAccess(b),run:()=>{void lifeCommand({type,id}).then(()=>{scene.careHeart(id);toast(type==='play-animal'?'Brincadeira realizada.':'Carinho realizado.');}).catch(e=>toast(e.message));}});return;}if(performance.now()<entranceLockedUntil)await new Promise(resolve=>setTimeout(resolve,entranceLockedUntil-performance.now()+10));const interior=game.scene.getScene('Interior') as InteriorScene;
+ closePanel();const animal=farm.animals.find(a=>a.id===id);
+ if(animal&&isPet(animal)){setTool('hand');if(visiting){const visit=game.scene.getScene('Visit') as VisitScene;if(petMode(animal)==='follow')return visit.pets.bond(id,type);visit.leave();if(visiting)throw Error('Aguarde a interação atual.');}const mode=petMode(animal),room=mode==='follow'?(inside?currentInterior!:'farm'):mode;if(performance.now()<entranceLockedUntil)await new Promise(r=>setTimeout(r,entranceLockedUntil-performance.now()+20));if(room==='farm'){if(inside)(game.scene.getScene('Interior') as InteriorScene).exitRoom();if(inside)throw Error('Levante-se antes de sair.');scene.cancelMovement();await new Promise(r=>setTimeout(r,100));return scene.pets.bond(id,type);}if(!inside||currentInterior!==room)enterInterior(room);await new Promise(r=>setTimeout(r,160));return (game.scene.getScene('Interior') as InteriorScene).bond(id,type);}
+if(animal?.housing&&animal.housing!=='barn'){if(inside)(game.scene.getScene('Interior') as InteriorScene).exitRoom();if(inside)throw Error('Levante-se antes de sair.');return scene.bondOutdoor(id,type);}if(performance.now()<entranceLockedUntil)await new Promise(resolve=>setTimeout(resolve,entranceLockedUntil-performance.now()+10));const interior=game.scene.getScene('Interior') as InteriorScene;
  if(!inside||interior.getRoom()!=='barn'){
   const created=new Promise<void>(resolve=>interior.events.once('create',()=>resolve()));enterInterior('barn');await created;
  }
@@ -581,9 +593,9 @@ setInterval(()=>{
  if(!booting&&!onlineLoading&&!localSaveBlocked)automaticWake.update(farm,now,c=>lifeCommand(c).then(r=>{toast(r.message??'Bom dia!');return r;}));
 },500);
 
-function startVisit(code:string,data:VisitData){if(farm.home?.sleep){toast('Aguarde a personagem acordar.');return;}if(inside){game.scene.stop('Interior');finishInteriorExit();}scene.finishCurrentWork();scene.cancelMovement();game.scene.sleep('Farm');visiting=true;document.body.classList.add('visiting');$('exit-interior').hidden=false;$('world-place').textContent=`Fazenda de ${data.name}`;const label=document.createElement('aside');label.id='visit-banner';const text=document.createElement('span');text.textContent=`Fazenda de ${data.name}`;const chat=document.createElement('button');chat.textContent='Conversar';chat.onclick=()=>void onlineUI.chat(code);const animals=document.createElement('button');animals.textContent='Animais';animals.onclick=()=>{(game.scene.getScene('Visit') as VisitScene).animalsMenu();};label.append(text,chat,animals);document.body.append(label);game.scene.start('Visit',data);}
+function startVisit(code:string,data:VisitData){if(scene.pets.locked||scene.outdoorBond||(inside&&(game.scene.getScene('Interior') as InteriorScene).pets.locked)){toast('Aguarde a interação terminar.');return;}if(farm.home?.sleep){toast('Aguarde a personagem acordar.');return;}if(inside){game.scene.stop('Interior');finishInteriorExit();}scene.finishCurrentWork();scene.cancelMovement();game.scene.sleep('Farm');visiting=true;document.body.classList.add('visiting');$('exit-interior').hidden=false;$('world-place').textContent=`Fazenda de ${data.name}`;const label=document.createElement('aside');label.id='visit-banner';const text=document.createElement('span');text.textContent=`Fazenda de ${data.name}`;const chat=document.createElement('button');chat.textContent='Conversar';chat.onclick=()=>void onlineUI.chat(code);const animals=document.createElement('button');animals.textContent='Animais';animals.onclick=()=>{(game.scene.getScene('Visit') as VisitScene).animalsMenu();};label.append(text,chat,animals);document.body.append(label);game.scene.start('Visit',data);}
 function finishVisit(){visiting=false;document.body.classList.remove('visiting');document.getElementById('visit-banner')?.remove();$('exit-interior').hidden=true;$('world-place').textContent='VALE DO SOSSEGO';game.scene.wake('Farm');scene.cancelMovement();}
-game.scene.add('Visit',new VisitScene({own:()=>farm,tool:()=>tool,seed:()=>selected,stick:()=>joystick,modal:()=>modal,fetch:code=>cloud.request(`?visit=${code}`),presence:(code,pose)=>cloud.request('?presence=1',{code,...pose}),command:c=>cloud.command(c),open:openPanel,close:closePanel,toast,exit:finishVisit,chat:code=>void onlineUI.chat(code)}),false);
+game.scene.add('Visit',new VisitScene({own:()=>farm,tool:()=>tool,seed:()=>selected,stick:()=>joystick,modal:()=>modal,fetch:code=>cloud.request(`?visit=${code}`),presence:(code,pose)=>cloud.request('?presence=1',{code,...pose}),command:c=>cloud.command(c),open:openPanel,close:closePanel,toast,exit:finishVisit,chat:code=>void onlineUI.chat(code),petMenu:id=>life.animals(id)}),false);
 
 const homeDesigner=homeDesignUI({farm:()=>farm,open:openPanel,command:lifeCommand,toast,fertilizers:()=>void storeUI.open('fertilizer')});
 document.addEventListener('click',e=>{const el=(e.target as Element).closest('[data-home-design],[data-fertilizer-menu]');if(el?.hasAttribute('data-home-design'))homeDesigner.open();if(el?.hasAttribute('data-fertilizer-menu'))homeDesigner.fertilizer();});

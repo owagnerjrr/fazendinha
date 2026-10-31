@@ -1,12 +1,17 @@
 import Phaser from 'phaser';import {ANIMAL_SIZE} from './barn-layout';import {animalReady,type Animal} from './content';import {outdoorBox} from './housing';import {livestockMotion} from './livestock-motion';import {livestockArt} from './livestock-art';import {AnimalIndicators} from './animal-indicators';import type {Farm} from './farm';
 type Item={animal:Animal;image:Phaser.GameObjects.Image;shadow:Phaser.GameObjects.Ellipse;icons:AnimalIndicators;box:ReturnType<typeof outdoorBox>;index:number;count:number;spot:{x:number;y:number};access:{x:number;y:number}};
 export class OutdoorAnimals{
+ private care?:{id:string;x:number;y:number;from:{x:number;y:number};start:number};private returning=new Map<string,{x:number;y:number;start:number}>();
+ beginCare(id:string){const p=this.contact(id);const item=this.items.find(i=>i.animal.id===id);if(p&&item)this.care={id,x:item.access.x+8,y:item.box.y+item.box.height-4,from:p,start:this.scene.time.now};}
+ endCare(){if(this.care){const p=this.contact(this.care.id);if(p)this.returning.set(this.care.id,{...p,start:this.scene.time.now});}this.care=undefined;}
  private items:Item[]=[];private signature='';private nextSignature=0;
  constructor(private scene:Phaser.Scene,private farm:()=>Farm,private now:()=>number,private animals:(id?:string)=>void,private collect:(id:string)=>void){}
  update(time:number){const f=this.farm();
   if(time>=this.nextSignature){this.nextSignature=time+300;const sig=JSON.stringify([f.buildings,f.animals.map(a=>[a.id,a.kind,a.housing])]);if(sig!==this.signature){this.signature=sig;this.rebuild(f);}}
-  for(const item of this.items){const live=f.animals.find(a=>a.id===item.animal.id);if(!live)continue;item.animal=live;const size=ANIMAL_SIZE[live.kind],p=livestockMotion(item.box,item.index,item.count,size,time,item.box.x);
-   item.image.setTexture(p.walking?`walk-${live.kind}`:`life-${live.kind}`,p.walking?p.frame:undefined).setDisplaySize(size.width,size.height).setPosition(p.x,p.y).setFlipX(live.kind==='cow'?!p.flip:p.flip).setDepth(p.y);
+  for(const item of this.items){const live=f.animals.find(a=>a.id===item.animal.id);if(!live)continue;item.animal=live;const size=ANIMAL_SIZE[live.kind],p=livestockMotion(item.box,item.index,item.count,size,time,item.box.x,live.kind);
+   if(this.care?.id===live.id){const t=Math.min(1,(time-this.care.start)/700),ease=t*t*(3-2*t);p.x=this.care.from.x+(this.care.x-this.care.from.x)*ease;p.y=this.care.from.y+(this.care.y-this.care.from.y)*ease;p.walking=t<1;p.frame=Math.floor(time/120)%8;}
+   const back=this.returning.get(live.id);if(back&&!this.care){const t=Math.min(1,(time-back.start)/800);p.x=back.x+(p.x-back.x)*t;p.y=back.y+(p.y-back.y)*t;if(t>=1)this.returning.delete(live.id);}
+   item.image.setTexture(p.walking?`walk-${live.kind}`:`life-${live.kind}`,p.walking?p.frame:undefined).setDisplaySize(size.width,size.height).setPosition(p.x,p.y).setFlipX(live.kind==='cow'?!p.flip:p.flip).setDepth(p.y).setAngle(!p.walking&&['chicken','chick','rooster'].includes(live.kind)?Math.sin(time/240)*3:0);
    item.shadow.setPosition(p.x,p.y-2).setDepth(p.y-.2);item.icons.update(live,this.now(),p.x,p.y,size.height,item.spot);
   }
  }

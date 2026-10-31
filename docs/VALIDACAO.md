@@ -524,3 +524,6 @@ Mão permanece fixa na barra de ferramentas; somente o botão circular de ação
 
 ## 0.26.1 — restaurar o espaço fixo da mão
 Sincronização da interface restaura data-tool, imagem, nome e acessibilidade da mão, inclusive ao receber DOM antigo que duplicava uma ferramenta e mantinha dois destaques. qa-tool-icons.mjs reproduz esse DOM em 1280/390, troca enxada/semente/regador, verifica mão fixa e um destaque, e volta à mão. 198 testes e build aprovados. Não há mudança em dados salvos.
+
+## 0.27.0 — pets, interações e ambientes
+Escolhas individuais, cuidado e brinquedos no mundo, acompanhamento entre ambientes e novas vistas de gatos/cachorro. Escopo, dados preservados e limites em PETS_0_27.md.

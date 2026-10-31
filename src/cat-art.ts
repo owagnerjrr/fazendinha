@@ -1,10 +1,11 @@
+import directions from './cat-directions.json';
 import type Phaser from 'phaser';
 import type {Animal} from './content';
 import coats from './cat-pixels.json';
 export const catTexture=(color:Animal['color']='black')=>`cat-${color}`;
 /** Original raster art, decoded once so barns never start with a missing texture. */
-export function catArt(scene:Phaser.Scene){for(const [color,source]of Object.entries(coats)){
- const key=catTexture(color as Animal['color']);if(scene.textures.exists(key))continue;
+export function catArt(scene:Phaser.Scene){for(const [color,source]of Object.entries({...coats,...Object.fromEntries(Object.entries(directions).map(([key,value])=>['27-'+key,value]))})){
+ const key=color.startsWith('27-')?'cat'+color:catTexture(color as Animal['color']);if(scene.textures.exists(key))continue;
  const {width:w,height:h,palette}=source,indices=atob(source.pixels),colors=palette.map(hex=>[0,2,4,6].map(i=>parseInt(hex.slice(i,i+2),16)));
  const base=document.createElement('canvas');base.width=w;base.height=h;const b=base.getContext('2d')!,pixels=b.createImageData(w,h);
  for(let i=0;i<indices.length;i++)pixels.data.set(colors[indices.charCodeAt(i)],i*4);b.putImageData(pixels,0,0);

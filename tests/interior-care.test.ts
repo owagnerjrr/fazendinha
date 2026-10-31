@@ -13,10 +13,10 @@ test('care changes wellbeing, survives reload, and cannot farm money or restart 
  const original={coins:f.coins,feed:f.feed,products:{...f.products},collectedAt:hen.collectedAt};
  assert.equal(applyLife(f,{type:'pet-animal',id:hen.id},now).ok,true);assert.equal(hen.pettedAt,now);
  assert.equal(applyLife(f,{type:'pet-animal',id:hen.id},now+59999).ok,true);assert.equal(hen.pettedAt,now+59999);
- assert.equal(applyLife(f,{type:'play-animal',id:hen.id},now+60000).ok,false);
+ assert.equal(applyLife(f,{type:'play-animal',id:hen.id},now+60000).ok,true);
  assert.equal(animalReady(hen,now+90000),true);
  assert.deepEqual({coins:f.coins,feed:f.feed,products:f.products,collectedAt:hen.collectedAt},original);
- assert.equal(restoreFarm(JSON.stringify(f)).animals[0].pettedAt,now+59999);
+ assert.equal(restoreFarm(JSON.stringify(f)).animals[0].pettedAt,now+60000);
 });
 test('dog play and petting do not force rest, preserves protection and persists',()=>{
  const f=makeFarm(),now=200000;f.animals.push({id:'dog',kind:'dog',fedAt:now,wateredAt:now,collectedAt:now});
