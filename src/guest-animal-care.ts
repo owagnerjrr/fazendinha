@@ -1,0 +1,6 @@
+import type{Animal}from'./content.js';import type{Farm}from'./farm.js';
+export const guestWalking=(a:Animal,now=Date.now())=>!!a.guestWalk&&a.guestWalk.until>now;
+export const GUEST_CARE=['feed-animal','water-animal','pet-animal','play-animal','clean-animal','treat-animal','feed-cat-fish','walk-animal','walk-keepalive','walk-stop-all'] as const;
+export function guestWalk(f:Farm,id:unknown,code:string,enabled:unknown,now:number){const a=f.animals.find(a=>a.id===id);if(!a)return{ok:false,message:'Animal não encontrado.'};if(typeof enabled!=='boolean')return{ok:false,message:'Escolha iniciar ou encerrar o passeio.'};if(a.walking)return{ok:false,message:'Este animal já passeia com o dono.'};if(guestWalking(a,now)&&a.guestWalk!.code!==code)return{ok:false,message:'Este animal já passeia com outro visitante.'};if(enabled){a.guestWalk={code,until:now+45000};if(a.vital)a.vital.happy=100;}else if(a.guestWalk?.code===code)delete a.guestWalk;return{ok:true,message:enabled?'Passeio iniciado! Felicidade completa. O animal continua pertencendo ao seu amigo.':'Passeio encerrado. Animal de volta ao local do dono.'};}
+
+export function publicAnimals(animals:Animal[],now:number){return animals.map(a=>{if(!a.guestWalk||guestWalking(a,now))return a;const copy={...a};delete copy.guestWalk;return copy;});}

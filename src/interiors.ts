@@ -1,3 +1,5 @@
+import{barnSignature}from'./barn-state';
+import{penAssignments}from'./barn-slots';
 import {sleepPicker} from './sleep-picker';
 import {PetWorld} from './pet-world';
 import {isPet} from './pet-rules';
@@ -46,7 +48,7 @@ export class InteriorScene extends Phaser.Scene {
 
   }else{
    block(145,130,20,690);block(1035,130,20,690);block(150,130,900,90);block(150,807,380,18);block(670,807,380,18);
-   this.barn=buildBarn(this,s.farm(),block,id=>s.animals(id),()=>s.equipment(),id=>{if(this.homeBusy)return;this.homeBusy=true;void(s.collect?.(id)??Promise.resolve()).catch(e=>s.toast(e.message)).finally(()=>{this.homeBusy=false;});});this.points.push(...this.barn.points);this.animalSignature=JSON.stringify(s.farm().animals.map(a=>[a.id,a.kind,a.housing,a.walking,a.pen,a.petMode]));
+   this.barn=buildBarn(this,s.farm(),block,id=>this.openAnimal(id),()=>s.equipment(),id=>{if(this.homeBusy)return;this.homeBusy=true;void(s.collect?.(id)??Promise.resolve()).catch(e=>s.toast(e.message)).finally(()=>{this.homeBusy=false;});});this.points.push(...this.barn.points);this.animalSignature=barnSignature(s.farm(),s.now());
   }
   bakeFloor(this,this.room==='house'?{x:258,y:154,width:686,height:580}:{x:140,y:130,width:920,height:700});
   const exitY=this.room==='house'?697:790;this.points.push({x:600,y:exitY,name:'Voltar à fazenda',run:()=>this.leave()});
@@ -64,18 +66,19 @@ export class InteriorScene extends Phaser.Scene {
   this.cameras.main.setBounds(0,0,1200,950);this.cameras.main.startFollow(this.player,true,.1,.1,0,30);this.resize();this.scale.on('resize',this.resize,this);
   this.keys=this.input.keyboard!.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,E,ESC') as Record<string,Phaser.Input.Keyboard.Key>;
   this.input.keyboard!.on('keydown-E',(e:KeyboardEvent)=>{if(!e.repeat&&claimInteractionEvent(e))this.interact();});this.input.keyboard!.on('keydown-ESC',()=>{if(!s.modal())this.leave();});
-  this.input.on('pointerdown',(p:Phaser.Input.Pointer)=>{if(s.modal()||this.bonding||this.pets?.locked||this.homeBusy)return;const point=this.cameras.main.getWorldPoint(p.x,p.y);const pet=this.pets.hit(point);if(pet){s.animals(pet);return;}if(this.rest){if(this.rest.kind==='sit'&&Math.abs(point.x-740)<50&&point.y>235&&point.y<330)this.useHouse('tv');else this.releaseRest();return;}const item=this.points.find(t=>(!t.enabled||t.enabled())&&Math.hypot((t.hitX??t.x)-point.x,(t.hitY??t.y-30)-point.y)<(t.radius??65));if(item?.interactionPosition&&Math.hypot(this.player.x-item.interactionPosition().x,this.player.y-item.interactionPosition().y)<100){item.run();return;}if(item?.kind){this.requestHouseInteraction(item.kind);return;}const target=item?{x:item.x,y:item.y,run:item.run}:{x:Phaser.Math.Clamp(point.x,185,1015),y:Phaser.Math.Clamp(point.y,240,790)};this.route=findPath(this.player,target,this.blocks);if(this.route.length)this.target=target;else s.toast('Passagem bloqueada.');});
+  this.input.on('pointerdown',(p:Phaser.Input.Pointer)=>{if(s.modal()||this.bonding||this.pets?.locked||this.homeBusy)return;const point=this.cameras.main.getWorldPoint(p.x,p.y);const pet=this.pets.hit(point);if(pet){this.openAnimal(pet);return;}if(this.rest){if(this.rest.kind==='sit'&&Math.abs(point.x-740)<50&&point.y>235&&point.y<330)this.useHouse('tv');else this.releaseRest();return;}const item=this.points.find(t=>(!t.enabled||t.enabled())&&Math.hypot((t.hitX??t.x)-point.x,(t.hitY??t.y-30)-point.y)<(t.radius??65));if(item?.interactionPosition&&Math.hypot(this.player.x-item.interactionPosition().x,this.player.y-item.interactionPosition().y)<100){item.run();return;}if(item?.kind){this.requestHouseInteraction(item.kind);return;}const target=item?{x:item.x,y:item.y,run:item.run}:{x:Phaser.Math.Clamp(point.x,185,1015),y:Phaser.Math.Clamp(point.y,240,790)};this.route=findPath(this.player,target,this.blocks);if(this.route.length)this.target=target;else s.toast('Passagem bloqueada.');});
   this.events.once('shutdown',()=>{this.scale.off('resize',this.resize,this);this.art.destroy();if(this.houseButton)this.houseButton.hidden=true;if(this.tvButton)this.tvButton.hidden=true;this.bonding?.reject(new Error('Interação interrompida.'));this.bonding=null;});
 
  }
  private resize(){const camera=this.cameras.main;if(this.scale.width>=900){camera.stopFollow();camera.removeBounds();camera.setZoom(Math.min(this.scale.width/1150,this.scale.height/850));camera.centerOn(600,470);}else if(this.overview){camera.stopFollow();camera.removeBounds();camera.setZoom(Math.min(this.scale.width/980,(this.scale.height-170)/800));camera.centerOn(600,470);}else{camera.setBounds(0,0,1200,950);camera.startFollow(this.player,true,.1,.1,0,30);camera.setZoom(1.05);}}
  toggleView(){this.overview=!this.overview;this.resize();return this.overview;}
 
+ private openAnimal(id?:string){if(this.room==='barn'&&id&&!id.startsWith('@pen:')){const pen=penAssignments(this.services.farm().animals).get(id);if(pen!==undefined){this.services.animals('@pen:'+pen);return;}}this.services.animals(id);}
  getRoom(){return this.room;}
  async bond(id:string,type:'pet-animal'|'play-animal'):Promise<void>{
   if(this.bonding||this.pets.locked)throw Error('Aguarde a interação atual.');
   if(this.services.farm().animals.some(a=>a.id===id&&isPet(a))){this.pets.update(this.time.now,this.player);return this.pets.bond(id,type);}
-  const signature=JSON.stringify(this.services.farm().animals.map(a=>[a.id,a.kind,a.housing,a.walking,a.pen,a.petMode]));
+  const signature=barnSignature(this.services.farm(),this.services.now());
   if(this.room==='barn'&&this.animalSignature!==signature){const created=new Promise<void>(resolve=>this.events.once('create',resolve));this.scene.restart({room:'barn'});await created;}
   if(this.bonding)return Promise.reject(new Error('Aguarde a interação atual.'));
   const access=this.barn?.access(id);if(!access||!this.services.farm().animals.some(a=>a.id===id))return Promise.reject(new Error('Animal não encontrado no celeiro.'));
@@ -155,6 +158,6 @@ export class InteriorScene extends Phaser.Scene {
    }
    if(time-bond.start>15000&&bond.phase==='arriving')this.finishBond(new Error('O caminho até o animal ficou bloqueado.'));
   }
-  if(this.barn&&!s.modal()&&this.animalSignature!==JSON.stringify(s.farm().animals.map(a=>[a.id,a.kind,a.housing,a.walking,a.pen,a.petMode])))this.scene.restart({room:'barn'});
+  if(this.barn&&!s.modal()&&this.animalSignature!==barnSignature(s.farm(),s.now()))this.scene.restart({room:'barn'});
  }
 }
