@@ -49,6 +49,7 @@ export class WorkEffects {
       this.scene.tweens.addCounter({ from: 0, to: 1, duration: 500 + i * 8, onUpdate: tween => { const t = tween.getValue() ?? 0; chunk.setPosition(target.x + vx * t, target.y + vy * t + 44 * t * t).setAlpha(1 - t).setAngle(t * vx * 4); }, onComplete: () => chunk.destroy() });
     }
   }
+  spray(start:Point,target:Point,kind:'fertilizer'|'medicine'){effectsAudio.play('spray');for(let i=0;i<22;i++){const end={x:target.x+Phaser.Math.Between(-15,15),y:target.y+Phaser.Math.Between(-8,8)},drop=this.scene.add.rectangle(start.x,start.y,i%4?2:3,2,kind==='fertilizer'?0xe5ca75:0xb1d99c).setDepth(Math.max(start.y,target.y)+20);this.scene.tweens.addCounter({from:0,to:1,duration:300+i*9,delay:i*8,onUpdate:t=>{const k=t.getValue()??0;drop.setPosition(start.x+(end.x-start.x)*k,start.y+(end.y-start.y)*k).setAlpha(1-k*.9);},onComplete:()=>drop.destroy()});}}
   harvest(target: Point,sound=true) {if(sound)effectsAudio.play('hand');
     for (let i = 0; i < 8; i++) { const spark = this.scene.add.rectangle(target.x + Phaser.Math.Between(-9, 9), target.y, 2, 3, 0xf3d581).setDepth(1750); this.scene.tweens.add({ targets: spark, y: target.y - 30, alpha: 0, duration: 550, delay: i * 15, onComplete: () => spark.destroy() }); }
   }

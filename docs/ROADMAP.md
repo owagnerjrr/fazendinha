@@ -321,3 +321,5 @@ Validação 0.32: 253 testes e build passaram. Fluxos locais desktop/celular e a
 0.32.1: corrigida incompatibilidade entre bordas físicas e posições aceitas pelo servidor na saída sul; regressão cobre caminhada real até a passagem própria e de amigos.
 
 0.33: consulta remota de cuidados dos animais de amigos; ajuda com deslocamento até o animal; organização automática de construções antigas no sul sem recriar bens; chamados temporários para gato e cachorro com gesto, áudio e aproximação.
+
+0.34: Construir fora dos controles de movimento/ação; fertilizante e defensivo como borrifadores equipáveis; gesto de chamada em quadros de sprite com braço substituído, não sobreposto.
