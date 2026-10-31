@@ -289,3 +289,5 @@ Nome, identidade definitiva e monetização continuam em aberto. Não há compro
 - 0.26.1: restauração do botão da mão mesmo com interface antiga em memória; regressão de ícones desktop/móvel.
 
 - 0.27.0: modos individuais para pets, casa/celeiro/exterior, acompanhamento, animações com brinquedos e arte direcional.
+
+Validação autenticada no sandbox 873c41e: cachorro salvo no celeiro, replay idempotente sem nova entrega/débito, lotação recusada sem débito e estado preservado após novo login. Somente conta sintética QA0294 Compra foi preparada na branch de testes; nenhum saldo real alterado.
