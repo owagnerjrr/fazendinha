@@ -1,3 +1,4 @@
+import{protectDialogGesture}from'./dialog-gesture';
 import{studioGuestUI}from'./studio-guest-ui';
 import{loadEntryAssets}from'./studio-assets-client';
 import {studioUI} from './studio-ui';
@@ -102,7 +103,7 @@ let currentInterior:'house'|'barn'|null=null;
 let petCaller:PetCallEffect|undefined;
 let portraitSignature='';
 function previewAvatar(a:Avatar,row=0,frame=0){if(!scene?.previewArt)return '';const key=scene.previewArt.key('farmer-v2',a),image=scene.textures.get(key).getSourceImage() as HTMLCanvasElement;const c=document.createElement('canvas');c.width=48;c.height=64;c.getContext('2d')!.drawImage(image,frame*48,row*64,48,64,0,0,48,64);return c.toDataURL();}
-const dialog = $<HTMLDialogElement>('panel');
+const dialog = $<HTMLDialogElement>('panel');const resetPanelGesture=protectDialogGesture(dialog);
 const menu = $<HTMLDialogElement>('game-menu');
 function closeMenu(){menu.close();$('menu-toggle').setAttribute('aria-expanded','false');}
 $('menu-toggle').onclick=()=>{if(menu.open){closeMenu();return;}scene?.cancelMovement();modal=true;joystick={x:0,y:0};$('joystick-knob').style.transform='';document.body.classList.add('modal-open');menu.showModal();$('menu-toggle').setAttribute('aria-expanded','true');};
@@ -140,7 +141,7 @@ function syncUI() {
   document.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach(b => { const active = b.dataset.tool === tool; b.classList.toggle('active', active); b.setAttribute('aria-pressed', String(active)); });
 }
 function setTool(next: Tool) {if(isSpray(next)&&sprayStock(farm,next)<1){toast('Este produto acabou. Compre mais na loja.');return;} if(next==='rod'&&!farm.fishing?.rod)return;if(tool==='rod'&&next!=='rod')void scene?.fishingView?.cancel();if(next==='rod'||next==='water'){equippedTool=next;try{localStorage.setItem('wj-tool-slot-v1',next);}catch{/* optional preference */}}tool = next; syncUI(); const hints: Record<Tool, string> = {fertilizer:'Toque numa planta regada para borrifar fertilizante.',medicine:'Toque numa planta doente e hidratada para borrifar defensivo.',rod:'', hand: 'Toque em uma planta pronta para colher.', hoe: 'Toque em um canteiro para preparar a terra.', seed: `Toque na terra preparada para plantar ${CROPS[selected].name.toLowerCase()}.`, water: 'Toque na plantação para regar e iniciar o crescimento.' }; $('hint').textContent = hints[tool]; }
-function openPanel(title: string, content: string, kind: 'shop' | 'other' = 'other') {panelOpenedAt=performance.now();
+function openPanel(title: string, content: string, kind: 'shop' | 'other' = 'other') {resetPanelGesture();panelOpenedAt=performance.now();
   dialog.classList.remove('animal-detail');activePanel = kind; scene?.finishCurrentWork();
   modal = true; scene?.cancelMovement(); $('panel-eyebrow').textContent = 'UM POUQUINHO DE VIDA NO CAMPO'; $('panel-content').innerHTML = content; const heading=document.createElement('h2');heading.textContent=title;$('panel-content').prepend(heading); document.body.classList.add('modal-open'); if (!dialog.open) dialog.showModal();
 }

@@ -1,0 +1,2 @@
+/** A release from the gesture that opened a dialog must not click its new controls. */
+export function protectDialogGesture(target:EventTarget){let inside=false;const reset=()=>{inside=false;};target.addEventListener('pointerdown',()=>{inside=true;},true);target.addEventListener('click',event=>{if((event as MouseEvent).detail>0&&!inside){event.preventDefault();event.stopImmediatePropagation();}inside=false;},true);target.addEventListener('close',reset);return reset;}
