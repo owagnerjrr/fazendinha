@@ -1,4 +1,5 @@
 import{imageAsset,mediaGeneration}from'./studio-assets-client';
+import{slimNebulaWaist}from'./nebula-art';
 import {outfitPixels,drawOutfitCap} from './outfit-art';
 import {headAttachment,eraseNativeHead,nativeSkin,nativeHeadRegion,restoreRaisedTool,alignHeadToSpine,stableBackHead} from './avatar-attachment';
 import Phaser from 'phaser';
@@ -60,12 +61,14 @@ export class AvatarArt {
     if(target){p[i]=Math.min(255,target[0]*shade);p[i+1]=Math.min(255,target[1]*shade);p[i+2]=Math.min(255,target[2]*shade);}
    }
    outfitPixels(p,original,w,h,avatar,neck,row);
+   if(avatar.outfit==='nebula'&&base==='farmer-v2')slimNebulaWaist(p,w,h,neck);
    cleanAvatarPixels(p,w,h);ctx.putImageData(data,col*w,row*h);
    // Body pixels remain in the foreground; the replacement head fits behind the collar.
    const direction=['down','left','right','up'][row],ox=col*w,oy=row*h,foreground=p.slice();
    ctx.save();ctx.beginPath();ctx.rect(ox,oy,w,h);ctx.clip();
    ctx.save();ctx.translate(ox,oy);drawModelFeatures(ctx,avatar,row,neck.x,neck.y-32);ctx.restore();
-   if(avatar.style==='hood'){
+   if(avatar.outfit==='nebula'){const body=ctx.getImageData(ox,oy,w,h);eraseNativeHead(body.data,w,h,region.top,region.x,neck.y,row);ctx.putImageData(body,ox,oy);}
+   else if(avatar.style==='hood'){
     const face=document.createElement('canvas');face.width=22;face.height=15;face.getContext('2d')!.drawImage(canvas,ox+cx-11,oy+top+19,22,15,0,0,22,15);
     ctx.clearRect(ox+cx-25,oy+Math.max(0,top-4),50,top+30-Math.max(0,top-4));ctx.save();ctx.translate(ox+cx-20,oy+top-4);drawNightHood(ctx,direction);ctx.restore();
     if(direction!=='up'){ctx.save();ctx.beginPath();ctx.rect(ox+cx-10,oy+top+20,20,13);ctx.clip();ctx.drawImage(face,ox+cx-11,oy+top+19);ctx.restore();}
@@ -73,7 +76,7 @@ export class AvatarArt {
     const body=ctx.getImageData(ox,oy,w,h);eraseNativeHead(body.data,w,h,region.top,region.x,neck.y,row);ctx.putImageData(body,ox,oy);
     ctx.save();ctx.globalCompositeOperation='destination-over';ctx.translate(ox,oy);drawPortraitHead(ctx,this.scene.textures.get('portrait-heads-v9').getSourceImage() as HTMLImageElement,avatar,row,neck.x,neck.y);ctx.restore();
    }
-   ctx.save();ctx.translate(ox,oy);drawOutfitCap(ctx,avatar,row,neck);ctx.restore();
+   ctx.save();ctx.translate(ox,oy);drawOutfitCap(ctx,avatar,row,neck,{pixels:original,width:w,height:h});ctx.restore();
    for(const ref of [avatar.studioBody,avatar.studioOverlay]){const overlay=imageAsset(ref);if(overlay){ctx.drawImage(overlay,col*48,row*64,48,64,ox+w/2-24+(ref?.offsetX??0),oy+(base==='farmer-v2'?0:38)+(ref?.offsetY??0),48,64);}}
    const layered=ctx.getImageData(ox,oy,w,h);restoreRaisedTool(layered.data,foreground,w,h,base,row,col,skin,neck.y);ctx.putImageData(layered,ox,oy);
    ctx.restore();const final=ctx.getImageData(ox,oy,w,h);cleanAvatarPixels(final.data,w,h);ctx.putImageData(final,ox,oy);

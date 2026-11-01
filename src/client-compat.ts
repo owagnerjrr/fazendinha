@@ -1,5 +1,6 @@
 import type { Farm } from './farm.js';
 export function requiresNewClient(farm:Farm,version:string|null|undefined):boolean {
+ if(version==='19')return false;if(farm.wardrobe?.owned.includes('nebula'))return true;
  if(version==='18')return false;if(farm.avatar.hair>=5||farm.studio?.owned.some(e=>e.definition.kind==='model'&&Number(e.definition.data.hair)>=5))return true;
  if(version==='17')return false;if(farm.studio?.owned.length||farm.studio?.ruleVersion||farm.studio?.recoveryId)return true;
  if(version==='16')return false;if(farm.animals.some(a=>a.summon))return true;

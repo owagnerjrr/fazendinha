@@ -402,3 +402,7 @@ Borrifador permanece em Ferramentas mesmo sem doses; estoque e equipamento exist
 ## 0.46.3 — roubo compatível com plantações antigas
 
 Retiradas as travas obsoletas de planta “beliscada” e recibo diário que impediam o roubo antes de concluir. Valem consentimento e cinco roubos por visitante/fazenda em janela móvel de 60 minutos. Novo roubo entrega um produto e esvazia o canteiro; plantações e históricos antigos não são apagados na atualização. 361 testes, build e sandbox autenticado aprovados.
+
+## 0.47 — Sentinela Nebulosa por R$10
+
+Nova roupa permanente na aba Roupas, com prévia animada, Pix/cartão via Orders, preço validado no servidor e guarda-roupa protegido contra duplicação. Guarda roupas anteriores e saldos. Migrações aditivas 021 (oferta inativa/entrega) e 022 (ativação auditada após deploy). Clientes precisam recarregar (protocolo 19). 364 testes e build aprovados; escopo, testes e limitações do checkout em SENTINELA_0_47.md.
