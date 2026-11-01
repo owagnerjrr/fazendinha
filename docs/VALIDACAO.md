@@ -763,3 +763,5 @@ Clareira: cabelo alongado discretamente; prévia local nas quatro direções e s
 Preparada publicação por R$ 15,00 via Pix/cartão; 366 testes e build aprovados, migrações aditivas validadas na branch de testes. Detalhes em CLAREIRA_0_48.md.
 
 Clareira 0.48: navegador sandbox em 1280/390px validou preço R$15, Pix/cartão, pedido ORDTST, repetição, preço adulterado, bloqueio de cliente antigo e ausência de entrega sem aprovação. Equipamento/persistência conferidos com presente de fixture isolado; não houve pagamento real. Migração de produção preservou integralmente fazendas e contratos. Detalhes e limites em CLAREIRA_0_48.md.
+
+0.48.1: Guerreiro Link com cabelo loiro e olhos azuis independentemente do modelo original. Mesmo produto e preço; quem comprou mantém o direito. Migração de nome com histórico e auditoria. Prévia local e 367 testes aprovados.

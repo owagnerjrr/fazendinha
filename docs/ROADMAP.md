@@ -417,3 +417,5 @@ Clareira (rascunho local): cabelo loiro um pouco mais longo sob o gorro, sem pub
 
 ## Guardião da Clareira 0.48.0
 Preparada publicação por R$ 15,00 via Pix/cartão; 366 testes e build aprovados, migrações aditivas validadas na branch de testes. Detalhes em CLAREIRA_0_48.md.
+
+0.48.1: corrigida aparência própria loira/olhos azuis do Guerreiro Link, preservando personalização salva e compras.

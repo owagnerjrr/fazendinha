@@ -30,6 +30,9 @@ export function drawForestDraft(c:CanvasRenderingContext2D,row:number,n:HeadAtta
   const fill=back?C.leather:C.blue;r(-4,-6,8,1,fill);r(-5,-5,10,6,fill);r(-4,1,8,1,fill);r(-2,2,4,3,fill);
   if(back){r(-3,-4,1,7,C.leatherLight);r(2,-4,1,7,C.line);r(-3,-1,6,2,C.line);r(-1,-2,2,4,C.leatherLight);}else{r(-4,-5,2,5,C.blueLight);r(3,-4,1,5,C.blueDark);line(0,3,0,-4,C.cream);r(-2,-3,2,2,C.mint);r(1,-1,2,2,C.gold);r(-1,-4,2,2,C.mint);r(-2,2,1,1,C.silver);}
   c.restore();};
+ // Blue irises belong to this fixed short-haired costume head. Eyelids stay dark.
+ if(row!==3){const eyes=row===0?[-5,2]:row===1?[-8]:[7],eyeY=row===0?-7:-9;
+  for(const x of eyes){r(x,eyeY,2,2,'#277eae');r(x,eyeY,2,1,'#184e77');r(x,eyeY+1,1,1,'#80cfe2');}}
  // Stowed in every pose: back-facing shield, sheathed blade and shoulder hilt.
  // Front/profile equipment sits behind the actual body, leaving moving hands free.
  c.save();if(row!==3)c.globalCompositeOperation='destination-over';
