@@ -1,3 +1,4 @@
+import{drawDuckArm}from'./duck-play-art';
 import{outfitAppearance}from'./outfit-appearance';
 import{imageAsset,mediaGeneration}from'./studio-assets-client';
 import{slimNebulaWaist}from'./nebula-art';
@@ -24,6 +25,9 @@ export class AvatarArt {
   const old=this.previous;
   if(this.media!==mediaGeneration()||JSON.stringify(old?.studioOverlay)!==JSON.stringify(avatar.studioOverlay)||JSON.stringify(old?.studioBody)!==JSON.stringify(avatar.studioBody)||!old||old.style!==avatar.style||old.skin!==avatar.skin||old.hair!==avatar.hair||old.shirt!==avatar.shirt||old.outfit!==avatar.outfit||old.studioColor!==avatar.studioColor){for(const key of this.keys.values()){this.scene.textures.remove(key);this.scene.textures.remove(`${key}-source`);}this.keys.clear();this.media=mediaGeneration();this.previous={...avatar};this.generation++;}
   if(this.keys.has(base))return this.keys.get(base)!;
+  if(base==='pose-duck-play'){
+   const source=this.scene.textures.get(this.key('farmer-v2',avatar)).getSourceImage() as HTMLCanvasElement,cv=document.createElement('canvas');cv.width=192;cv.height=256;const c=cv.getContext('2d')!;c.imageSmoothingEnabled=false;for(let row=0;row<4;row++)for(let frame=0;frame<4;frame++){c.drawImage(source,0,row*64,48,64,frame*48,row*64,48,64);c.save();c.translate(frame*48,row*64);drawDuckArm(c,avatar,row,frame);c.restore();}const key=`avatar-${this.instance}-${this.generation}-${base}`,texture=this.scene.textures.addCanvas(key,cv)!;this.scene.textures.addSpriteSheet('',texture,{frameWidth:48,frameHeight:64});this.keys.set(base,key);return key;
+  }
   if(base==='pose-sit-front'){
    const source=this.scene.textures.get(this.key('farmer-v2',avatar)).getSourceImage() as HTMLCanvasElement,cv=document.createElement('canvas');cv.width=48;cv.height=64;const c=cv.getContext('2d')!;c.imageSmoothingEnabled=false;c.drawImage(source,0,0,48,45,0,0,48,45);c.drawImage(source,0,45,48,18,0,45,48,10);const key=`avatar-${this.instance}-${this.generation}-${base}`;this.scene.textures.addCanvas(key,cv);this.keys.set(base,key);return key;
   }

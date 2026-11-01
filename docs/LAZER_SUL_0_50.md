@@ -13,3 +13,11 @@ Interações de lazer são locais à cena, gratuitas e sem recompensas: não con
 A revisão visual reposicionou a aproximação do lago inferior para a margem norte, sem copa encobrindo o personagem. Patos agora mantêm espaçamento e posições limitadas ao interior da água durante a brincadeira. A rotina de retomada do nado é suave. O acesso ao banco da nascente também foi ajustado para a malha de navegação e a luminária.
 
 Homologação online concluída no sandbox autenticado em 1440/390px: bancos, piquenique e patos iniciam/encerram pelo botão contextual, sem erros JavaScript/5xx. Revisão final da margem repetida nas duas larguras: personagem visível e patos distribuídos ao redor do barco. Snapshot antes/depois de moedas, inventário, roupas, animais, terrenos, estruturas e cultivos permaneceu igual. Nenhuma cobrança ou migração. Visita simultânea entre duas contas e aparelhos físicos não foram testados nesta entrega.
+
+## 0.50.1 — encenação com os patos
+
+Alteração restrita à brincadeira com patos. O braço ativo é substituído por quatro quadros ligados ao ombro, preservando cabeça, roupa e o outro braço; evita desenhar um membro extra por cima do repouso. A mão prepara o barquinho, solta-o numa trajetória em arco e relaxa após a chegada à água. Há respingo breve, e os patos só começam a seguir depois da aterrissagem. A posição do brinquedo na preparação usa a mesma âncora da palma desenhada.
+
+375 testes e build passaram; sequência de preparação/soltura/aterrissagem validada. Navegador local 1440/390px repetiu as interações, conferiu patos dentro da água e junto ao brinquedo, controles, cancelamento, ausência das placas e bens preservados. Bancos, piquenique, flores, preços e progressos mantêm suas regras. Sem migração. Homologação online em andamento.
+
+Homologação 0.50.1: sandbox autenticado em 1440/390px abriu a encenação revisada, iniciou/encerrou pelo controle existente e preservou o snapshot dos bens, sem erros JavaScript/5xx. Sem cobranças ou migração. Conferência em aparelhos físicos não realizada.
