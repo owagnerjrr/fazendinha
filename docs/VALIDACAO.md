@@ -767,3 +767,5 @@ Clareira 0.48: navegador sandbox em 1280/390px validou preço R$15, Pix/cartão,
 0.48.1: Guerreiro Link com cabelo loiro e olhos azuis independentemente do modelo original. Mesmo produto e preço; quem comprou mantém o direito. Migração de nome com histórico e auditoria. Prévia local e 367 testes aprovados.
 
 0.48.2: nome público da roupa nebula alterado para Samus Aran. Mesmo identificador outfit_nebula, preço R$10 e propriedade permanente. Migração 026 versiona o nome com auditoria e preserva contratos, personalizações e progresso. Pedidos antigos mantêm o nome contratado.
+
+0.49.0: sul com cascata, lagos, patos, aves, flores e luminárias integrado ao cenário próprio e de amigos. Campos comprados preservados; 370 testes, build e navegador local em computador/celular aprovados. Ver SUL_0_49.md para escopo, desempenho e validação.
