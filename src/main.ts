@@ -500,7 +500,7 @@ class FarmScene extends Phaser.Scene {
     if(farm.home?.sleep&&!inside&&!modal){enterInterior('house');return;}
     this.entranceControl.update();if(!inside&&!modal&&Math.hypot(this.player.x-750,this.player.y-1040)<70){$('enter-place').hidden=false;$('enter-place').textContent='Entrar · Campos do sul';}
     if(time>=this.nextContext){this.nextContext=time+100;this.contextLabels();if(this.scale.width<600){const target=farm.animals.filter(a=>a.walking).length>4?.9:1.1,cam=this.cameras.main;if(Math.abs(cam.zoom-target)>.005)cam.setZoom(cam.zoom+(target-cam.zoom)*.2);}}
-    this.outdoor.update(time);this.flock.update(time, delta); this.pets.update(time,this.player,modal,DIRECTION_ROW[this.direction]); this.atmosphere.update(time); this.workEffects.update(time);this.climateFX.update(time,farm,Date.now()+cloud.offset);const weather=document.getElementById('weather-now');if(weather)weather.textContent=climateAt(farm,Date.now()+cloud.offset).label;
+    this.outdoor.update(time);this.flock.update(time, delta); this.pets.update(time,this.player,modal,DIRECTION_ROW[this.direction]); this.atmosphere.update(time); this.workEffects.update(time);this.climateFX.update(time,farm,Date.now()+cloud.offset);
     if(this.outdoorBond){this.cancelMovement();this.renderAvatar(time,false);return;}
     if(this.pets.locked){this.cancelMovement();this.direction=this.pets.direction;this.renderAvatar(time,false);return;}
     if(this.fishingView.locked){this.cancelMovement();this.direction=this.fishingView.showingFish?'down':this.fishingView.facing;this.renderAvatar(time,false);return;}

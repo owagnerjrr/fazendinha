@@ -20,7 +20,7 @@ import { plotPosition,plotUsable } from '../src/plots.js';
 import { requiresNewClient, CLIENT_UPDATE_MESSAGE } from '../src/client-compat.js';
 import { initializeProfile } from '../src/profile.js';
 import { LIFE_COMMANDS } from '../src/life-rules.js';
-import { dogProtects } from '../src/content.js';
+import {raidProtection,raidProtectionMessage} from '../src/raid-protection.js';
 import { returnLot, transferLot } from '../src/market.js';
 import { createHash } from 'node:crypto';
 import type { PoolClient } from 'pg';
@@ -53,7 +53,7 @@ export async function visit(id: string, code: string) {
   const { rows } = await pool.query(`SELECT f.state,f.name,f.public_code AS code FROM farms f WHERE f.public_code=$2 AND EXISTS(SELECT 1 FROM friendships WHERE accepted AND ((sender=$1 AND recipient=f.user_id) OR (recipient=$1 AND sender=f.user_id)))`,[id,code]);
   if (!rows[0]|| (await pool.query('SELECT 1 FROM social_blocks WHERE (owner=$1 AND blocked=(SELECT user_id FROM farms WHERE public_code=$2)) OR (blocked=$1 AND owner=(SELECT user_id FROM farms WHERE public_code=$2))',[id,code])).rowCount) throw new GameError('A visita precisa de uma amizade aceita.',403);
   upgradeFarm(rows[0].state);
-  return { studio:publicCreatedAnimals(rows[0].state,Date.now()),unlockedPlots:rows[0].state.unlockedPlots, avatar:rows[0].state.avatar, decorations:rows[0].state.decorations, socialRaids:rows[0].state.socialRaids,animalRaids:rows[0].state.animalRaids===true,protected:dogProtects(rows[0].state.animals,Date.now())||rows[0].state.raidProtectionUntil>Date.now(), plots:allPlots(rows[0].state),landOwned:rows[0].state.landOwned,landParcels:rows[0].state.landParcels,buildings:rows[0].state.buildings,calendar:rows[0].state.calendar,visitorCare:rows[0].state.visitorCare===true,animals:publicAnimals(rows[0].state.animals,Date.now()), name: rows[0].name, code: rows[0].code, now: Date.now() };
+  return { studio:publicCreatedAnimals(rows[0].state,Date.now()),unlockedPlots:rows[0].state.unlockedPlots, avatar:rows[0].state.avatar, decorations:rows[0].state.decorations, socialRaids:rows[0].state.socialRaids,animalRaids:rows[0].state.animalRaids===true,...raidProtection(rows[0].state,Date.now()), plots:allPlots(rows[0].state),landOwned:rows[0].state.landOwned,landParcels:rows[0].state.landParcels,buildings:rows[0].state.buildings,calendar:rows[0].state.calendar,visitorCare:rows[0].state.visitorCare===true,animals:publicAnimals(rows[0].state.animals,Date.now()), name: rows[0].name, code: rows[0].code, now: Date.now() };
 }
 function move(row: any, position: any, now: number) {
   if (!position || !Number.isFinite(position.x) || !Number.isFinite(position.y) || position.x<100 || position.x>1480 || position.y<180 || position.y>1090) throw new GameError('Posição inválida.');
@@ -152,7 +152,7 @@ async function social(db:PoolClient,user:string,row:any,c:any,now:number) {
     const day=new Date(now).toISOString().slice(0,10);
     if(c.type==='steal'){
       if(!row.state.socialRaids||!target.state.socialRaids)throw new GameError('Os dois amigos precisam ativar a brincadeira de roubo.');
-      if(dogProtects(target.state.animals,now)||target.state.raidProtectionUntil>now)throw new GameError('Esta fazenda está protegida. O cachorro está de olho!');
+      const protection=raidProtection(target.state,now);if(protection.protected)throw new GameError(raidProtectionMessage(protection,now));
       if(!plot.crop||remaining(plot,now)!==0||plantNeeds(plot,now).dry||plantNeeds(plot,now).sick||hasPests(plot,now)||(plot.stolen??0)>=1)throw new GameError('Escolha uma colheita madura e ainda não beliscada.');
       const used=await db.query('SELECT 1 FROM farm_raids WHERE visitor=$1 AND owner=$2 AND day=$3',[user,target.user_id,day]);if(used.rowCount)throw new GameError('Você já pegou um produto deste amigo hoje.');
       row.state.inventory[plot.crop as Crop]++;plot.stolen=(plot.stolen??0)+1;target.state.raidProtectionUntil=now+3600000;

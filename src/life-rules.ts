@@ -30,7 +30,7 @@ export function applyLife(f:Farm,c:any,now:number):{ok:boolean;message:string;ca
  if(c.type==='home')return applyHome(f,c,now);
  if(c.type==='avatar'){if(!validAvatar(c.avatar))return fail('Escolha um avatar válido.');if(f.studio)delete f.studio.model;f.avatar={style:c.avatar.style,skin:c.avatar.skin,hair:c.avatar.hair,shirt:c.avatar.shirt};return {ok:true,message:'Seu avatar foi atualizado!'};}
  if(c.type==='animal-raids-setting'){if(typeof c.enabled!=='boolean')return fail('Opção inválida.');f.animalRaids=c.enabled;return{ok:true,message:c.enabled?'Roubo de animais ativado entre amigos participantes.':'Seus animais estão fora da brincadeira.'};}
- if(c.type==='raids-setting'){if(typeof c.enabled!=='boolean')return fail('Opção inválida.');f.socialRaids=c.enabled;return {ok:true,message:c.enabled?'Brincadeira de roubo ativada com amigos participantes.':'Sua fazenda está fora da brincadeira de roubo.'};}
+ if(c.type==='raids-setting'){if(typeof c.enabled!=='boolean')return fail('Opção inválida.');f.socialRaids=c.enabled;return {ok:true,message:c.enabled?'Brincadeira ativada entre amigos participantes, mesmo com cachorro. Limite diário e pausa após roubo continuam valendo.':'Sua fazenda está fora da brincadeira de roubo.'};}
  if(c.type==='buy-land'){
   const site=(c.site??'west') as LandSite;if(!Object.hasOwn(LAND_SITES,site))return fail('Escolha um terreno válido.');
   const owned=parcels(f);if(owned.some(p=>p.site===site))return fail('Este terreno já pertence à sua fazenda.');
