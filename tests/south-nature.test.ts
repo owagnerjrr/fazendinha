@@ -3,3 +3,5 @@ test('southern natural margins preserve all purchased field cells, paths and the
 test('ducks remain inside their pond through the complete swim cycle',()=>{for(let i=0;i<6;i++)for(let t=0;t<120000;t+=200){const pose=southDuckPose(i,t),p=SOUTH_PONDS[i<3?0:1];assert.ok(((pose.x-p.x)/p.rx)**2+((pose.y-p.y)/p.ry)**2<.8);assert.ok(pose.frame>=0&&pose.frame<4);}assert.notDeepEqual(southDuckPose(0,0),southDuckPose(0,6000));});
 
 test('old saved positions in new natural obstacles recover onto a free path without changing other positions',()=>{for(const p of[{x:360,y:280},{x:1200,y:930},{x:360,y:190},...southNatureObstacles().map(o=>({x:o.x+o.width/2,y:o.y+o.height/2}))]){const q=safeSouthSpawn(p);assert.ok(findPath(q,{x:750,y:360},southNatureObstacles()).length);}const p={x:750,y:300};assert.equal(safeSouthSpawn(p),p);});
+
+test('garden and picnic remain accessible from the lower path without crossing a new obstacle',()=>{for(const target of[{x:746,y:924},{x:430,y:965},{x:746,y:1025}])assert.ok(findPath({x:750,y:760},target,southNatureObstacles()).length>0);});

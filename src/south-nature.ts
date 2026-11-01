@@ -1,3 +1,4 @@
+import{gardenButterfly}from'./south-garden';
 import Phaser from'phaser';import{lightEffects}from'./display-settings';import{SOUTH_PONDS,SOUTH_LIGHTS,southDuckPose,southNatureObstacles}from'./south-nature-layout';
 type Ctx=CanvasRenderingContext2D;
 /** Original pixel scenery, baked once; animation uses a fixed number of small sprites. */
@@ -38,6 +39,7 @@ export function southNature(scene:Phaser.Scene,block:(x:number,y:number,w:number
   for(let i=0;i<ducks.length;i++){const p=southDuckPose(i,t);ducks[i].setPosition(p.x,p.y).setFlipX(p.left).setFrame(p.frame).setDepth(p.y+1);}
   for(const p of SOUTH_PONDS)for(let i=0;i<13;i++){const a=i*2.4,x=p.x+Math.sin(a)*(p.rx-28),y=p.y+Math.cos(a)*(p.ry-13);if(!view.contains(x,y))continue;const dx=quiet?0:Math.sin(t/1500+i)*5;water.fillStyle(0xbce8d7,.48).fillRect(Math.round(x+dx),Math.round(y),10+i%4*3,1).fillRect(Math.round(x+dx+5),Math.round(y+3),5,1);}
   if(quiet)return;
+  for(let i=0;i<(light?2:5);i++){const p=gardenButterfly(i,t);if(!view.contains(p.x,p.y))continue;sky.fillStyle([0xe9bf83,0xd8afca,0xc8c0e2][i%3],.9).fillEllipse(p.x-p.wing,p.y,p.wing*2,4).fillEllipse(p.x+p.wing,p.y,p.wing*2,4);sky.fillStyle(0x57613e).fillRect(Math.round(p.x),Math.round(p.y-2),1,5);}
   for(let i=0;i<(light?2:4);i++){const x=90+(t*(.035+i*.004)+i*390)%1400,y=230+i*170+Math.sin(t/1900+i)*24;if(!view.contains(x,y))continue;const wing=Math.round(Math.sin(t/140+i)*5);sky.lineStyle(2,i%2?0x364849:0x4a5c58).lineBetween(x-8,y-wing,x,y+1).lineBetween(x,y+1,x+8,y-wing);sky.fillStyle(0xd1cdb4).fillRect(Math.round(x),Math.round(y),2,3);shadows.fillStyle(0x254333,.14).fillEllipse(x-9,y+52,13,4);}
  };scene.events.on('update',update);scene.events.once('shutdown',()=>scene.events.off('update',update));update(0);
 }
