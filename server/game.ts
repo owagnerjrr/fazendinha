@@ -1,3 +1,6 @@
+import{applyGuestAnimalItem}from'../src/product-effects.js';
+import{raidState}from'./raid-window.js';
+import{applyGuestPlotProduct}from'../src/guest-products.js';
 import{publicCreatedAnimals,createdGuestCare}from'../src/created-visit.js';
 import{mutateStudioVisit}from'./studio-visits.js';
 import{activitySnapshot,recordAction}from'./player-activity.js';
@@ -20,7 +23,7 @@ import { plotPosition,plotUsable } from '../src/plots.js';
 import { requiresNewClient, CLIENT_UPDATE_MESSAGE } from '../src/client-compat.js';
 import { initializeProfile } from '../src/profile.js';
 import { LIFE_COMMANDS } from '../src/life-rules.js';
-import {raidProtection,raidProtectionMessage} from '../src/raid-protection.js';
+import {raidProtectionMessage} from '../src/raid-protection.js';
 import { returnLot, transferLot } from '../src/market.js';
 import { createHash } from 'node:crypto';
 import type { PoolClient } from 'pg';
@@ -50,10 +53,10 @@ export async function community(id: string, marketVersion=1) {
 }
 export async function visit(id: string, code: string) {
   if (!codePattern.test(code)) throw new GameError('Código inválido.');
-  const { rows } = await pool.query(`SELECT f.state,f.name,f.public_code AS code FROM farms f WHERE f.public_code=$2 AND EXISTS(SELECT 1 FROM friendships WHERE accepted AND ((sender=$1 AND recipient=f.user_id) OR (recipient=$1 AND sender=f.user_id)))`,[id,code]);
+  const { rows } = await pool.query(`SELECT f.user_id,f.state,f.name,f.public_code AS code FROM farms f WHERE f.public_code=$2 AND EXISTS(SELECT 1 FROM friendships WHERE accepted AND ((sender=$1 AND recipient=f.user_id) OR (recipient=$1 AND sender=f.user_id)))`,[id,code]);
   if (!rows[0]|| (await pool.query('SELECT 1 FROM social_blocks WHERE (owner=$1 AND blocked=(SELECT user_id FROM farms WHERE public_code=$2)) OR (blocked=$1 AND owner=(SELECT user_id FROM farms WHERE public_code=$2))',[id,code])).rowCount) throw new GameError('A visita precisa de uma amizade aceita.',403);
   upgradeFarm(rows[0].state);
-  return { studio:publicCreatedAnimals(rows[0].state,Date.now()),unlockedPlots:rows[0].state.unlockedPlots, avatar:rows[0].state.avatar, decorations:rows[0].state.decorations, socialRaids:rows[0].state.socialRaids,animalRaids:rows[0].state.animalRaids===true,...raidProtection(rows[0].state,Date.now()), plots:allPlots(rows[0].state),landOwned:rows[0].state.landOwned,landParcels:rows[0].state.landParcels,buildings:rows[0].state.buildings,calendar:rows[0].state.calendar,visitorCare:rows[0].state.visitorCare===true,animals:publicAnimals(rows[0].state.animals,Date.now()), name: rows[0].name, code: rows[0].code, now: Date.now() };
+  return { studio:publicCreatedAnimals(rows[0].state,Date.now()),unlockedPlots:rows[0].state.unlockedPlots, avatar:rows[0].state.avatar, decorations:rows[0].state.decorations, socialRaids:rows[0].state.socialRaids,animalRaids:rows[0].state.animalRaids===true,...await raidState(pool,id,rows[0].user_id,rows[0].state,Date.now()),livingSince:rows[0].state.livingSince,climateAt:rows[0].state.climateAt, plots:allPlots(rows[0].state),landOwned:rows[0].state.landOwned,landParcels:rows[0].state.landParcels,buildings:rows[0].state.buildings,calendar:rows[0].state.calendar,visitorCare:rows[0].state.visitorCare===true,animals:publicAnimals(rows[0].state.animals,Date.now()), name: rows[0].name, code: rows[0].code, now: Date.now() };
 }
 function move(row: any, position: any, now: number) {
   if (!position || !Number.isFinite(position.x) || !Number.isFinite(position.y) || position.x<100 || position.x>1480 || position.y<180 || position.y>1090) throw new GameError('Posição inválida.');
@@ -136,9 +139,9 @@ async function social(db:PoolClient,user:string,row:any,c:any,now:number) {
  if(!(GUEST_CARE as readonly string[]).includes(c.mode))throw new GameError('Cuidado de visitante inválido.');
  if(c.mode==='walk-stop-all'){for(const a of target.state.animals)if(a.guestWalk?.code===row.public_code)delete a.guestWalk;await db.query('UPDATE farms SET state=$2,revision=revision+1 WHERE user_id=$1',[target.user_id,target.state]);return{ok:true,message:'Animais devolvidos ao dono.'};}
  if(c.mode==='walk-keepalive'){const live=await db.query("SELECT 1 FROM farm_presence WHERE user_id=$1 AND owner_id=$2 AND updated_at>now()-interval '12 seconds'",[user,target.user_id]);if(!live.rowCount)throw new GameError('A visita terminou.');for(const a of target.state.animals)if(a.guestWalk?.code===row.public_code&&guestWalking(a,now))a.guestWalk.until=now+45000;await db.query('UPDATE farms SET state=$2 WHERE user_id=$1',[target.user_id,target.state]);return{ok:true,message:'Passeio acompanhado.'};}
- const custom=target.state.studio?.animals.find((a:any)=>a.id===c.animal);if(custom){const visible=publicCreatedAnimals(target.state,now).animals.find(a=>a.id===custom.id);if(!visible)throw new GameError('Animal indisponível para esta visita.',403);const live=await db.query("SELECT 1 FROM farm_presence WHERE user_id=$1 AND owner_id=$2 AND updated_at>now()-interval '12 seconds' AND area=$3",[user,target.user_id,visible.room==='expansion'?'expansion':'farm']);if(!live.rowCount)throw new GameError('Entre no ambiente do animal para cuidar.',403);const result=createdGuestCare(target.state,row.state,custom.id,c.mode,now);if(!result.ok)throw new GameError(result.message);await db.query('UPDATE farms SET state=$2,revision=revision+1 WHERE user_id=$1',[target.user_id,target.state]);await db.query("INSERT INTO social_notifications(user_id,actor_id,kind) VALUES($1,$2,'visit_help')",[target.user_id,user]);return result;}
+ const custom=target.state.studio?.animals.find((a:any)=>a.id===c.animal);if(custom){const visible=publicCreatedAnimals(target.state,now).animals.find(a=>a.id===custom.id);if(!visible)throw new GameError('Animal indisponível para esta visita.',403);const live=await db.query("SELECT 1 FROM farm_presence WHERE user_id=$1 AND owner_id=$2 AND updated_at>now()-interval '12 seconds' AND area=$3",[user,target.user_id,visible.room==='expansion'?'expansion':'farm']);if(!live.rowCount)throw new GameError('Entre no ambiente do animal para cuidar.',403);const result=c.mode==='use-item'?applyGuestAnimalItem(target.state,row.state,c.content,custom.id,now):createdGuestCare(target.state,row.state,custom.id,c.mode,now);if(!result.ok)throw new GameError(result.message);await db.query('UPDATE farms SET state=$2,revision=revision+1 WHERE user_id=$1',[target.user_id,target.state]);await db.query("INSERT INTO social_notifications(user_id,actor_id,kind) VALUES($1,$2,'visit_help')",[target.user_id,user]);return result;}
  const animal=target.state.animals.find((a:any)=>a.id===c.animal);if(!animal)throw new GameError('Animal não encontrado.');if(guestWalking(animal,now)&&animal.guestWalk!.code!==row.public_code)throw new GameError('Este animal passeia com outro visitante.');const building=target.state.buildings?.find((b:any)=>b.id===animal.housing),box=building?outdoorBox(building):null,spot=box?{x:box.x+box.width/2,y:box.y+box.height+20}:{x:1050,y:840};const nearby=await db.query("SELECT 1 FROM farm_presence WHERE user_id=$1 AND owner_id=$2 AND updated_at>now()-interval '12 seconds' AND area=$5 AND sqrt(power(x-$3,2)+power(y-$4,2))<180",[user,target.user_id,spot.x,spot.y,building?.area??'farm']);if(!nearby.rowCount){const live=await db.query("SELECT 1 FROM farm_presence WHERE user_id=$1 AND owner_id=$2 AND updated_at>now()-interval '12 seconds'",[user,target.user_id]);if(!live.rowCount||!(guestWalking(animal,now)&&animal.guestWalk!.code===row.public_code||animal.petMode==='farm'))throw new GameError('Aproxime-se do curral ou do animal que passeia com você.');}
- const host=structuredClone(target.state);settleVitals(host,now);host.feed=row.state.feed;host.fishing=structuredClone(row.state.fishing);host.supplies={...row.state.supplies};const result=c.mode==='walk-animal'?guestWalk(host,c.animal,row.public_code,c.enabled,now):applyLife(host,{type:c.mode,id:c.animal,fish:c.fish,quantity:c.quantity},now);if(!result.ok)throw new GameError(result.message);row.state.feed=host.feed;row.state.fishing=host.fishing;row.state.supplies=host.supplies;target.state.animals=host.animals;
+ const host=structuredClone(target.state);settleVitals(host,now);host.feed=row.state.feed;host.fishing=structuredClone(row.state.fishing);host.supplies={...row.state.supplies};const result=c.mode==='use-item'?applyGuestAnimalItem(host,row.state,c.content,c.animal,now):c.mode==='walk-animal'?guestWalk(host,c.animal,row.public_code,c.enabled,now):applyLife(host,{type:c.mode,id:c.animal,fish:c.fish,quantity:c.quantity},now);if(!result.ok)throw new GameError(result.message);row.state.feed=host.feed;row.state.fishing=host.fishing;row.state.supplies=host.supplies;target.state.animals=host.animals;
  await db.query('UPDATE farms SET state=$2,revision=revision+1 WHERE user_id=$1',[target.user_id,target.state]);await db.query("INSERT INTO social_notifications(user_id,actor_id,kind) VALUES($1,$2,'visit_help')",[target.user_id,user]);return result;
  }
  if(c.type==='steal-animal')throw new GameError('Animais pertencem ao dono. Visitantes podem apenas cuidar.',403);
@@ -152,17 +155,17 @@ async function social(db:PoolClient,user:string,row:any,c:any,now:number) {
     const day=new Date(now).toISOString().slice(0,10);
     if(c.type==='steal'){
       if(!row.state.socialRaids||!target.state.socialRaids)throw new GameError('Os dois amigos precisam ativar a brincadeira de roubo.');
-      const protection=raidProtection(target.state,now);if(protection.protected)throw new GameError(raidProtectionMessage(protection,now));
+      const protection=await raidState(db,user,target.user_id,target.state,now);if(protection.protected)throw new GameError(raidProtectionMessage(protection,now));
       if(!plot.crop||remaining(plot,now)!==0||plantNeeds(plot,now).dry||plantNeeds(plot,now).sick||hasPests(plot,now)||(plot.stolen??0)>=1)throw new GameError('Escolha uma colheita madura e ainda não beliscada.');
       const used=await db.query('SELECT 1 FROM farm_raids WHERE visitor=$1 AND owner=$2 AND day=$3',[user,target.user_id,day]);if(used.rowCount)throw new GameError('Você já pegou um produto deste amigo hoje.');
-      row.state.inventory[plot.crop as Crop]++;plot.stolen=(plot.stolen??0)+1;target.state.raidProtectionUntil=now+3600000;
-      await db.query('INSERT INTO farm_raids(visitor,owner,day,plot) VALUES($1,$2,$3,$4)',[user,target.user_id,day,c.plot]);
+      row.state.inventory[plot.crop as Crop]++;plot.stolen=(plot.stolen??0)+1;
+      await db.query('INSERT INTO farm_raid_events(visitor,owner,plot,occurred_at) VALUES($1,$2,$3,to_timestamp($4/1000.0))',[user,target.user_id,c.plot,now]);
       target.state.visitLog.unshift({name:row.name,action:'pegou 1 produto maduro',at:now});target.state.visitLog=target.state.visitLog.slice(0,20);
       await db.query('UPDATE farms SET state=$2,revision=revision+1 WHERE user_id=$1',[target.user_id,target.state]);
       await db.query("INSERT INTO social_notifications(user_id,actor_id,kind) VALUES($1,$2,'visit_steal')",[target.user_id,user]);
-      return {ok:true,message:'Você pegou 1 produto! O amigo mantém pelo menos 2 e ganha 1 hora de proteção.'};
+      return {ok:true,message:`Roubo concluído: +1 produto! Restam ${Math.max(0,(protection.raidsRemaining??5)-1)} de 5 nesta fazenda nos últimos 60 minutos.`};
     }
-    const mode=c.mode??'water';if(!['hoe','plant','water','clean'].includes(mode))throw new GameError('Ajuda inválida.');
+    const mode=c.mode??'water';if(['medicine','fertilizer'].includes(mode)){const result=applyGuestPlotProduct(target.state,row.state,c.plot,mode,now);if(!result.ok)throw new GameError(result.message);await db.query('UPDATE farms SET state=$2,revision=revision+1 WHERE user_id=$1',[target.user_id,target.state]);await db.query("INSERT INTO social_notifications(user_id,actor_id,kind) VALUES($1,$2,'visit_help')",[target.user_id,user]);return result;}if(!['hoe','plant','water','clean'].includes(mode))throw new GameError('Ajuda inválida.');
     const used=await db.query('SELECT 1 FROM farm_help WHERE helper=$1 AND owner=$2 AND day=$3 AND plot=$4 AND mode=$5',[user,target.user_id,day,c.plot,mode]);
     const helpXp=used.rowCount?0:5; // Repeat useful care, but award XP once per plot/action/day.
     let action='regou uma plantação';
@@ -180,7 +183,7 @@ async function social(db:PoolClient,user:string,row:any,c:any,now:number) {
     target.state.visitLog.unshift({name:row.name,action,at:now});target.state.visitLog=target.state.visitLog.slice(0,20);
     await db.query('UPDATE farms SET state=$2,revision=revision+1 WHERE user_id=$1',[target.user_id,target.state]);
     await db.query("INSERT INTO social_notifications(user_id,actor_id,kind) VALUES($1,$2,'visit_help')",[target.user_id,user]);
-    return {ok:true,message:helpXp?'Ajuda concluída! +5 XP pela amizade.':'Ajuda concluída! Seu amigo já pode continuar cuidando da plantação.'};
+    return {ok:true,message:(mode==='clean'?'Pragas removidas. Isso foi um cuidado; use a mão novamente para roubar quando a planta estiver pronta.':'Ajuda concluída: '+action+'.')+(helpXp?' +5 XP pela amizade.':'')};
   }
   if(c.type==='return-market-reservations'){
     const reserved=await db.query("SELECT * FROM market_listings WHERE seller=$1 AND status='open' FOR UPDATE",[user]);

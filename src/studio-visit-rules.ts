@@ -1,3 +1,4 @@
+import{applyGuestAnimalItem}from'./product-effects.js';
 import type {Farm} from './farm.js';
 import {check,uuid,integer,contentDependencies} from './studio-schema.js';
 import {applyStudio,studioEntries,mapSpawn,mapWalkable,petNeeds,pinDependencies,studioCell,petAllowed,type StudioEntry,type StudioPet} from './studio-runtime.js';
@@ -33,7 +34,8 @@ export function visitPosition(host:Farm,entries:StudioEntry[],position:StudioPos
 
 export function applyStudioGuest(host:Farm,visitor:Farm,entries:StudioEntry[],position:StudioPosition,c:Record<string,any>,now:number){
  check(host.visitorCare===true,'O dono não permitiu cuidados por visitantes.');
- check(['pet','hoe','plant','water','fish'].includes(c.action),'Visitantes não podem colher, vender, construir, mover bens nem levar animais.');
+ check(['pet','hoe','plant','water','fish','use-item'].includes(c.action),'Visitantes não podem colher, vender, construir, mover bens nem levar animais.');
+ if(c.action==='use-item'){const pet=host.studio?.animals.find(p=>p.id===c.animal),d=entries.find(e=>e.id===pet?.content)?.definition;check(pet&&d&&petAllowed(d,position.scene)&&(pet.mode==='follow'?host.studio!.position.scene===position.scene:pet.room===position.scene),'Animal indisponível neste cenário.');const result=applyGuestAnimalItem(host,visitor,c.content,c.animal,now);check(result.ok,result.message);return result;}
  const hostCopy=structuredClone(host),guestCopy=structuredClone(visitor),originalPosition=hostCopy.studio!.position;
  hostCopy.studio!.position={scene:position.scene,x:position.x,y:position.y};
  if(c.action==='pet'){
