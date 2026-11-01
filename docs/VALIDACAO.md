@@ -765,3 +765,5 @@ Preparada publicação por R$ 15,00 via Pix/cartão; 366 testes e build aprovado
 Clareira 0.48: navegador sandbox em 1280/390px validou preço R$15, Pix/cartão, pedido ORDTST, repetição, preço adulterado, bloqueio de cliente antigo e ausência de entrega sem aprovação. Equipamento/persistência conferidos com presente de fixture isolado; não houve pagamento real. Migração de produção preservou integralmente fazendas e contratos. Detalhes e limites em CLAREIRA_0_48.md.
 
 0.48.1: Guerreiro Link com cabelo loiro e olhos azuis independentemente do modelo original. Mesmo produto e preço; quem comprou mantém o direito. Migração de nome com histórico e auditoria. Prévia local e 367 testes aprovados.
+
+0.48.2: nome público da roupa nebula alterado para Samus Aran. Mesmo identificador outfit_nebula, preço R$10 e propriedade permanente. Migração 026 versiona o nome com auditoria e preserva contratos, personalizações e progresso. Pedidos antigos mantêm o nome contratado.
