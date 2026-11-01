@@ -16,3 +16,11 @@ Validação inicial: 366 testes passaram, incluindo entrega única, aprovação 
 - 366 testes aprovados. Ledger PGlite exercita aprovação, reembolso e eventos repetidos isoladamente para as duas roupas.
 - Limite: não foi concluído novo pagamento no checkout do provedor. Pix da conta de testes continua indisponível; criação do pedido de cartão foi verificada, sem informar dados de cartão nem efetuar cobrança real. Presente de fixture não equivale a aprovação de pagamento.
 - Migração 023 aplicada em produção com verificação transacional de igualdade integral das fazendas e pedidos antes/depois. Oferta permanece inativa até deploy compatível READY e aplicação de 024.
+
+## Correção 0.48.1 — Guerreiro Link
+
+O nome público passa a Guerreiro Link, mantendo o identificador forest/outfit_forest e o preço R$15. A migração 025 cria nova versão de nome da oferta, com auditoria, preservando versões e nomes dos pedidos anteriores. Não altera propriedade ou progresso.
+
+O renderizador usa cabelo loiro e modelo curto próprio para essa roupa, com mechas alongadas e olhos azuis nas direções frontais/laterais. Independe do cabelo/chapéu do jogador. A aparência original salva não muda e reaparece ao retirar a roupa.
+
+Prévia local conferida nas quatro direções e seis poses, inclusive iniciando com boné e cabelo castanho. 367 testes: configuração visual em todos os nove modelos originais, sem mutação da personalização; renomeação idempotente preservando preço, fazendas e versões antigas. Build validado.

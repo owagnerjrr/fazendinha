@@ -1,3 +1,4 @@
+import{outfitAppearance}from'./outfit-appearance';
 import{imageAsset,mediaGeneration}from'./studio-assets-client';
 import{slimNebulaWaist}from'./nebula-art';
 import {outfitPixels,drawOutfitCap} from './outfit-art';
@@ -19,6 +20,7 @@ export class AvatarArt {
  constructor(private scene:Phaser.Scene){}
  destroy(){for(const key of this.keys.values())this.scene.textures.remove(key);this.keys.clear();}
  key(base:string,avatar:Avatar){
+  avatar=outfitAppearance(avatar);
   const old=this.previous;
   if(this.media!==mediaGeneration()||JSON.stringify(old?.studioOverlay)!==JSON.stringify(avatar.studioOverlay)||JSON.stringify(old?.studioBody)!==JSON.stringify(avatar.studioBody)||!old||old.style!==avatar.style||old.skin!==avatar.skin||old.hair!==avatar.hair||old.shirt!==avatar.shirt||old.outfit!==avatar.outfit||old.studioColor!==avatar.studioColor){for(const key of this.keys.values()){this.scene.textures.remove(key);this.scene.textures.remove(`${key}-source`);}this.keys.clear();this.media=mediaGeneration();this.previous={...avatar};this.generation++;}
   if(this.keys.has(base))return this.keys.get(base)!;
