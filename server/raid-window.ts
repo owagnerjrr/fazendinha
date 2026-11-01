@@ -1,0 +1,2 @@
+import type {PoolClient}from'pg';import type{Farm}from'../src/farm.js';import{raidProtection,RAID_WINDOW_MS}from'../src/raid-protection.js';
+export async function raidState(db:Pick<PoolClient,'query'>,visitor:string,owner:string,f:Farm,now:number){const r=await db.query('SELECT extract(epoch FROM occurred_at)*1000 AS at FROM farm_raid_events WHERE visitor=$1 AND owner=$2 AND occurred_at>to_timestamp($3/1000.0) AND occurred_at<=to_timestamp($4/1000.0) ORDER BY occurred_at',[visitor,owner,now-RAID_WINDOW_MS,now]);return raidProtection(f,now,r.rows.map(row=>Number(row.at)));}

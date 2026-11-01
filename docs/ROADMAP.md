@@ -1,3 +1,7 @@
+## 0.45 — visitas, produtos e cinco roubos por hora
+
+Cota móvel por visitante/fazenda, mensagens reais do servidor, produtos com estoque do visitante e comportamentos compartilhados entre criações. Botões compactos de chamada e atalho R$ à direita. Migração 019 aditiva, sem converter estados antigos. 346 testes/build aprovados; sandbox PC/celular e API confirmaram produtos do visitante, loja sem cobrança, cinco roubos, sexto bloqueado, mensagens distintas, cota e persistência. Cenários criados/sul e expiração da hora cobertos no motor/banco isolado. Publicação de produção em andamento; veja VISITAS_045.md.
+
 ## 0.44 — defensivo, cuidados mais espaçados, roubo consentido e desempenho
 
 Corrigida recaída imediata por estresse climático antigo. Cadência animal mais longa para espécies originais e criadas. Consentimento de roubo prevalece sobre cachorro; pausa e limites preservados. Luzes/chuva/rotas otimizadas. 338 testes e build; perfil local com 20 animais e chuva. Detalhes e limites em CUIDADOS_044.md. Validação autenticada no sandbox publicado confirmou em 1280/390px: tratar planta com estresse 100%, colher pela mão e reabrir mantendo 3 produtos e apenas uma dose consumida. Testes HTTP com duas contas QA confirmaram cachorro saudável + consentimento, bloqueio se qualquer participante desativa, entrega de 1 produto uma única vez com replay do recibo, pausa de uma hora e mensagem com minutos restantes, sem mudar moedas. Não houve cobranças reais. Publicação de produção em andamento.

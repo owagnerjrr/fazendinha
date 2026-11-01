@@ -45,3 +45,7 @@
 #expansion-build{top:calc(150px + env(safe-area-inset-top,0px));bottom:auto;right:16px;max-width:150px}#spray-slot img{height:31px;width:25px;object-fit:contain;image-rendering:pixelated}@media(max-width:600px){.toolbar:has(#spray-slot:not([hidden])) .tool{width:38px}.toolbar:has(#spray-slot:not([hidden])){padding:6px;gap:3px}#spray-slot img{height:29px}}@media(max-height:500px) and (orientation:landscape){#expansion-build{top:95px;left:50%;right:auto;transform:translateX(-50%);padding:8px 14px}}
 
 @media(max-height:500px) and (orientation:landscape){#expansion-build{top:16px;left:calc(50% + 42px);transform:none;width:100px;font-size:12px;padding:8px}}@media(max-height:500px) and (max-width:640px) and (orientation:landscape){#expansion-build{left:calc(50% + 28px);width:80px;font-size:10px;padding:6px}}
+/* Compact, separate from movement/action controls; native dialogs remain above the shortcuts. */
+.pet-call-controls{display:flex;gap:6px;max-width:none}.pet-call-controls button{width:40px;height:40px;min-width:40px;min-height:40px;padding:0;border-radius:11px;font-size:21px;line-height:1}
+#paid-store-shortcut{position:fixed;right:max(16px,env(safe-area-inset-right));top:calc(136px + env(safe-area-inset-top));z-index:23;width:42px;height:42px;min-height:42px;padding:0;border-radius:12px;border:1px solid #bca873;background:#405e3c;color:#fff2cf;font-size:17px;font-weight:700;box-shadow:0 2px 0 #243c2d44}
+.journey-open #paid-store-shortcut{display:none}
