@@ -9,18 +9,18 @@ import {LEGACY_CLOCK_START,type Calendar,type HomeState} from './world-time.js';
 import { plotUsable, type LandParcel, type LandBuilding } from './plots.js';
 import { ANIMALS, DEFAULT_AVATAR, validAvatar, type Avatar, type Animal, type AnimalProduct, type Decoration } from './content.js';
 export const CROPS = {
-  carrot: { name: 'Cenoura', icon: '🥕', seconds: 900, seedPrice: 8, sellPrice: 12, yield: 3 },
-  lettuce: { name: 'Alface', icon: '🥬', seconds: 1200, seedPrice: 12, sellPrice: 18, yield: 3 },
-  tomato: { name: 'Tomate', icon: '🍅', seconds: 3600, seedPrice: 18, sellPrice: 26, yield: 3 },
-  strawberry: { name: 'Morango', icon: '🍓', seconds: 2700, seedPrice: 15, sellPrice: 23, yield: 3 },
-  corn: { name: 'Milho', icon: '🌽', seconds: 4500, seedPrice: 20, sellPrice: 32, yield: 3 },
-  tulip: { name: 'Tulipa', icon: '🌷', seconds: 1800, seedPrice: 14, sellPrice: 22, yield: 3 },
-  sunflower: { name: 'Girassol', icon: '🌻', seconds: 5400, seedPrice: 24, sellPrice: 40, yield: 3 },
+  carrot: { name: 'Cenoura', icon: '🥕', seconds: 900, seedPrice: 8, sellPrice: 12, yield: 1 },
+  lettuce: { name: 'Alface', icon: '🥬', seconds: 1200, seedPrice: 12, sellPrice: 18, yield: 1 },
+  tomato: { name: 'Tomate', icon: '🍅', seconds: 5400, seedPrice: 18, sellPrice: 26, yield: 2 },
+  strawberry: { name: 'Morango', icon: '🍓', seconds: 4500, seedPrice: 15, sellPrice: 23, yield: 2 },
+  corn: { name: 'Milho', icon: '🌽', seconds: 5400, seedPrice: 20, sellPrice: 32, yield: 2 },
+  tulip: { name: 'Tulipa', icon: '🌷', seconds: 1800, seedPrice: 14, sellPrice: 22, yield: 1 },
+  sunflower: { name: 'Girassol', icon: '🌻', seconds: 6600, seedPrice: 24, sellPrice: 40, yield: 2 },
 } as const;
 export type Crop = keyof typeof CROPS;
 // The studio is additive: existing species, crops and acquired goods keep their original records.
 export type Tool = 'hand' | 'hoe' | 'seed' | 'water' | 'rod' | 'fertilizer' | 'medicine';
-export type Plot = {climate?:{wet:number;stress:number;shade:boolean;drained:boolean}; fertilized?:boolean;growthDurationMs?:number;tilledAt?:number;position?:{x:number;y:number}; id: number; tilled: boolean; crop: Crop | null; wateredAt: number | null; pestAt?:number|null; stolen?:number;care?:{startedAt:number;lastWateredAt:number|null;growthMs:number;checkpointAt:number;illnessAt:number|null} };
+export type Plot = {climate?:{wet:number;stress:number;shade:boolean;drained:boolean}; fertilized?:boolean;growthDurationMs?:number;harvestYield?:number;tilledAt?:number;position?:{x:number;y:number}; id: number; tilled: boolean; crop: Crop | null; wateredAt: number | null; pestAt?:number|null; stolen?:number;care?:{startedAt:number;lastWateredAt:number|null;growthMs:number;checkpointAt:number;illnessAt:number|null} };
 export type Farm = {studio?:import('./studio-runtime.js').StudioState;southSettled?:1;playerArea?:'farm'|'expansion';expansionPlots?:Plot[];buildingStock?:Partial<Record<import('./plots.js').BuildingKind,number>>;barnVersion?:1;climateAt?:number;livingSince?:number;visitorCare?:boolean; version: 1; fertilizers?:number;fertilizerDebt?:number; houseDesign?:import('./home-design.js').HouseDesign; coinDebt?:number;wardrobe?:import('./wardrobe.js').Wardrobe; progressionVersion?:1; customPlots?:Plot[]; fishing?:FishingState; careVersion?:1;careStartedAt?:number;supplies?:{medicine:number;plantMedicine:number;bedding:number}; calendar?:Calendar;home?:HomeState; profileComplete?:boolean; playerName?:string; landOwned?:boolean; landParcels?:LandParcel[]; buildings?:LandBuilding[]; coins: number; seeds: Record<Crop, number>; inventory: Record<Crop, number>; plots: Plot[]; harvests: number; questClaimed: boolean; player: { x: number; y: number }; avatar:Avatar; animals:Animal[]; products:Record<AnimalProduct,number>; feed:number; decorations:Decoration[]; socialRaids:boolean;animalRaids?:boolean; raidProtectionUntil:number; visitLog:{name:string;action:string;at:number}[] };
 export const LEGACY_GROWTH={carrot:45,lettuce:90,tomato:150,strawberry:120,corn:180,tulip:100,sunflower:200};
 export const soilTime=(f:Pick<Farm,'calendar'>,now:number)=>now+(f.calendar?.offsetMinutes??0)*1000;
@@ -52,7 +52,7 @@ export function act(farm: Farm, id: number, tool: Tool, crop: Crop, now = Date.n
     if (!plot.tilled) return { ok: false, message: 'Prepare a terra com a enxada primeiro.' };
     if (farm.seeds[crop] < 1) return { ok: false, message: 'Sementes acabaram. Visite a venda ao norte.' };
     farm.seeds[crop]--;
-    delete plot.fertilized;plot.crop = crop;plot.growthDurationMs=CROPS[crop].seconds*1000;plot.stolen=0;plot.pestAt=null;if(farm.careVersion)plot.care={startedAt:now,lastWateredAt:null,growthMs:0,checkpointAt:now,illnessAt:null};else delete plot.care;
+    delete plot.fertilized;plot.crop = crop;plot.growthDurationMs=CROPS[crop].seconds*1000;plot.harvestYield=CROPS[crop].yield;plot.stolen=0;plot.pestAt=null;if(farm.careVersion)plot.care={startedAt:now,lastWateredAt:null,growthMs:0,checkpointAt:now,illnessAt:null};else delete plot.care;
     return { ok: true, message: `${CROPS[crop].name} plantada! Agora use o regador.` };
   }
   if (tool === 'water') {
@@ -70,10 +70,10 @@ export function act(farm: Farm, id: number, tool: Tool, crop: Crop, now = Date.n
   const wait = remaining(plot, now)!;
   if (wait > 0) return { ok: false, message: `Quase lá: faltam ${Math.ceil(wait / 1000)} segundos.` };
   const harvested = plot.crop;
-  const amount=Math.max(1,CROPS[harvested].yield-(plot.stolen??0));
+  const amount=Math.max(1,(plot.harvestYield??3)-(plot.stolen??0));
   farm.inventory[harvested] += amount;
   farm.harvests++;
-  delete plot.fertilized;plot.crop = null;plot.tilled=false;delete plot.tilledAt;delete plot.growthDurationMs;
+  delete plot.fertilized;plot.crop = null;plot.tilled=false;delete plot.tilledAt;delete plot.growthDurationMs;delete plot.harvestYield;
   plot.wateredAt = null;plot.pestAt=null;plot.stolen=0;delete plot.care;
   let reward = '';
   if (!farm.questClaimed) { farm.questClaimed = true; farm.coins += 75; reward = ' Missão cumprida: +75 moedas!'; }

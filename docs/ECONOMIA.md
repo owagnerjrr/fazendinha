@@ -1,5 +1,7 @@
 # Economia — reequilíbrio 0.42
 
+> Histórico do cálculo dos pacotes. Para os lucros de plantios novos e a cadência animal a partir de 0.43, consulte [LUCROS.md](LUCROS.md). Os exemplos de produção abaixo descrevem a versão 0.42.
+
 Base: preços do código e catálogo publicado consultado em 31/10/2026. O objetivo é apoiar uma etapa de progresso sem comprar várias fazendas completas. Níveis, vagas e desbloqueios continuam valendo. Nenhum saldo ou bem existente é convertido.
 
 ## Cálculo dos pacotes

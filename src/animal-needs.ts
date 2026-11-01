@@ -1,3 +1,4 @@
+import{animalProductionSeconds}from'./content.js';
 import{CARE_REFILL_AT}from'./animal-defaults.js';
 import{vitalAt}from'./living-animals.js';
 import type {Animal} from './content.js';
@@ -13,6 +14,8 @@ export function animalNeeds(a:Animal,now:number){
 }
 /** One visible pending product per animal; prior production is not lost when a need expires. */
 export function productionAt(a:Animal,now:number,seconds:number):number|null{
+ // Old animals complete their saved first cycle; successful collection starts version 1.
+ if(a.productionVersion!==1)seconds=animalProductionSeconds(a);
  if(a.pendingAt!=null)return a.pendingAt<=now?a.pendingAt:null;
  if(a.vital&&(animalNeeds(a,now).food<=0||animalNeeds(a,now).water<=0))return null;
  if(!seconds||a.fedAt==null||a.incubationAt!=null)return null;

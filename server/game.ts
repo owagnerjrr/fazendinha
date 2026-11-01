@@ -169,7 +169,7 @@ async function social(db:PoolClient,user:string,row:any,c:any,now:number) {
     if(mode==='hoe'){if(plot.crop||plot.tilled)throw new GameError('Escolha terra vazia que ainda não foi preparada.');plot.tilled=true;plot.tilledAt=soilTime(target.state,now);action='preparou a terra';
     }else if(mode==='plant'){
       if(plot.crop||!Object.hasOwn(CROPS,c.crop)||row.state.seeds[c.crop as Crop]<1)throw new GameError('Canteiro ocupado ou semente indisponível.');
-      row.state.seeds[c.crop as Crop]--;plot.tilled=true;plot.crop=c.crop;plot.growthDurationMs=CROPS[c.crop as Crop].seconds*1000;plot.wateredAt=null;plot.pestAt=null;plot.stolen=0;if(target.state.careVersion)plot.care={startedAt:now,lastWateredAt:null,growthMs:0,checkpointAt:now,illnessAt:null};action='plantou uma semente';
+      row.state.seeds[c.crop as Crop]--;plot.tilled=true;plot.crop=c.crop;plot.growthDurationMs=CROPS[c.crop as Crop].seconds*1000;plot.harvestYield=CROPS[c.crop as Crop].yield;plot.wateredAt=null;plot.pestAt=null;plot.stolen=0;if(target.state.careVersion)plot.care={startedAt:now,lastWateredAt:null,growthMs:0,checkpointAt:now,illnessAt:null};action='plantou uma semente';
     }else if(mode==='clean'){
       if(!hasPests(plot,now))throw new GameError('Esta plantação não tem pragas.');settlePlant(plot,now);plot.pestAt=null;action='removeu pragas';
     }else{

@@ -12,22 +12,22 @@ test('complete agricultural cycle, quest reward and duplicate harvest prevention
   assert.equal(act(f, 0, 'water', 'carrot', start).ok, true);
   assert.equal(act(f, 0, 'hand', 'carrot', start + CROPS.carrot.seconds*1000-1).ok, false);
   assert.equal(act(f, 0, 'hand', 'carrot', start + CROPS.carrot.seconds*1000).harvest, true);
-  assert.equal(f.inventory.carrot, 3); assert.equal(f.coins, 325);
+  assert.equal(f.inventory.carrot, 1); assert.equal(f.coins, 325);
   assert.equal(act(f, 0, 'hand', 'carrot', start + CROPS.carrot.seconds*1000).ok, false);
-  assert.equal(f.inventory.carrot, 3);
-  assert.equal(sellAll(f), 36); assert.equal(f.coins, 361);
-  assert.equal(sellAll(f), 0); assert.equal(f.coins, 361);
+  assert.equal(f.inventory.carrot, 1);
+  assert.equal(sellAll(f), 12); assert.equal(f.coins, 337);
+  assert.equal(sellAll(f), 0); assert.equal(f.coins, 337);
 });
 test('quest is granted exactly once across multiple harvests', () => {
   const f = makeFarm();
   for (const id of [0, 1]) { act(f, id, 'hoe', 'carrot', 0); act(f, id, 'seed', 'carrot', 0); act(f, id, 'water', 'carrot', 0); act(f, id, 'hand', 'carrot', CROPS.carrot.seconds*1000); }
-  assert.equal(f.coins, 325); assert.equal(f.harvests, 2); assert.equal(f.inventory.carrot, 6);
+  assert.equal(f.coins, 325); assert.equal(f.harvests, 2); assert.equal(f.inventory.carrot, 2);
 });
 for (const c of Object.keys(CROPS) as Crop[]) test(`${c}: exact maturity boundary and correct yield`, () => {
   const f = makeFarm(); act(f, 2, 'hoe', c, 100); act(f, 2, 'seed', c, 100); act(f, 2, 'water', c, 100);
   assert.equal(act(f, 2, 'hand', c, CROPS[c].seconds * 1000 + 99).ok, false);
   assert.equal(act(f, 2, 'hand', c, CROPS[c].seconds * 1000 + 100).ok, true);
-  assert.equal(f.inventory[c], 3);
+  assert.equal(f.inventory[c], CROPS[c].yield);
 });
 test('occupied plots cannot be tilled or seeded again and watering does not reset timer', () => {
   const f = makeFarm(); act(f, 0, 'hoe', 'carrot', 0); act(f, 0, 'seed', 'carrot', 0); act(f, 0, 'water', 'carrot', 0);
