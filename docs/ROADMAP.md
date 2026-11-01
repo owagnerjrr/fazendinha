@@ -394,3 +394,7 @@ Defensivo orgânico identificado e equipável na venda, preservando doses anteri
 ## 0.46.1 — organização da bolsa
 
 Borrifador agrupado em Ferramentas, sem alterar doses ou funcionamento. Filtro e equipamento verificados em 1280/390px; 359 testes e build aprovados.
+
+## 0.46.2 — equipamento fixo
+
+Borrifador permanece em Ferramentas mesmo sem doses; estoque e equipamento existentes preservados. 360 testes, build e seis cenários de interface (1280/390px, 0/3/17 doses) aprovados. Sem migração de dados.

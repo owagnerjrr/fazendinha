@@ -732,3 +732,9 @@ Migração 020 aplicada em produção: 40 contas com cuidados habilitados (36 aj
 ## 0.46.1 — borrifador em Ferramentas
 
 O defensivo orgânico borrifador foi movido para Ferramentas na bolsa, junto à enxada e ao regador. Mantém o mesmo estoque, descrição, ícone e ação Equipar borrifador. Nenhuma migração ou alteração de dados. 359 testes e build passaram. Navegador local com fazenda isolada em 1280/390px confirmou filtro, item único, equipamento e preservação das 17 doses da fixture após equipar/reabrir a bolsa; sem erros JS. Sem testes em contas reais.
+
+## 0.46.2 — borrifador sempre visível
+
+O ajuste anterior só reclassificava doses existentes. O borrifador agora tem uma linha fixa em Ferramentas, imediatamente após os equipamentos, inclusive com estoque zerado ou ausente. Mostra o estoque salvo e, sem doses, explica onde comprá-las; com doses, permite equipar e indica quando está equipado. A linha antiga de consumível foi removida para evitar duplicação. Nenhuma dose concedida/consumida ou alteração de contas.
+
+360 testes e build aprovados. Regressão cobre estoque ausente, 0, 3 e 17 doses, item único, posição, categoria e leitura sem mutação. Navegador local isolado em 1280/390px verificou 0/3/17 doses: borrifador visível, aviso com zero, equipamento com estoque e doses preservadas após reabrir, sem erros JS. Isso não comprova qual versão estava aberta no navegador do usuário no print.
