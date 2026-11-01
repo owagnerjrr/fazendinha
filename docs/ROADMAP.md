@@ -427,3 +427,5 @@ Preparada publicação por R$ 15,00 via Pix/cartão; 366 testes e build aprovado
 0.49.1: clareira inferior com jardim e recanto de piquenique integrado aos caminhos, sem mudanças na economia.
 
 0.50.0: lazer no sul integrado aos controles existentes: sentar, piquenique, barquinho com patos e flores. Sem economia ou migração; poses locais à cena.
+
+0.50.1: refinada somente a encenação da brincadeira com patos, mantendo bancos/piquenique/flores e progresso.

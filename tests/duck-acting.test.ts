@@ -1,0 +1,2 @@
+import test from'node:test';import assert from'node:assert/strict';import{duckActing}from'../src/duck-play-art';
+test('duck performance prepares, releases and lands the boat before inviting ducks',()=>{assert.deepEqual(duckActing(0),{frame:0,flight:0,landed:false});assert.equal(duckActing(450).frame,1);assert.equal(duckActing(800).frame,2);assert.ok(duckActing(1000).flight>0&&duckActing(1000).flight<1);assert.equal(duckActing(1400).landed,true);assert.equal(duckActing(1400).flight,1);});
