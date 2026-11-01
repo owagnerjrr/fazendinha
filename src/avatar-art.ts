@@ -24,6 +24,9 @@ export class AvatarArt {
   const old=this.previous;
   if(this.media!==mediaGeneration()||JSON.stringify(old?.studioOverlay)!==JSON.stringify(avatar.studioOverlay)||JSON.stringify(old?.studioBody)!==JSON.stringify(avatar.studioBody)||!old||old.style!==avatar.style||old.skin!==avatar.skin||old.hair!==avatar.hair||old.shirt!==avatar.shirt||old.outfit!==avatar.outfit||old.studioColor!==avatar.studioColor){for(const key of this.keys.values()){this.scene.textures.remove(key);this.scene.textures.remove(`${key}-source`);}this.keys.clear();this.media=mediaGeneration();this.previous={...avatar};this.generation++;}
   if(this.keys.has(base))return this.keys.get(base)!;
+  if(base==='pose-sit-front'){
+   const source=this.scene.textures.get(this.key('farmer-v2',avatar)).getSourceImage() as HTMLCanvasElement,cv=document.createElement('canvas');cv.width=48;cv.height=64;const c=cv.getContext('2d')!;c.imageSmoothingEnabled=false;c.drawImage(source,0,0,48,45,0,0,48,45);c.drawImage(source,0,45,48,18,0,45,48,10);const key=`avatar-${this.instance}-${this.generation}-${base}`;this.scene.textures.addCanvas(key,cv);this.keys.set(base,key);return key;
+  }
   if(base==='pose-sit'||base==='pose-sleep'){
    const source=this.scene.textures.get(this.key('farmer-v2',avatar)).getSourceImage() as HTMLCanvasElement;
    const cv=document.createElement('canvas');cv.width=48;cv.height=64;const c=cv.getContext('2d')!;c.imageSmoothingEnabled=false;

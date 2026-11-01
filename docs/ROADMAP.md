@@ -425,3 +425,5 @@ Preparada publicação por R$ 15,00 via Pix/cartão; 366 testes e build aprovado
 0.49.0: paisagem viva dos Campos do Sul — água animada, fauna ambiente, caminhos e campos preservados, iluminação específica. Sem migração de dados.
 
 0.49.1: clareira inferior com jardim e recanto de piquenique integrado aos caminhos, sem mudanças na economia.
+
+0.50.0: lazer no sul integrado aos controles existentes: sentar, piquenique, barquinho com patos e flores. Sem economia ou migração; poses locais à cena.
