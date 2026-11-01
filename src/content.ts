@@ -1,6 +1,6 @@
 import {ANIMAL_CARE,animalNeeds,productionAt} from './animal-needs.js';
 export const SKIN_TONES=['#f3c99a','#dca06b','#bb794b','#925431','#683b29','#452a24'] as const;
-export const HAIR_COLORS=['#241c1b','#503426','#88502e','#c28b46','#6b5278'] as const;
+export const HAIR_COLORS=['#241c1b','#503426','#88502e','#c28b46','#6b5278','#e9cb78'] as const;
 export const SHIRT_COLORS=['#4d8461','#476e9b','#a55257','#b58b40','#70568a','#dfc8a1','#25232f'] as const;
 export type Avatar={studioColor?:string;studioBody?:{asset:string;version:number;offsetX:number;offsetY:number};studioOverlay?:{asset:string;version:number;offsetX:number;offsetY:number};outfit?:import('./store-catalog.js').OutfitId;style:'classic'|'crop'|'puffs'|'short'|'braids'|'hood'|'wavy'|'ponytail'|'cap';skin:number;hair:number;shirt:number};
 export const DEFAULT_AVATAR:Avatar={style:'classic',skin:0,hair:1,shirt:0};

@@ -714,3 +714,17 @@ A visita à fazenda, celeiro principal e campos do sul inclui animais criados e 
 ## 0.42 — pacotes proporcionais à economia
 
 Análise e preços completos em ECONOMIA.md. Pacotes R$10–R$50: 500/1.000/1.500/2.000/2.500 moedas; roupas 400/600/850. Migração versionada e fallback legacy fixo preservam pedidos, saldos e bens anteriores. 324 testes e build passaram. Migração no sandbox preservou os 19 contratos existentes (digest antes/depois idêntico). Navegador autenticado 1280/390px confirmou cinco quantidades/valores, resumos Pix/cartão, fertilizante inalterado, preços/cobrança das três roupas, equipamento grátis de roupa anterior e persistência. Oferta antiga foi recusada com 409; checkout hospedado de cartão em sandbox gravou 500 moedas/R$10, versão 2, repetiu o mesmo pedido e não concedeu moedas sem pagamento. PGlite confirmou crédito antigo de 10.000, novo de 500, reembolso/repetição únicos, preservação de estado e rollback total por divergência. Não houve cobrança real.
+
+## 0.46 — borrifador, Clara, cuidados e renderização
+
+359 testes automatizados e build de produção aprovados. Testes novos cobrem cache/renovação de token, expiração e 429, troca de conta, cadência em 60/90/120/144 Hz, preservação dos dados na migração e remoção da planta sem apagar posição/solo.
+
+Sandbox real (contas QA049, sem pagamentos): em 1280 e 390px, compra de 3 doses por 18 moedas, equipamento do borrifador e estoque/saldo persistentes após reabrir. Em visita, defensivo tratou a cultura usando uma dose da bolsa do visitante; estoque do dono permaneceu intacto. Item criado alimentou o coelho do amigo, consumindo somente o estoque do visitante. Saúde atualizou por 17 segundos em cada largura sem erro JS, sem transbordamento e sem consultas repetidas ao endpoint de token. Sessão de avatar/painel registrou 1 get-session e 1 token.
+
+Roubo pela API autenticada entregou 1 produto, esvaziou o canteiro e manteve 4/5 disponíveis. Repetição do mesmo recibo não gerou novo produto. Amigo aceito conseguiu carinho; conta sem amizade recebeu 403. Administrador viu o rascunho Clara; conta comum recebeu 403. Seleção de Clara, salvamento e caminhada em quatro direções funcionaram. Prévia isolada do modelo abriu no painel sem erros JS.
+
+Medição local isolada com 20 animais, tempestade e efeitos leves: cerca de 59 FPS renderizados em 1280 e 390px, p95 dos quadros 17,6/18,1 ms e CPU p95 1,5 ms; sem long tasks na janela medida. A medição usa o contador do postrender do jogo, não o RAF de 120 Hz do navegador. Isso não comprova 60 FPS constantes em celulares físicos, que não foram medidos.
+
+Migração 020 validada em PGlite e sandbox: habilita cuidados por amigos e cria modelo em rascunho. Reexecução preserva uma posterior desativação do dono e edições do rascunho. Sem alterações em compras, saldo, inventário, plantas ou animais. Publicação e verificação final de produção serão registradas após implantação. Clientes antigos precisam recarregar (protocolo 18).
+
+Migração 020 aplicada em produção: 40 contas com cuidados habilitados (36 ajustes auditados; 4 já permitiam), administrador exclusivo 6BA7738D02 preservado e Clara em rascunho revisão 1, sem publicação/distribuição automática do modelo. Nenhuma cobrança ou teste destrutivo executado em produção.

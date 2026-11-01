@@ -15,6 +15,7 @@ async function proxy(request:Request) {
     headers.set('Origin',url.origin);
     const upstream=await fetch(`${base}/${path}${url.search}`,{method:request.method,headers,body,redirect:'manual',signal:AbortSignal.timeout(12000)});
     const output=new Headers({'Cache-Control':'no-store','Content-Type':upstream.headers.get('content-type')??'application/json','X-Content-Type-Options':'nosniff'});
+    const retry=upstream.headers.get('retry-after');if(retry)output.set('Retry-After',retry);if(upstream.status===429){output.set('Content-Type','application/json');return new Response(JSON.stringify({code:'TOO_MANY_REQUESTS',message:`Muitas consultas em sequência. Aguarde ${Math.max(1,Number(retry)||15)} segundos e tente novamente.`}),{status:429,headers:output});}
     const redirect=upstream.headers.get('location');if(redirect)output.set('Location',redirect);
     const jwt=upstream.headers.get('set-auth-jwt');if(jwt)output.set('set-auth-jwt',jwt);
     for(const cookie of upstream.headers.getSetCookie())output.append('Set-Cookie',cookie.replace(/;\s*Domain=[^;]+/ig,''));

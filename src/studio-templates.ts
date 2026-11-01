@@ -1,3 +1,4 @@
+import{BLONDE_MODEL}from'./blonde-character';
 import{CARE_REFERENCE_MINUTES}from'./animal-defaults';
 import type{Definition,StudioKind}from'./studio-schema';
 export type CreationTemplate={id:string;icon:string;title:string;hint:string;definition:Definition};
@@ -24,6 +25,7 @@ export function creationTemplates():CreationTemplate[]{
  template('medicine','🌿','Defensivo para plantas','Prepara uma dose para usar no borrifador existente.','item','Meu defensivo',{action:'plantMedicine',portions:1},'#688844',30),
  template('crop','🌱','Planta para cultivar','Semente, rega, crescimento, colheita e venda configurados.','crop','Minha planta',{growthSeconds:120,yield:3},'#c29950',15,8),
  template('shirt','👕','Roupa por cor','Funciona sem enviar imagem; escolha a cor do tecido.','cosmetic','Minha roupa',{shirtColor:'#507e98'},'#507e98',80),
+ {id:'blonde-model',icon:'👱‍♀️',title:'Clara · personagem loira',hint:'Rabo de cavalo loiro claro, animações e ferramentas do jogo.',definition:structuredClone(BLONDE_MODEL)},
  template('model','🧑‍🌾','Aparência de personagem','Escolha cabelo, pele e cores sobre os modelos suportados.','model','Minha aparência',{},'#88765a',100),
  template('garden','🌾','Horta','Área de cultivo de 2 × 2 para posicionar num cenário criado.','building','Minha horta',{function:'garden',widthTiles:2,heightTiles:2},'#8c754b',100),
  template('decoration','🏡','Decoração','Objeto para posicionar; imagens próprias são opcionais.','building','Minha decoração',{function:'decoration'},'#a8875b',80),

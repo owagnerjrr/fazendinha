@@ -1,20 +1,14 @@
 import{BlockedAccountError}from'../server/auth.js';
 import {presence,notifications,acknowledge} from '../server/social-live.js';
 import { identity } from '../server/auth.js';
-import { requiresNewClient, CLIENT_UPDATE_MESSAGE } from '../src/client-compat.js';
+import { CLIENT_UPDATE_MESSAGE } from '../src/client-compat.js';
 import { community, ensureFarm, GameError, mutate, snapshot, visit } from '../server/game.js';
 const json=(value:unknown,status=200)=>Response.json(value,{status,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
 async function handle(request:Request) {
   try {
-    const user=await identity(request);
-    await ensureFarm(user.id,user.name,['5','6','7','8','9','10','11','12','13','14','15','16','17'].includes(request.headers.get('X-Farm-Version')??''),['13','14','15','16','17'].includes(request.headers.get('X-Farm-Version')??''),['14','15','16','17'].includes(request.headers.get('X-Farm-Version')??''));
+    const user=await identity(request);if(request.headers.get('X-Farm-Version')!=='18')return json({error:CLIENT_UPDATE_MESSAGE},409);
+    await ensureFarm(user.id,user.name,['5','6','7','8','9','10','11','12','13','14','15','16','17','18'].includes(request.headers.get('X-Farm-Version')??''),['13','14','15','16','17','18'].includes(request.headers.get('X-Farm-Version')??''),['14','15','16','17','18'].includes(request.headers.get('X-Farm-Version')??''));
     const url=new URL(request.url);
-    // Cached clients from before the new species cannot render their animal kinds safely.
-    // Refuse their requests before mutating data and ask them to update the app.
-    if(request.headers.get('X-Farm-Version')!=='17'){
-      const existing=await snapshot(user.id);
-      if(requiresNewClient(existing.farm,request.headers.get('X-Farm-Version')))return json({error:CLIENT_UPDATE_MESSAGE},409);
-    }
     if(request.method==='GET') {
       if(url.searchParams.has('notifications'))return json(await notifications(user.id,url.searchParams.get('notifications')==='history'));
       if(url.searchParams.has('community')) return json(await community(user.id,url.searchParams.get('friendsOnly')==='1'?0:url.searchParams.get('marketVersion')==='2'?2:1));

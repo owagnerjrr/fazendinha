@@ -1,5 +1,5 @@
 import {loginCallback} from './referral-link';
-import { sessionToken } from './session-token';
+import{AuthTokenCache}from'./auth-token-cache';
 import type { Farm } from './farm';
 import type { OnlineFarm } from './online-rules';
 import type { MarketItem } from './market';
@@ -9,8 +9,11 @@ export type Listing = {id:string;crop:MarketItem;quantity:number;price:number;mi
 
 let client: any;
 export async function auth() { return client ??= (await import('@neondatabase/auth')).createAuthClient(`${location.origin}/api/auth`); }
+const tokenCache=new AuthTokenCache(async()=>await(await auth()).token());
+export const getAccessToken=(force=false)=>tokenCache.get(force);
+if(typeof window!=='undefined')window.addEventListener('storage',e=>{if(e.key==='wj-cloud-session')tokenCache.clear();});
 export async function googleSignIn(link=false,chooseCharacter=false){
- const status=await fetch('/api/auth-status',{cache:'no-store'});if(!status.ok||!(await status.json()).available)throw new Error('O acesso Google está indisponível agora. Tente novamente em instantes.');
+ tokenCache.clear();const status=await fetch('/api/auth-status',{cache:'no-store'});if(!status.ok||!(await status.json()).available)throw new Error('O acesso Google está indisponível agora. Tente novamente em instantes.');
  const a=await auth();localStorage.setItem('wj-cloud-session','1');const options={provider:'google',callbackURL:loginCallback(chooseCharacter),errorCallbackURL:location.origin+'/?error=google-cancelled'};
  const result=link?await a.linkSocial(options):await a.signIn.social(options);if(result.error)throw new Error(result.error.message||'Não foi possível abrir o Google. Suas escolhas foram preservadas.');return result;
 }
@@ -24,13 +27,19 @@ export class CloudFarm {
   onSnapshot: (snapshot:Snapshot,initial:boolean)=>void = ()=>{};
   onStatus:(message:string)=>void=()=>{};
   async request(path='',body?:unknown,endpoint='/api/game',timeoutMs=15000) {
-    const a=await auth(), token=sessionToken(await a.token()); if(!token) throw new Error('Sua sessão expirou. Entre novamente.');
-    this.accessToken=token;
-    const r=await fetch(`${endpoint}${path}`,{method:body?'POST':'GET',headers:{'X-Farm-Version':'17',Authorization:`Bearer ${token}`,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,cache:'no-store',signal:AbortSignal.timeout(timeoutMs)});
-    const result=await r.json(); if(!r.ok) { const error=new Error(result.error??'Falha ao sincronizar.') as Error & {status:number}; error.status=r.status; throw error; } return result;
+    for(let attempt=0;attempt<2;attempt++){
+      const token=await getAccessToken(attempt>0);this.accessToken=token;
+      const response=await fetch(`${endpoint}${path}`,{method:body?'POST':'GET',headers:{'X-Farm-Version':'18',Authorization:`Bearer ${token}`,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,cache:'no-store',signal:AbortSignal.timeout(timeoutMs)});
+      if(response.status===401&&attempt===0)continue;
+      const result=await response.json();
+      if(!response.ok){const retryAfter=Math.max(1,Number(response.headers.get('Retry-After'))||15),error=new Error(response.status===429?`Muitas consultas em sequência. Aguarde ${retryAfter} segundos; seu progresso está salvo.`:result.error??'Falha ao sincronizar.')as Error&{status:number;retryAfter:number};error.status=response.status;error.retryAfter=retryAfter;throw error;}
+      return result;
+    }
+    throw Error('Sua sessão expirou. Entre novamente.');
   }
+
   accept(snapshot:Snapshot,initial=false) { if(!initial&&snapshot.revision<this.revision) return; this.revision=snapshot.revision; this.offset=snapshot.now-Date.now(); this.code=snapshot.code??this.code; this.name=snapshot.name??this.name; this.onSnapshot(snapshot,initial); this.onStatus('Progresso online sincronizado'); }
-  async connect() { const a=await auth(), session=await a.getSession(); if(session.error)throw new Error(session.error.message||'Não foi possível recuperar sua sessão.');if(!session.data?.user) return false; const result=await this.request(); this.active=true; this.accept(result,true); localStorage.setItem('wj-cloud-session','1'); await this.retryPending();await this.onConnected(); return true; }
+  async connect() { tokenCache.clear();const a=await auth(), session=await a.getSession(); if(session.error)throw new Error(session.error.message||'Não foi possível recuperar sua sessão.');if(!session.data?.user) return false; const result=await this.request(); this.active=true; this.accept(result,true); localStorage.setItem('wj-cloud-session','1'); await this.retryPending();await this.onConnected(); return true; }
   async refresh() { if(!this.active||this.busy||sessionStorage.getItem('wj-pending-action')) return; try { this.accept(await this.request()); } catch { this.onStatus('Sem conexão · reconecte para continuar'); } }
   async retryPending() {
     const raw=sessionStorage.getItem('wj-pending-action'); if(!raw) return null;
@@ -65,7 +74,7 @@ export class CloudFarm {
     const body={id:crypto.randomUUID(),revision:this.revision,command:{type:'position'},position};
     sessionStorage.setItem('wj-pending-action',JSON.stringify({code:this.code,body}));
     // Persist a receipt first: a new page can safely confirm the same request after closing this one.
-    void fetch('/api/game',{method:'POST',headers:{'X-Farm-Version':'17',Authorization:`Bearer ${this.accessToken}`,'Content-Type':'application/json'},body:JSON.stringify(body),keepalive:true}).then(async response=>{
+    void fetch('/api/game',{method:'POST',headers:{'X-Farm-Version':'18',Authorization:`Bearer ${this.accessToken}`,'Content-Type':'application/json'},body:JSON.stringify(body),keepalive:true}).then(async response=>{
       if(!response.ok)return;
       const result=await response.json();
       const pending=sessionStorage.getItem('wj-pending-action');
@@ -73,5 +82,5 @@ export class CloudFarm {
     }).catch(()=>{});
   }
   chatRequest(path='',body?:unknown){return this.request(path,body,'/api/chat');}
-  async disconnect() { if(this.busy) throw new Error('Aguarde a sincronização antes de sair.'); await this.retryPending(); await (await auth()).signOut(); this.active=false;localStorage.removeItem('wj-cloud-session'); }
+  async disconnect() { if(this.busy) throw new Error('Aguarde a sincronização antes de sair.'); await this.retryPending(); await (await auth()).signOut(); this.active=false;this.accessToken='';tokenCache.clear();localStorage.removeItem('wj-cloud-session'); }
 }

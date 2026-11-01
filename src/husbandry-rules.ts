@@ -3,7 +3,7 @@ import{boostVital}from'./living-animals.js';
 import {getPlot} from './farm.js';
 import {ANIMALS,type Animal} from './content.js';import {animalNeeds,productionAt,ANIMAL_CARE} from './animal-needs.js';
 import {plantNeeds,settlePlant,PLANT_CARE} from './plant-care.js';import {housingProblem} from './housing.js';import {plotUsable} from './plots.js';import type {Farm} from './farm.js';
-export const SUPPLIES={medicine:{name:'Remédio veterinário',price:30,amount:3},plantMedicine:{name:'Defensivo orgânico',price:18,amount:3},bedding:{name:'Palha limpa',price:10,amount:5}} as const;
+export const SUPPLIES={medicine:{name:'Remédio veterinário',price:30,amount:3},plantMedicine:{name:'Defensivo orgânico borrifador',price:18,amount:3},bedding:{name:'Palha limpa',price:10,amount:5}} as const;
 export const HUSBANDRY_COMMANDS=['buy-supply','clean-animal','treat-animal','move-animal','cure-plant','feed-animal','water-animal','collect-animal','start-incubation','hatch-chick','mature-chick'] as const;
 function settledAnimal(a:Animal,now:number):Animal{const next={...a,care:a.care?{...a.care}:undefined};if(next.care)next.care.illnessAt=animalNeeds(a,now).illnessAt;next.pendingAt=productionAt(a,now,ANIMALS[a.kind].seconds);return next;}
 export function applyHusbandry(f:Farm,c:any,now:number){
