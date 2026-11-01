@@ -390,3 +390,7 @@ Análise e preços completos em ECONOMIA.md. Pacotes R$10–R$50: 500/1.000/1.50
 ## 0.46 — borrifador e visitas
 
 Defensivo orgânico identificado e equipável na venda, preservando doses anteriores. Clara loira na seleção e como rascunho editável na Central de Criação. Cuidados por amigos habilitados em contas atuais/novas com ajuste auditado, mantendo posterior escolha do dono. Roubo entrega 1 produto e retira a planta inteira. Sessão compartilhada em memória e recuo em 429 reduzem consultas de autenticação. Cadência de renderização com alvo de 60 Hz e efeitos leves em telas pequenas. 359 testes e build aprovados; sandbox PC/celular simulado confirmou compras, persistência, visitas, cuidados, roubo e acesso administrativo. Medição local com 20 animais/tempestade ficou perto de 59 FPS; desempenho em celular físico permanece dependente do dispositivo. Detalhes em ATUALIZACAO_046.md e VALIDACAO.md.
+
+## 0.46.1 — organização da bolsa
+
+Borrifador agrupado em Ferramentas, sem alterar doses ou funcionamento. Filtro e equipamento verificados em 1280/390px; 359 testes e build aprovados.
