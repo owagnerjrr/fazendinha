@@ -29,3 +29,5 @@ Sandbox autenticado em 1280/390px: cartão da roupa com R$10, prévia animada, f
 Concessão de fixture somente no sandbox permitiu conferir equipamento gratuito, quatro direções, reabertura, propriedade única, roupa antiga e saldo preservados e bloqueio de nova compra. Isso testa o guarda-roupa, não equivale à aprovação do pagamento no provedor.
 
 Limite: o checkout de cartão foi criado no Mercado Pago de testes, mas sua página retornou erro ao acesso automatizado; não foi possível repetir a conclusão com cartão no provedor nesta sessão. Pix não está disponível na conta de testes já conhecida. Entrega/reembolso da nova roupa foram exercitados no ledger isolado e os contratos do provedor em testes automatizados, sem pagamento real. Fluxos gerais de aprovação/recusa/reembolso de cartão foram homologados anteriormente. Não apresentar essa validação como um novo pagamento real aprovado.
+
+0.48.2: nome público da roupa nebula alterado para Samus Aran. Mesmo identificador outfit_nebula, preço R$10 e propriedade permanente. Migração 026 versiona o nome com auditoria e preserva contratos, personalizações e progresso. Pedidos antigos mantêm o nome contratado.
