@@ -16,7 +16,7 @@ export function applyHusbandry(f:Farm,c:any,now:number){
  if(c.type==='cure-plant'){
   if(!Number.isInteger(c.plot)||!plotUsable(f,c.plot)||(c.plot<24&&(f as Farm&{unlockedPlots?:number}).unlockedPlots!==undefined&&c.plot>=(f as any).unlockedPlots))return fail('Canteiro inválido.');
   const p=getPlot(f,c.plot)!,needs=plantNeeds(p,now);if(!p.crop||!p.care||!needs.sick)return fail('Esta planta não está doente.');if(needs.dry)return fail('Regue a planta antes de aplicar o defensivo.');if(f.supplies.plantMedicine<1)return fail('Compre defensivo orgânico na venda.');
-  settlePlant(p,now);p.care.illnessAt=null;p.care.checkpointAt=now;p.pestAt=now+PLANT_CARE.pestReturnMs;f.supplies.plantMedicine--;return{ok:true,message:'Planta tratada! O crescimento foi retomado.'};
+  settlePlant(p,now);p.care.illnessAt=null;p.care.checkpointAt=now;p.pestAt=now+PLANT_CARE.pestReturnMs;if(p.climate)p.climate.stress=0;f.supplies.plantMedicine--;return{ok:true,message:'Planta tratada! O crescimento foi retomado.'+(p.climate&&p.climate.wet>80&&!p.climate.drained?' O solo está encharcado: use Drenar, sem custo, para evitar nova doença.':'')};
  }
  const original=f.animals.find(a=>a.id===c.id);if(!original)return fail('Animal não encontrado.');const a=settledAnimal(original,now),needs=animalNeeds(a,now),house=a.housing??'barn';
  const commit=(message:string)=>{boostVital(a,c.type,now);Object.assign(original,a);return{ok:true,message};};

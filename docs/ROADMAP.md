@@ -1,3 +1,7 @@
+## 0.44 — defensivo, cuidados mais espaçados, roubo consentido e desempenho
+
+Corrigida recaída imediata por estresse climático antigo. Cadência animal mais longa para espécies originais e criadas. Consentimento de roubo prevalece sobre cachorro; pausa e limites preservados. Luzes/chuva/rotas otimizadas. 338 testes e build; perfil local com 20 animais e chuva. Detalhes e limites em CUIDADOS_044.md. Validação autenticada no sandbox publicado confirmou em 1280/390px: tratar planta com estresse 100%, colher pela mão e reabrir mantendo 3 produtos e apenas uma dose consumida. Testes HTTP com duas contas QA confirmaram cachorro saudável + consentimento, bloqueio se qualquer participante desativa, entrega de 1 produto uma única vez com replay do recibo, pausa de uma hora e mensagem com minutos restantes, sem mudar moedas. Não houve cobranças reais. Publicação de produção em andamento.
+
 ## 0.43 — lucros de cultivo e produção animal
 
 Quantidade e duração salvas por plantio, intervalo animal versionado após a primeira coleta, preços unitários e estoques preservados. 328 testes e build passaram. Prévia isolada do jogo em 1280/390px validou compra/indicadores, venda numérica e por item, ciclo completo e persistência, sem erro JS ou transbordamento. Publicação em andamento. Consulte LUCROS.md.
