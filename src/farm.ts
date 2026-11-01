@@ -30,7 +30,7 @@ export const getPlot=(f:Pick<Farm,'plots'|'customPlots'|'expansionPlots'>,id:num
 export function ageSoil(p:Plot,now:number){if(p.tilled&&!p.crop&&p.tilledAt!=null&&now-p.tilledAt>=SOIL_AGE_MS){p.tilled=false;delete p.tilledAt;}}
 const crops = Object.keys(CROPS) as Crop[];
 export const SAVE_KEY = 'wj-fazendinha-v1';
-export const makeFarm = (now=Date.now()): Farm => ({ southSettled:1,version: 1, calendar:{startedAt:now,offsetMinutes:0}, landParcels:[],buildings:[],coins: 250, seeds: Object.fromEntries(crops.map(c=>[c,8])) as Record<Crop,number>, inventory: Object.fromEntries(crops.map(c=>[c,0])) as Record<Crop,number>, plots: Array.from({ length: 24 }, (_, id) => ({ id, tilled: false, crop: null, wateredAt: null })), harvests: 0, questClaimed: false, player: { x: 710, y: 650 }, avatar:{...DEFAULT_AVATAR}, animals:[{id:'starter-hen',kind:'chicken',fedAt:null,collectedAt:0}], products:{egg:0,milk:0,goatMilk:0},feed:5,decorations:[],socialRaids:false,raidProtectionUntil:0,visitLog:[] });
+export const makeFarm = (now=Date.now()): Farm => ({ visitorCare:true,southSettled:1,version: 1, calendar:{startedAt:now,offsetMinutes:0}, landParcels:[],buildings:[],coins: 250, seeds: Object.fromEntries(crops.map(c=>[c,8])) as Record<Crop,number>, inventory: Object.fromEntries(crops.map(c=>[c,0])) as Record<Crop,number>, plots: Array.from({ length: 24 }, (_, id) => ({ id, tilled: false, crop: null, wateredAt: null })), harvests: 0, questClaimed: false, player: { x: 710, y: 650 }, avatar:{...DEFAULT_AVATAR}, animals:[{id:'starter-hen',kind:'chicken',fedAt:null,collectedAt:0}], products:{egg:0,milk:0,goatMilk:0},feed:5,decorations:[],socialRaids:false,raidProtectionUntil:0,visitLog:[] });
 export function enableFarmCare(f:Farm,now=Date.now()){f.careVersion??=1;f.careStartedAt??=now;for(const p of allPlots(f))if(p.tilled&&!p.crop)p.tilledAt??=soilTime(f,now);completeCare(f,CROPS);return f;}
 export function hasPests(plot:Plot,now=Date.now()) {return !!plot.crop&&plot.pestAt!=null&&now>=plot.pestAt;}
 export function remaining(plot: Plot, now = Date.now()) {
@@ -79,6 +79,7 @@ export function act(farm: Farm, id: number, tool: Tool, crop: Crop, now = Date.n
   if (!farm.questClaimed) { farm.questClaimed = true; farm.coins += 75; reward = ' Missão cumprida: +75 moedas!'; }
   return { ok: true, harvest: true, message: `+${amount} ${CROPS[harvested].name.toLowerCase()} no celeiro!${reward}` };
 }
+export function clearHarvestedPlot(plot:Plot){delete plot.fertilized;plot.crop=null;plot.tilled=false;delete plot.tilledAt;delete plot.growthDurationMs;delete plot.harvestYield;plot.wateredAt=null;plot.pestAt=null;plot.stolen=0;delete plot.care;}
 export function buySeeds(farm: Farm, crop: Crop, amount = 5) {
   if (!Number.isSafeInteger(amount) || amount < 1 || amount > 100) return false;
   const price = CROPS[crop].seedPrice * amount;
@@ -107,6 +108,7 @@ export function restoreFarm(raw: string | null): Farm {
 }
 
 export function upgradeFarm<T extends Farm>(data:T):T {
+ data.visitorCare??=true;
  if(data.barnVersion===1)assignBarnPens(data);settleCoinDebt(data);if('unlockedPlots' in data)(data as T & {unlockedPlots:number}).unlockedPlots=Math.max(24,Number((data as any).unlockedPlots)||0);data.player=data.playerArea==='expansion'?data.player:safeRiverPosition(data.player);restoreFishing(data);data.calendar??={startedAt:LEGACY_CLOCK_START,offsetMinutes:0};
  data.landParcels??=data.landOwned?[{site:'west',startId:24}]:[];data.buildings??=[];
  data.avatar=validAvatar(data.avatar)?data.avatar:{...DEFAULT_AVATAR};data.animals??=[{id:'starter-hen',kind:'chicken',fedAt:null,collectedAt:0}];data.products??={egg:0,milk:0,goatMilk:0};data.feed??=5;data.decorations??=[];data.socialRaids??=false;data.raidProtectionUntil??=0;data.visitLog??=[];for(const c of crops){data.seeds[c]??=0;data.inventory[c]??=0;}completeCare(data,CROPS);settleSouth(data);return data;

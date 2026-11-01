@@ -29,7 +29,7 @@ import { createHash } from 'node:crypto';
 import type { PoolClient } from 'pg';
 import { pool } from './db.js';
 import { applyCommand, newOnlineFarm, replenish, type OnlineFarm } from '../src/online-rules.js';
-import { soilTime, getPlot, allPlots, upgradeFarm, hasPests, remaining, CROPS, type Crop } from '../src/farm.js';
+import { clearHarvestedPlot, soilTime, getPlot, allPlots, upgradeFarm, hasPests, remaining, CROPS, type Crop } from '../src/farm.js';
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const codePattern = /^[A-Z0-9]{10}$/;
 export class GameError extends Error { constructor(message: string, public status = 400) { super(message); } }
@@ -158,12 +158,12 @@ async function social(db:PoolClient,user:string,row:any,c:any,now:number) {
       const protection=await raidState(db,user,target.user_id,target.state,now);if(protection.protected)throw new GameError(raidProtectionMessage(protection,now));
       if(!plot.crop||remaining(plot,now)!==0||plantNeeds(plot,now).dry||plantNeeds(plot,now).sick||hasPests(plot,now)||(plot.stolen??0)>=1)throw new GameError('Escolha uma colheita madura e ainda não beliscada.');
       const used=await db.query('SELECT 1 FROM farm_raids WHERE visitor=$1 AND owner=$2 AND day=$3',[user,target.user_id,day]);if(used.rowCount)throw new GameError('Você já pegou um produto deste amigo hoje.');
-      row.state.inventory[plot.crop as Crop]++;plot.stolen=(plot.stolen??0)+1;
+      row.state.inventory[plot.crop as Crop]++;clearHarvestedPlot(plot);
       await db.query('INSERT INTO farm_raid_events(visitor,owner,plot,occurred_at) VALUES($1,$2,$3,to_timestamp($4/1000.0))',[user,target.user_id,c.plot,now]);
-      target.state.visitLog.unshift({name:row.name,action:'pegou 1 produto maduro',at:now});target.state.visitLog=target.state.visitLog.slice(0,20);
+      target.state.visitLog.unshift({name:row.name,action:'roubou 1 produto e esvaziou o canteiro',at:now});target.state.visitLog=target.state.visitLog.slice(0,20);
       await db.query('UPDATE farms SET state=$2,revision=revision+1 WHERE user_id=$1',[target.user_id,target.state]);
       await db.query("INSERT INTO social_notifications(user_id,actor_id,kind) VALUES($1,$2,'visit_steal')",[target.user_id,user]);
-      return {ok:true,message:`Roubo concluído: +1 produto! Restam ${Math.max(0,(protection.raidsRemaining??5)-1)} de 5 nesta fazenda nos últimos 60 minutos.`};
+      return {ok:true,message:`Roubo concluído: +1 produto! A planta foi retirada do canteiro. Restam ${Math.max(0,(protection.raidsRemaining??5)-1)} de 5 nesta fazenda nos últimos 60 minutos.`};
     }
     const mode=c.mode??'water';if(['medicine','fertilizer'].includes(mode)){const result=applyGuestPlotProduct(target.state,row.state,c.plot,mode,now);if(!result.ok)throw new GameError(result.message);await db.query('UPDATE farms SET state=$2,revision=revision+1 WHERE user_id=$1',[target.user_id,target.state]);await db.query("INSERT INTO social_notifications(user_id,actor_id,kind) VALUES($1,$2,'visit_help')",[target.user_id,user]);return result;}if(!['hoe','plant','water','clean'].includes(mode))throw new GameError('Ajuda inválida.');
     const used=await db.query('SELECT 1 FROM farm_help WHERE helper=$1 AND owner=$2 AND day=$3 AND plot=$4 AND mode=$5',[user,target.user_id,day,c.plot,mode]);
