@@ -87,4 +87,3 @@ export function setupLifeUI(s:Services){
  function equipment(){s.open('Seus equipamentos',`<p>A barra mantém cada ferramenta no seu lugar. O botão circular de ação mostra e usa a ferramenta escolhida. Escolha Mão para interagir ou colher.</p><div class="life-grid">${[['hand','Mão'],['hoe','Enxada'],['seed','Sementes'],['water','Regador'],...(s.farm().fishing?.rod?[['rod','Vara de pescar']]:[])].map(([k,n])=>`<button data-equip="${k}">${n}</button>`).join('')}</div>`);document.querySelectorAll<HTMLButtonElement>('[data-equip]').forEach(b=>b.onclick=()=>{s.equip(b.dataset.equip as Tool);s.close();});}
  $('life-menu').onclick=menu;if($('care-alert'))$('care-alert').onclick=dashboard.open;return {menu,avatar,animals,shop,decor,equipment,land,care:dashboard.open,enclosure};
 }
-
