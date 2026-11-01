@@ -16,6 +16,8 @@ export function visitActions(p:Plot,crop:Crop,own:Pick<Farm,'seeds'|'socialRaids
 
 /** Direct tool interaction uses the same permissions as the former action menu. */
 export function visitToolAction(p:Plot,crop:Crop,own:Pick<Farm,'seeds'|'socialRaids'>,host:{socialRaids:boolean}&RaidProtection,now:number,tool:import('./farm.js').Tool):VisitAction|undefined{
+ // Spray stock and suitability are checked on a clone before the animation and on the server.
+ if(tool==='medicine'||tool==='fertilizer')return{type:'help',mode:tool,label:tool==='medicine'?'Aplicar defensivo':'Aplicar fertilizante',enabled:!!p.crop,reason:'Plante uma cultura primeiro.'};
  const mode=tool==='hoe'?'hoe':tool==='seed'?'plant':tool==='water'?'water':tool==='hand'?(hasPests(p,now)?'clean':''):undefined;
  return mode===undefined?undefined:visitActions(p,crop,own,host,now).find(a=>a.mode===mode);
 }
