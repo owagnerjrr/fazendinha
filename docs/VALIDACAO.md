@@ -728,3 +728,7 @@ Medição local isolada com 20 animais, tempestade e efeitos leves: cerca de 59 
 Migração 020 validada em PGlite e sandbox: habilita cuidados por amigos e cria modelo em rascunho. Reexecução preserva uma posterior desativação do dono e edições do rascunho. Sem alterações em compras, saldo, inventário, plantas ou animais. Publicação e verificação final de produção serão registradas após implantação. Clientes antigos precisam recarregar (protocolo 18).
 
 Migração 020 aplicada em produção: 40 contas com cuidados habilitados (36 ajustes auditados; 4 já permitiam), administrador exclusivo 6BA7738D02 preservado e Clara em rascunho revisão 1, sem publicação/distribuição automática do modelo. Nenhuma cobrança ou teste destrutivo executado em produção.
+
+## 0.46.1 — borrifador em Ferramentas
+
+O defensivo orgânico borrifador foi movido para Ferramentas na bolsa, junto à enxada e ao regador. Mantém o mesmo estoque, descrição, ícone e ação Equipar borrifador. Nenhuma migração ou alteração de dados. 359 testes e build passaram. Navegador local com fazenda isolada em 1280/390px confirmou filtro, item único, equipamento e preservação das 17 doses da fixture após equipar/reabrir a bolsa; sem erros JS. Sem testes em contas reais.
