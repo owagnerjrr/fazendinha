@@ -7,3 +7,12 @@ Pix e cartão utilizam o checkout Orders existente. Preço inicial de 1.500 cent
 Migração 023 prepara oferta inativa e amplia o ledger sem alterar fazendas ou contratos anteriores. Migração 024 ativa a oferta após a versão compatível estar publicada e pronta. Clientes do protocolo 19 não recebem nem podem comprar o produto novo; protocolo 20 o suporta. Conta com a roupa exige cliente atualizado.
 
 Validação inicial: 366 testes passaram, incluindo entrega única, aprovação repetida, valor divergente, reembolso integral, eventos antigos, presente, múltiplos pagamentos e isolamento da Sentinela Nebulosa. Build aprovado. Migrações executadas na branch isolada de testes. Conferência no navegador e publicação em andamento. Nenhuma cobrança real foi criada.
+## Conferência no ambiente isolado
+
+- Deploy de testes dpl_CSUjFy4eafywbTgGZUWKMrabFZ71 READY, commit cc961ee29c93c79849ebd992492a6ca06f88ffac.
+- Navegador autenticado em 1280px e 390px: cartão da roupa por R$15, prévia animada, formulário Pix/cartão, apenas o produto selecionado e pedido hospedado ORDTST com zero moedas/1.500 centavos.
+- Repetição reaproveita o pedido; preço enviado pelo cliente, método oposto em pedido aberto e compra por cliente antigo são recusados. Nenhuma roupa foi liberada pelo pedido pendente. Saldo preservado.
+- Presente de fixture exclusivamente a uma conta QA no sandbox: equipamento gratuito, caminhada nas quatro direções, reabertura, propriedade única e impedimento de nova compra. Nenhuma concessão em produção. Sem erros JavaScript.
+- 366 testes aprovados. Ledger PGlite exercita aprovação, reembolso e eventos repetidos isoladamente para as duas roupas.
+- Limite: não foi concluído novo pagamento no checkout do provedor. Pix da conta de testes continua indisponível; criação do pedido de cartão foi verificada, sem informar dados de cartão nem efetuar cobrança real. Presente de fixture não equivale a aprovação de pagamento.
+- Migração 023 aplicada em produção com verificação transacional de igualdade integral das fazendas e pedidos antes/depois. Oferta permanece inativa até deploy compatível READY e aplicação de 024.
