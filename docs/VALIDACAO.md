@@ -771,3 +771,7 @@ Clareira 0.48: navegador sandbox em 1280/390px validou preço R$15, Pix/cartão,
 0.49.0: sul com cascata, lagos, patos, aves, flores e luminárias integrado ao cenário próprio e de amigos. Campos comprados preservados; 370 testes, build e navegador local em computador/celular aprovados. Ver SUL_0_49.md para escopo, desempenho e validação.
 
 0.49.1: parte inferior do sul com jardim florido, arco, piquenique, vasos, trilhas, luminárias e borboletas. 371 testes/build e conferência local em computador/celular passaram; mesmas áreas compráveis e bens preservados. Ver SUL_0_49.md.
+
+0.50.0: bancos, piquenique, patos e flores interativos, com poses/gestos e aproximação dos patos ao brinquedo. Placas dos terrenos retiradas. 374 testes e build passaram; navegador local validou seis alvos no computador/celular, alcance, toque/teclado, cancelamento e bens preservados. Escopo e limites em LAZER_SUL_0_50.md.
+
+Lazer 0.50: sandbox autenticado confirmou bancos/piquenique/patos pelo botão em 1440/390px e bens preservados. Revisão final da margem dos patos conferida nas duas larguras, sem erros. Nenhuma cobrança ou migração.

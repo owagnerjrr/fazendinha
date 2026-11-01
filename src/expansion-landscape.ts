@@ -1,6 +1,6 @@
 import{paintSouthGarden,southGardenProps,southGardenClear}from'./south-garden';
 import Phaser from 'phaser';
-import {EXPANSION_SITES} from './expansion-rules';import {parcels} from './plots';import type {Farm} from './farm';
+import {EXPANSION_SITES} from './expansion-rules';import type {Farm} from './farm';
 import{paintSouthNature,southNature}from'./south-nature';import{southWaterAt}from'./south-nature-layout';
 /** Baked meadow artwork. Land IDs, saved plots and construction coordinates stay unchanged. */
 export function expansionLandscape(scene:Phaser.Scene,farm:Farm,block:(x:number,y:number,w:number,h:number)=>void){
@@ -17,7 +17,6 @@ export function expansionLandscape(scene:Phaser.Scene,farm:Farm,block:(x:number,
  paintSouthNature(c,rand);paintSouthGarden(c,rand);scene.textures.addCanvas(key,cv);}
  scene.add.image(0,0,key).setOrigin(0);
  const title=scene.add.text(750,205,'↑ FAZENDA',{fontFamily:'monospace',fontSize:'14px',color:'#fff1be',backgroundColor:'#42563a',padding:{x:14,y:8}}).setOrigin(.5).setDepth(2);title.setShadow(1,2,'#263928',0);
- for(const [site,s]of Object.entries(EXPANSION_SITES)){const owned=parcels(farm).some(p=>p.site===site),g=scene.add.graphics().setDepth(.5);g.fillStyle(owned?0x9c8b59:0x45633d,owned?.18:.18).fillRect(s.x-20,s.y-20,400,200);g.lineStyle(1,owned?0xcab67f:0x8aa25e,.65).strokeRect(s.x-21,s.y-21,402,202);scene.add.text(s.x+180,772,s.name+'\n'+(owned?'✓ Terreno liberado':'Terreno disponível na venda'),{fontFamily:'monospace',fontSize:'13px',align:'center',color:owned?'#fff3c6':'#cbd6a8',backgroundColor:'#3f583c',padding:{x:12,y:7}}).setOrigin(.5).setDepth(2);}
  const rng=new Phaser.Math.RandomDataGenerator(['wj-campos-sul']);for(let y=210;y<1100;y+=80)for(let x=90;x<1510;x+=75){if(y>285&&y<880||x>675&&x<825&&y<400||x>185&&x<545&&y<335)continue;const px=x+rng.between(-15,15),py=y+rng.between(-12,12);if(southGardenClear(px,py)||southWaterAt(px,py,65)||y>880&&y<1010&&x>230&&x<1440)continue;scene.add.image(px,py,`tree${(x+y)%3}`).setOrigin(.5,1).setScale(rng.realInRange(1,1.35)).setDepth(py);block(px,py-8,17,18);}
  for(const [x,y]of [[130,900],[1450,920],[540,940],[1000,960]]){if(southGardenClear(x,y))continue;scene.add.image(x,y,'pine').setOrigin(.5,1).setScale(1.3).setDepth(y);block(x,y-8,20,20);}
  for(const [i,x,y]of [[0,260,900],[1,310,930],[2,580,1020],[0,850,940],[2,910,970]] as const){if(southGardenClear(x,y))continue;scene.add.image(x,y,'tree'+i).setOrigin(.5,1).setScale(1.15).setDepth(y);block(x,y-8,17,18);}
