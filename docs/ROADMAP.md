@@ -398,3 +398,7 @@ Borrifador agrupado em Ferramentas, sem alterar doses ou funcionamento. Filtro e
 ## 0.46.2 — equipamento fixo
 
 Borrifador permanece em Ferramentas mesmo sem doses; estoque e equipamento existentes preservados. 360 testes, build e seis cenários de interface (1280/390px, 0/3/17 doses) aprovados. Sem migração de dados.
+
+## 0.46.3 — roubo compatível com plantações antigas
+
+Retiradas as travas obsoletas de planta “beliscada” e recibo diário que impediam o roubo antes de concluir. Valem consentimento e cinco roubos por visitante/fazenda em janela móvel de 60 minutos. Novo roubo entrega um produto e esvazia o canteiro; plantações e históricos antigos não são apagados na atualização. 361 testes, build e sandbox autenticado aprovados.
