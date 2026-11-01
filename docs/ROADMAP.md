@@ -423,3 +423,5 @@ Preparada publicação por R$ 15,00 via Pix/cartão; 366 testes e build aprovado
 0.48.2: nome público da roupa nebula alterado para Samus Aran. Mesmo identificador outfit_nebula, preço R$10 e propriedade permanente. Migração 026 versiona o nome com auditoria e preserva contratos, personalizações e progresso. Pedidos antigos mantêm o nome contratado.
 
 0.49.0: paisagem viva dos Campos do Sul — água animada, fauna ambiente, caminhos e campos preservados, iluminação específica. Sem migração de dados.
+
+0.49.1: clareira inferior com jardim e recanto de piquenique integrado aos caminhos, sem mudanças na economia.
