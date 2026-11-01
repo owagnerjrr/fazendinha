@@ -6,8 +6,8 @@ import { community, ensureFarm, GameError, mutate, snapshot, visit } from '../se
 const json=(value:unknown,status=200)=>Response.json(value,{status,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
 async function handle(request:Request) {
   try {
-    const user=await identity(request);if(request.headers.get('X-Farm-Version')!=='18')return json({error:CLIENT_UPDATE_MESSAGE},409);
-    await ensureFarm(user.id,user.name,['5','6','7','8','9','10','11','12','13','14','15','16','17','18'].includes(request.headers.get('X-Farm-Version')??''),['13','14','15','16','17','18'].includes(request.headers.get('X-Farm-Version')??''),['14','15','16','17','18'].includes(request.headers.get('X-Farm-Version')??''));
+    const user=await identity(request);if(request.headers.get('X-Farm-Version')!=='19')return json({error:CLIENT_UPDATE_MESSAGE},409);
+    await ensureFarm(user.id,user.name,['5','6','7','8','9','10','11','12','13','14','15','16','17','18','19'].includes(request.headers.get('X-Farm-Version')??''),['13','14','15','16','17','18','19'].includes(request.headers.get('X-Farm-Version')??''),['14','15','16','17','18','19'].includes(request.headers.get('X-Farm-Version')??''));
     const url=new URL(request.url);
     if(request.method==='GET') {
       if(url.searchParams.has('notifications'))return json(await notifications(user.id,url.searchParams.get('notifications')==='history'));
