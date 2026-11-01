@@ -8,15 +8,16 @@ export const AVATAR_STYLES={classic:'Original com chapéu',crop:'Crespo curto',p
 export const ANIMALS={
  rooster:{name:'Galo',icon:'🐓',price:130,product:null,productName:'Reprodução',sellPrice:0,seconds:0},
  chick:{name:'Pintinho',icon:'🐤',price:45,product:null,productName:'Crescimento',sellPrice:0,seconds:0},
- chicken:{name:'Galinha',icon:'🐔',price:90,product:'egg',productName:'Ovo',sellPrice:12,seconds:90},
- cow:{name:'Vaca',icon:'🐄',price:350,product:'milk',productName:'Leite',sellPrice:35,seconds:180},
- goat:{name:'Bode / cabra',icon:'🐐',price:230,product:'goatMilk',productName:'Leite de cabra',sellPrice:26,seconds:150},
+ chicken:{name:'Galinha',icon:'🐔',price:90,product:'egg',productName:'Ovo',sellPrice:12,seconds:900},
+ cow:{name:'Vaca',icon:'🐄',price:350,product:'milk',productName:'Leite',sellPrice:35,seconds:2700},
+ goat:{name:'Bode / cabra',icon:'🐐',price:230,product:'goatMilk',productName:'Leite de cabra',sellPrice:26,seconds:1800},
  cat:{name:'Gato',icon:'🐈‍⬛',price:160,product:null,productName:'Companhia',sellPrice:0,seconds:0},
  dog:{name:'Cachorro',icon:'🐕',price:180,product:null,productName:'Proteção',sellPrice:0,seconds:0}
 } as const;
 export type AnimalKind=keyof typeof ANIMALS;
 export type AnimalProduct='egg'|'milk'|'goatMilk';
-export type Animal={summon?:import('./pet-call-rules.js').PetSummon;guestWalk?:{code:string;until:number};pen?:number;walking?:boolean;vital?:import('./living-animals.js').Vital;petMode?:import('./pet-rules.js').PetMode;id:string;kind:AnimalKind;fedAt:number|null;collectedAt:number;color?:'black'|'white'|'ginger'|'gray'|'calico';name?:string;wateredAt?:number|null;pettedAt?:number|null;playedAt?:number|null;bornAt?:number;incubationAt?:number|null;housing?:string;sex?:'female'|'male';pendingAt?:number|null;care?:{startedAt:number;cleanedAt:number;illnessAt:number|null;recoveredAt?:number}};
+export const animalProductionSeconds=(a:Animal)=>a.productionVersion===1?ANIMALS[a.kind].seconds:({chicken:90,cow:180,goat:150}[a.kind as 'chicken'|'cow'|'goat']??0);
+export type Animal={productionVersion?:1;summon?:import('./pet-call-rules.js').PetSummon;guestWalk?:{code:string;until:number};pen?:number;walking?:boolean;vital?:import('./living-animals.js').Vital;petMode?:import('./pet-rules.js').PetMode;id:string;kind:AnimalKind;fedAt:number|null;collectedAt:number;color?:'black'|'white'|'ginger'|'gray'|'calico';name?:string;wateredAt?:number|null;pettedAt?:number|null;playedAt?:number|null;bornAt?:number;incubationAt?:number|null;housing?:string;sex?:'female'|'male';pendingAt?:number|null;care?:{startedAt:number;cleanedAt:number;illnessAt:number|null;recoveredAt?:number}};
 export const DECOR={
  cocoaTree:{name:'Árvore do Cacau Encantado',price:120,texture:'cocoaTree',description:'Cacau, flores rosadas e uma história só nossa.'},
  flowerPlanter:{name:'Jardineira florida',price:45,texture:'flowerPlanter',description:'Flores para dar cor aos caminhos.'},
@@ -28,5 +29,5 @@ export const DECOR_SLOTS=[{x:562,y:405},{x:925,y:590},{x:920,y:710},{x:388,y:550
 export function validAvatar(a:unknown):a is Avatar {const v=a as Avatar;return !!v&&Object.hasOwn(AVATAR_STYLES,v.style)&&Number.isInteger(v.skin)&&v.skin>=0&&v.skin<SKIN_TONES.length&&Number.isInteger(v.hair)&&v.hair>=0&&v.hair<HAIR_COLORS.length&&Number.isInteger(v.shirt)&&v.shirt>=0&&v.shirt<SHIRT_COLORS.length;}
 export function animalHydrated(a:Animal,now:number){const at=a.wateredAt===undefined?a.fedAt:a.wateredAt;return at!==null&&now>=at&&now-at<(a.care?ANIMAL_CARE.waterMs:86400000);}
 export function dogProtects(animals:Animal[],now:number){return animals.some(a=>a.kind==='dog'&&a.fedAt!==null&&now>=a.fedAt&&now-a.fedAt<(a.care?ANIMAL_CARE.foodMs:86400000)&&animalHydrated(a,now)&&!animalNeeds(a,now).sick&&animalNeeds(a,now).food>0&&animalNeeds(a,now).water>0);}
-export function animalReady(a:Animal,now:number){const c=ANIMALS[a.kind];if(a.care)return !!c.product&&productionAt(a,now,c.seconds)!==null;return !!c.product&&a.fedAt!==null&&now>=a.fedAt&&now-a.fedAt<(a.care?ANIMAL_CARE.foodMs:86400000)&&animalHydrated(a,now)&&now-Math.max(a.collectedAt,a.fedAt)>=c.seconds*1000;}
+export function animalReady(a:Animal,now:number){const c=ANIMALS[a.kind];if(a.care)return !!c.product&&productionAt(a,now,c.seconds)!==null;return !!c.product&&a.fedAt!==null&&now>=a.fedAt&&now-a.fedAt<(a.care?ANIMAL_CARE.foodMs:86400000)&&animalHydrated(a,now)&&now-Math.max(a.collectedAt,a.fedAt)>=animalProductionSeconds(a)*1000;}
 

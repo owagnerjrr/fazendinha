@@ -1,3 +1,7 @@
+## 0.43 — lucros de cultivo e produção animal
+
+Quantidade e duração salvas por plantio, intervalo animal versionado após a primeira coleta, preços unitários e estoques preservados. 328 testes e build passaram. Prévia isolada do jogo em 1280/390px validou compra/indicadores, venda numérica e por item, ciclo completo e persistência, sem erro JS ou transbordamento. Publicação em andamento. Consulte LUCROS.md.
+
 ## Runtime administrativo — em validação no sandbox
 
 Implementados catálogo consumido pelo jogo, animais novos separados dos registros antigos, prévia isolada, editor de terrenos, cenários com cultivo/colisão/portas/pesca, compras por transação existente, cosméticos/modelos no renderizador original, biblioteca PNG/WAV versionada, concessões idempotentes e configurações por público. 288 testes passaram. Validação autenticada e visual publicada em andamento; não declarar os exemplos completos concluídos antes dela. Nenhuma mudança aplicada ao banco de produção nesta etapa.

@@ -53,7 +53,7 @@ export function applyLife(f:Farm,c:any,now:number):{ok:boolean;message:string;ca
   const housing=c.housing??'barn',space=housingProblem(f,kind,housing,undefined,1,c.pen);if(space)return fail(space);
   if(!f.careVersion&&f.animals.length+f.animals.filter(x=>x.incubationAt!=null).length>=40)return fail('Seu celeiro comporta 40 animais, incluindo ovos em incubação.');if(f.coins<item.price)return fail('Moedas insuficientes.');
   if(kind==='cat'&&c.color!==undefined&&!['black','white','ginger','gray','calico'].includes(c.color))return fail('Escolha uma cor válida.');
-  f.coins-=item.price;f.animals.push({id:`animal-${now}-${f.animals.length}`,kind,...(housing==='barn'?{pen:c.pen??availablePen(f.animals)}:{}),...(kind==='dog'?{petMode:'barn' as const}:{}),...(kind==='cat'?{color:c.color??'black'}:{}),fedAt:null,wateredAt:null,pettedAt:null,collectedAt:now,...(f.careVersion?{housing,care:{startedAt:now,cleanedAt:now,illnessAt:null}}:{}),...(kind==='chick'?{bornAt:now}:{})});f.barnVersion=1;assignBarnPens(f);return {ok:true,message:`${item.name} entregue em ${housing==='barn'?'seu celeiro · Baia '+((f.animals.at(-1)!.pen??0)+1):'sua instalação'}. Alimente e ofereça água!`};
+  f.coins-=item.price;f.animals.push({id:`animal-${now}-${f.animals.length}`,kind,...(housing==='barn'?{pen:c.pen??availablePen(f.animals)}:{}),...(kind==='dog'?{petMode:'barn' as const}:{}),...(kind==='cat'?{color:c.color??'black'}:{}),fedAt:null,wateredAt:null,pettedAt:null,collectedAt:now,productionVersion:1,...(f.careVersion?{housing,care:{startedAt:now,cleanedAt:now,illnessAt:null}}:{}),...(kind==='chick'?{bornAt:now}:{})});f.barnVersion=1;assignBarnPens(f);return {ok:true,message:`${item.name} entregue em ${housing==='barn'?'seu celeiro · Baia '+((f.animals.at(-1)!.pen??0)+1):'sua instalação'}. Alimente e ofereça água!`};
  }
  if(c.type==='buy-feed'){if(f.coins<10)return fail('Você precisa de 10 moedas.');f.coins-=10;f.feed+=5;return {ok:true,message:'+5 porções de ração.'};}
  if(['feed-animal','water-animal','pet-animal','play-animal','rename-animal','start-incubation','hatch-chick','mature-chick','collect-animal'].includes(c.type)){
@@ -67,10 +67,10 @@ export function applyLife(f:Farm,c:any,now:number):{ok:boolean;message:string;ca
   }
   if(c.type==='hatch-chick'){
    if(a.kind!=='chicken'||a.incubationAt==null)return fail('Não há ovo em incubação.');if(now-a.incubationAt<120000)return fail('O ovo ainda está em incubação.');const space=housingProblem(f,'chick','barn',a.id,2,a.pen);if(space)return fail(space);
-   a.incubationAt=null;f.animals.push({id:`chick-${now}-${f.animals.length}`,kind:'chick',pen:a.pen,housing:'barn',fedAt:null,wateredAt:null,pettedAt:null,collectedAt:now,bornAt:now});return {ok:true,message:'Um pintinho nasceu! Alimente e ofereça água.'};
+   a.incubationAt=null;f.animals.push({id:`chick-${now}-${f.animals.length}`,kind:'chick',pen:a.pen,housing:'barn',fedAt:null,wateredAt:null,pettedAt:null,collectedAt:now,productionVersion:1,bornAt:now});return {ok:true,message:'Um pintinho nasceu! Alimente e ofereça água.'};
   }
   if(c.type==='mature-chick'){
-   if(a.kind!=='chick'||a.bornAt==null)return fail('Este animal não é um pintinho.');if(now-a.bornAt<300000||!cared(a))return fail('O pintinho precisa de cinco minutos, ração e água para crescer.');a.kind='chicken';a.collectedAt=now;return {ok:true,message:'Seu pintinho cresceu e virou uma galinha!'};
+   if(a.kind!=='chick'||a.bornAt==null)return fail('Este animal não é um pintinho.');if(now-a.bornAt<300000||!cared(a))return fail('O pintinho precisa de cinco minutos, ração e água para crescer.');a.kind='chicken';a.collectedAt=now;a.productionVersion=1;return {ok:true,message:'Seu pintinho cresceu e virou uma galinha!'};
   }
   if(c.type==='rename-animal'){if(typeof c.name!=='string')return fail('Informe um nome válido.');const name=c.name.trim().replace(/\s+/g,' ');if(name.length<1||name.length>24||/[<>\u0000-\u001f\u007f]/.test(name))return fail('Use um nome de 1 a 24 caracteres, sem símbolos de controle.');a.name=name;return {ok:true,message:`Nome salvo: ${name}.`};}
   if(c.type==='water-animal'){if(a.wateredAt!==undefined&&a.wateredAt!==null&&now>=a.wateredAt&&now-a.wateredAt<86400000)return fail('Este animal já tem água por 24 horas.');a.wateredAt=now;return {ok:true,message:'Água fresca disponível por 24 horas!'};}
@@ -82,7 +82,7 @@ export function applyLife(f:Farm,c:any,now:number):{ok:boolean;message:string;ca
    if(a.fedAt!==null&&now-a.fedAt<86400000)return fail('Este animal já está alimentado pelas próximas 24 horas.');
    if(f.feed<1)return fail('Compre ração na venda.');f.feed--;a.fedAt=now;a.collectedAt=now;return {ok:true,message:'Animal alimentado! Garanta também água para ativar sua função.'};
   }
-  if(!animalReady(a,now))return fail('Alimente, ofereça água e aguarde a produção.');const item=ANIMALS[a.kind];if(!item.product)return fail('O cachorro protege a plantação.');f.products[item.product]++;a.collectedAt=now;return {ok:true,message:`+1 ${item.productName.toLowerCase()} no celeiro!`};
+  if(!animalReady(a,now))return fail('Alimente, ofereça água e aguarde a produção.');const item=ANIMALS[a.kind];if(!item.product)return fail('O cachorro protege a plantação.');f.products[item.product]++;a.collectedAt=now;a.productionVersion=1;return {ok:true,message:`+1 ${item.productName.toLowerCase()} no celeiro!`};
  }
  if(c.type==='buy-decor'){
   if(!Object.hasOwn(DECOR,c.kind))return fail('Decoração inválida.');const item=DECOR[c.kind as DecorationKind];

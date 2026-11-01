@@ -1,3 +1,7 @@
+## 0.43 — lucros de cultivo e produção animal
+
+Quantidade e duração salvas por plantio, intervalo animal versionado após a primeira coleta, preços unitários e estoques preservados. 328 testes e build passaram. Prévia isolada do jogo em 1280/390px validou compra/indicadores, venda numérica e por item, ciclo completo e persistência, sem erro JS ou transbordamento. Publicação em andamento. Consulte LUCROS.md.
+
 ## 0.40.1 — cuidados no padrão dos outros animais
 
 Painel compacto compartilhado, retrato real do animal criado, Mais opções e ausência de nome permanente sobre o sprite. 317 testes/build passaram. Comparação autenticada PC/celular confirmou métricas iguais às do painel original, imagem real, nome oculto no cenário, aviso de fome e persistência das interações.
