@@ -1,6 +1,6 @@
 ## 0.45 — visitas, produtos e cinco roubos por hora
 
-Cota móvel por visitante/fazenda, mensagens reais do servidor, produtos com estoque do visitante e comportamentos compartilhados entre criações. Botões compactos de chamada e atalho R$ à direita. Migração 019 aditiva, sem converter estados antigos. Validação em andamento; veja VISITAS_045.md.
+Cota móvel por visitante/fazenda, mensagens reais do servidor, produtos com estoque do visitante e comportamentos compartilhados entre criações. Botões compactos de chamada e atalho R$ à direita. Migração 019 aditiva, sem converter estados antigos. 346 testes/build aprovados; sandbox PC/celular e API confirmaram produtos do visitante, loja sem cobrança, cinco roubos, sexto bloqueado, mensagens distintas, cota e persistência. Cenários criados/sul e expiração da hora cobertos no motor/banco isolado. Publicação de produção em andamento; veja VISITAS_045.md.
 
 ## 0.44 — defensivo, cuidados mais espaçados, roubo consentido e desempenho
 
