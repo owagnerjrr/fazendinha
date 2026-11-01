@@ -1,4 +1,4 @@
-import{duckToy,type DuckPlay}from'./south-leisure-rules';
+import{duckToy,duckPlayPose,type DuckPlay}from'./south-leisure-rules';
 import{gardenButterfly}from'./south-garden';
 import Phaser from'phaser';import{lightEffects}from'./display-settings';import{SOUTH_PONDS,SOUTH_LIGHTS,southDuckPose,southNatureObstacles}from'./south-nature-layout';
 type Ctx=CanvasRenderingContext2D;
@@ -38,7 +38,7 @@ export function southNature(scene:Phaser.Scene,block:(x:number,y:number,w:number
  const ducks=Array.from({length:6},(_,i)=>scene.add.image(0,0,i%2?'south-mallard':'south-duck',0).setScale(1.25));const reduced=matchMedia('(prefers-reduced-motion: reduce)');let next=0,placed=false;
  const update=(time:number)=>{if(time<next)return;const light=lightEffects(),quiet=reduced.matches;next=time+(light||quiet?120:66);const t=quiet?0:time,view=scene.cameras.main.worldView;falls.setFrame(Math.floor(t/90)%8);water.clear();sky.clear();shadows.clear();
   const play=scene.data.get('south-duck-play') as DuckPlay|undefined;
-  for(let i=0;i<ducks.length;i++){const p=southDuckPose(i,t),react=play&&play.pond===(i<3?0:1);if(react){const toy=duckToy(play.pond,t,play.started);p.x=toy.x-19+(i%3)*16;p.y=toy.y+9+(i%2)*10;}const x=quiet||!placed?p.x:ducks[i].x+(p.x-ducks[i].x)*.2,y=quiet||!placed?p.y:ducks[i].y+(p.y-ducks[i].y)*.2;ducks[i].setPosition(x,y).setFlipX(react?p.x>duckToy(play!.pond,t,play!.started).x:p.left).setFrame(p.frame).setAngle(react&&!quiet?Math.sin(t/160+i)*4:0).setDepth(y+1);}placed=true;
+  for(let i=0;i<ducks.length;i++){const p=southDuckPose(i,t),react=play&&play.pond===(i<3?0:1);if(react){const follow=duckPlayPose(i,t,play);p.x=follow.x;p.y=follow.y;}const x=quiet||!placed?p.x:ducks[i].x+(p.x-ducks[i].x)*.2,y=quiet||!placed?p.y:ducks[i].y+(p.y-ducks[i].y)*.2;ducks[i].setPosition(x,y).setFlipX(react?p.x>duckToy(play!.pond,t,play!.started).x:p.left).setFrame(p.frame).setAngle(react&&!quiet?Math.sin(t/160+i)*4:0).setDepth(y+1);}placed=true;
   for(const p of SOUTH_PONDS)for(let i=0;i<13;i++){const a=i*2.4,x=p.x+Math.sin(a)*(p.rx-28),y=p.y+Math.cos(a)*(p.ry-13);if(!view.contains(x,y))continue;const dx=quiet?0:Math.sin(t/1500+i)*5;water.fillStyle(0xbce8d7,.48).fillRect(Math.round(x+dx),Math.round(y),10+i%4*3,1).fillRect(Math.round(x+dx+5),Math.round(y+3),5,1);}
   if(quiet)return;
   for(let i=0;i<(light?2:5);i++){const p=gardenButterfly(i,t);if(!view.contains(p.x,p.y))continue;sky.fillStyle([0xe9bf83,0xd8afca,0xc8c0e2][i%3],.9).fillEllipse(p.x-p.wing,p.y,p.wing*2,4).fillEllipse(p.x+p.wing,p.y,p.wing*2,4);sky.fillStyle(0x57613e).fillRect(Math.round(p.x),Math.round(p.y-2),1,5);}
