@@ -10,7 +10,7 @@ export function visitActions(p:Plot,crop:Crop,own:Pick<Farm,'seeds'|'socialRaids
   {type:'help',mode:'plant',label:`Plantar ${CROPS[crop].name}`,enabled:!p.crop&&own.seeds[crop]>0,reason:p.crop?'Este canteiro está ocupado.':'Você precisa de uma semente sua.'},
   {type:'help',mode:'water',label:'Regar',enabled:water,reason:!p.crop?'Plante uma semente primeiro.':'A terra já está totalmente regada.'},
   {type:'help',mode:'clean',label:'Retirar pragas',enabled:hasPests(p,now),reason:'Não há pragas neste canteiro.'},
-  {type:'steal',mode:'',label:'Pegar 1 produto',enabled:ready&&own.socialRaids&&host.socialRaids&&!host.protected&&!p.stolen&&!needs.sick&&!needs.dry&&!hasPests(p,now),reason:!own.socialRaids||!host.socialRaids?'Os dois amigos precisam ativar o roubo em Minha fazenda.':host.protected?raidProtectionMessage(host,now):p.stolen?'Esta colheita já foi beliscada.':!ready?'Espere a plantação amadurecer.':'A plantação precisa de cuidados.'},
+  {type:'steal',mode:'',label:'Pegar 1 produto',enabled:ready&&own.socialRaids&&host.socialRaids&&!host.protected&&!needs.sick&&!needs.dry&&!hasPests(p,now),reason:!own.socialRaids||!host.socialRaids?'Os dois amigos precisam ativar o roubo em Minha fazenda.':host.protected?raidProtectionMessage(host,now):!ready?'Espere a plantação amadurecer.':'A plantação precisa de cuidados.'},
  ];
 }
 

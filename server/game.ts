@@ -156,8 +156,10 @@ async function social(db:PoolClient,user:string,row:any,c:any,now:number) {
     if(c.type==='steal'){
       if(!row.state.socialRaids||!target.state.socialRaids)throw new GameError('Os dois amigos precisam ativar a brincadeira de roubo.');
       const protection=await raidState(db,user,target.user_id,target.state,now);if(protection.protected)throw new GameError(raidProtectionMessage(protection,now));
-      if(!plot.crop||remaining(plot,now)!==0||plantNeeds(plot,now).dry||plantNeeds(plot,now).sick||hasPests(plot,now)||(plot.stolen??0)>=1)throw new GameError('Escolha uma colheita madura e ainda não beliscada.');
-      const used=await db.query('SELECT 1 FROM farm_raids WHERE visitor=$1 AND owner=$2 AND day=$3',[user,target.user_id,day]);if(used.rowCount)throw new GameError('Você já pegou um produto deste amigo hoje.');
+      if(!plot.crop||remaining(plot,now)!==0||plantNeeds(plot,now).dry||plantNeeds(plot,now).sick||hasPests(plot,now))throw new GameError('Escolha uma plantação madura, saudável e sem pragas.');
+      // Historical daily receipts and plot.stolen belong to the old partial-harvest rule.
+      // Only the rolling visitor/owner event quota above governs new thefts.
+
       row.state.inventory[plot.crop as Crop]++;clearHarvestedPlot(plot);
       await db.query('INSERT INTO farm_raid_events(visitor,owner,plot,occurred_at) VALUES($1,$2,$3,to_timestamp($4/1000.0))',[user,target.user_id,c.plot,now]);
       target.state.visitLog.unshift({name:row.name,action:'roubou 1 produto e esvaziou o canteiro',at:now});target.state.visitLog=target.state.visitLog.slice(0,20);
