@@ -750,3 +750,14 @@ Reproduzidos os dois bloqueios antes da correção no sandbox, em contas QA050: 
 ## 0.47 — roupa com compra em reais
 
 364 testes e build aprovados. Sandbox autenticado 1280/390px confirmou preço R$10, contrato Orders de roupa/0 moedas, formulário Pix/cartão, replay de pedido, bloqueio de preço adulterado, método concorrente e cliente antigo. Sem entrega antes de aprovação. Fixture de presente no sandbox confirmou equipamento, caminhada, reabertura e preservação de roupa anterior/saldo. Ledger PGlite confirmou entrega/reembolso/contestação únicos, eventos antigos, múltiplas aprovações e presentes preservados. Checkout do provedor retornou erro ao acesso automatizado após a criação; a conclusão do pagamento da nova roupa não foi repetida nesta sessão. Pix continua indisponível na conta de testes; nenhuma cobrança real foi criada. Detalhes em SENTINELA_0_47.md.
+
+## Estudo de roupa — Guardião da Clareira, não publicado
+
+364 testes e build passaram. Prévia local no navegador: quatro direções, caminhada, carregar enxada/regador, carpir, regar e exportação PNG, sem erros JavaScript. Revisão visual da caminhada e rega: acessórios acompanham as mãos e são guardados no trabalho. Sem loja, preço, combate, persistência de aquisição ou distribuição online; não foram publicados arquivos nem alterados dados de contas.
+
+- Rascunho Clareira: espada e escudo permanentemente nas costas; luvas de couro e mãos livres. Conferência local das quatro direções e poses de ferramentas; sem publicação.
+
+Clareira: cabelo alongado discretamente; prévia local nas quatro direções e seis poses passou sem erros JavaScript.
+
+## Guardião da Clareira 0.48.0
+Preparada publicação por R$ 15,00 via Pix/cartão; 366 testes e build aprovados, migrações aditivas validadas na branch de testes. Detalhes em CLAREIRA_0_48.md.

@@ -29,7 +29,7 @@ export class CloudFarm {
   async request(path='',body?:unknown,endpoint='/api/game',timeoutMs=15000) {
     for(let attempt=0;attempt<2;attempt++){
       const token=await getAccessToken(attempt>0);this.accessToken=token;
-      const response=await fetch(`${endpoint}${path}`,{method:body?'POST':'GET',headers:{'X-Farm-Version':'19',Authorization:`Bearer ${token}`,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,cache:'no-store',signal:AbortSignal.timeout(timeoutMs)});
+      const response=await fetch(`${endpoint}${path}`,{method:body?'POST':'GET',headers:{'X-Farm-Version':'20',Authorization:`Bearer ${token}`,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,cache:'no-store',signal:AbortSignal.timeout(timeoutMs)});
       if(response.status===401&&attempt===0)continue;
       const result=await response.json();
       if(!response.ok){const retryAfter=Math.max(1,Number(response.headers.get('Retry-After'))||15),error=new Error(response.status===429?`Muitas consultas em sequência. Aguarde ${retryAfter} segundos; seu progresso está salvo.`:result.error??'Falha ao sincronizar.')as Error&{status:number;retryAfter:number};error.status=response.status;error.retryAfter=retryAfter;throw error;}
@@ -74,7 +74,7 @@ export class CloudFarm {
     const body={id:crypto.randomUUID(),revision:this.revision,command:{type:'position'},position};
     sessionStorage.setItem('wj-pending-action',JSON.stringify({code:this.code,body}));
     // Persist a receipt first: a new page can safely confirm the same request after closing this one.
-    void fetch('/api/game',{method:'POST',headers:{'X-Farm-Version':'19',Authorization:`Bearer ${this.accessToken}`,'Content-Type':'application/json'},body:JSON.stringify(body),keepalive:true}).then(async response=>{
+    void fetch('/api/game',{method:'POST',headers:{'X-Farm-Version':'20',Authorization:`Bearer ${this.accessToken}`,'Content-Type':'application/json'},body:JSON.stringify(body),keepalive:true}).then(async response=>{
       if(!response.ok)return;
       const result=await response.json();
       const pending=sessionStorage.getItem('wj-pending-action');

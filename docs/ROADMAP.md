@@ -406,3 +406,14 @@ Retiradas as travas obsoletas de planta “beliscada” e recibo diário que imp
 ## 0.47 — Sentinela Nebulosa por R$10
 
 Nova roupa permanente na aba Roupas, com prévia animada, Pix/cartão via Orders, preço validado no servidor e guarda-roupa protegido contra duplicação. Guarda roupas anteriores e saldos. Migrações aditivas 021 (oferta inativa/entrega) e 022 (ativação auditada após deploy). Clientes precisam recarregar (protocolo 19). 364 testes e build aprovados; escopo, testes e limitações do checkout em SENTINELA_0_47.md.
+
+## Rascunho local — Guardião da Clareira
+
+Estudo de roupa verde com gorro, espada e escudo, sem publicação, preço ou alteração de catálogo. Prévia local de quatro direções e ferramentas disponível; 364 testes/build aprovados. Escopo e limites em RASCUNHO_CLAREIRA.md.
+
+- Rascunho Clareira: espada e escudo permanentemente nas costas; luvas de couro e mãos livres. Conferência local das quatro direções e poses de ferramentas; sem publicação.
+
+Clareira (rascunho local): cabelo loiro um pouco mais longo sob o gorro, sem publicar.
+
+## Guardião da Clareira 0.48.0
+Preparada publicação por R$ 15,00 via Pix/cartão; 366 testes e build aprovados, migrações aditivas validadas na branch de testes. Detalhes em CLAREIRA_0_48.md.
