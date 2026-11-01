@@ -51,3 +51,7 @@ Afinada a região mostrada no recorte: a base do peitoral passa a afunilar e a p
 ## Décima primeira versão — cintura intermediária
 
 Região abdominal alargada em somente 1 pixel em relação à versão 10, incluindo placa central, faixa e contorno da caminhada. Peitoral, ombreiras e pernas mantidos. Prévia local e ferramentas conferidas; build aprovado. Sem publicação.
+
+## Liberação autorizada pelo proprietário
+
+O proprietário aprovou publicar a versão visual 11 como Sentinela Nebulosa por R$10. A integração comercial está documentada em SENTINELA_0_47.md; os estados de rascunho acima registram o histórico anterior à aprovação. As versões antigas dos PNGs de estudo não são produtos adicionais.
