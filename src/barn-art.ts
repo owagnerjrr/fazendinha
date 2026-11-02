@@ -1,3 +1,4 @@
+import{autonomous,sleepSelected}from'./animal-autonomy';
 import{isPet}from'./pet-rules';
 import{vitalAt}from'./living-animals';
 import {catArt,catTexture} from './cat-art';
@@ -76,7 +77,7 @@ export function buildBarn(scene:Phaser.Scene,farm:Farm,block:Block,animals:(id?:
     pose.eating=false;if(t>=1&&!matchMedia('(prefers-reduced-motion: reduce)').matches){pose.y+=Math.sin(elapsed/330)*.5;const happy=`life-${kind}-blink`;if(elapsed%1700>1000&&scene.textures.exists(happy))a.sprite.setTexture(happy);}
    }else if(care){pose.x=a.sprite.x;pose.y=a.sprite.y;pose.eating=false;}
    const back=returning.get(a.pen.animals[a.index].id);if(back&&!care){const t=Math.min(1,(time-back.start)/700);pose.x=back.x+(pose.x-back.x)*t;pose.y=back.y+(pose.y-back.y)*t;if(t>=1)returning.delete(a.pen.animals[a.index].id);}
-   a.sprite.setPosition(pose.x,pose.y).setDisplaySize(pose.width,pose.height).setFlipX(kind==='cow'?!pose.flip:pose.flip).setAngle(pose.eating?(pose.flip?-4:4):0).setDepth(pose.y);a.shadow.setPosition(pose.x,pose.y-2).setDepth(pose.y-.2);a.point.hitX=pose.x;a.point.hitY=pose.y-pose.height/2;const live=current.animals.find(v=>v.id===a.pen.animals[a.index].id)??a.pen.animals[a.index];a.indicators.update(live,now,pose.x,pose.y,pose.height,a.spot);
+   a.sprite.setPosition(pose.x,pose.y).setDisplaySize(pose.width,pose.height).setFlipX(kind==='cow'?!pose.flip:pose.flip).setAngle(pose.eating?(pose.flip?-4:4):0).setDepth(pose.y);a.shadow.setPosition(pose.x,pose.y-2).setDepth(pose.y-.2);a.point.hitX=pose.x;a.point.hitY=pose.y-pose.height/2;const live=current.animals.find(v=>v.id===a.pen.animals[a.index].id)??a.pen.animals[a.index];a.indicators.update(live,now,pose.x,pose.y,pose.height,a.spot);const away=autonomous(live)||sleepSelected(current,live.id);a.sprite.setVisible(!away);a.shadow.setVisible(!away);if(away){a.point.hitX=-10000;a.point.hitY=-10000;a.indicators.label.setVisible(false);a.indicators.need.setVisible(false);}
   }
  }};
 }

@@ -1,3 +1,4 @@
+import{autonomous,sleepSelected}from'./animal-autonomy';
 import{guestWalking}from'./guest-animal-care';
 import{vitalAt}from'./living-animals';
 import Phaser from 'phaser';import {ANIMAL_SIZE} from './barn-layout';import {animalReady,type Animal} from './content';import {outdoorBox} from './housing';import {livestockMotion} from './livestock-motion';import {livestockArt} from './livestock-art';import {AnimalIndicators} from './animal-indicators';import type {Farm} from './farm';
@@ -9,13 +10,13 @@ export class OutdoorAnimals{
  private items:Item[]=[];private signature='';private nextSignature=0;
  constructor(private scene:Phaser.Scene,private farm:()=>Farm,private now:()=>number,private animals:(id?:string)=>void,private collect:(id:string)=>void){scene.events.once('shutdown',()=>{this.items=[];this.signature='';this.care=undefined;this.returning.clear();});}
  update(time:number){if(!this.scene.sys.isActive())return;if(this.items.some(i=>!i.image.scene)){this.signature='';this.nextSignature=0;}const f=this.farm();
-  if(time>=this.nextSignature){this.nextSignature=time+300;const sig=JSON.stringify([f.buildings,f.animals.map(a=>[a.id,a.kind,a.housing,a.walking,guestWalking(a)])]);if(sig!==this.signature){this.signature=sig;this.rebuild(f);}}
+  if(time>=this.nextSignature){this.nextSignature=time+300;const sig=JSON.stringify([f.buildings,f.animals.map(a=>[a.id,a.kind,a.housing,a.walking,guestWalking(a),autonomous(a),sleepSelected(f,a.id)])]);if(sig!==this.signature){this.signature=sig;this.rebuild(f);}}
   for(const item of this.items){if(!item.image.scene)continue;const live=f.animals.find(a=>a.id===item.animal.id);if(!live)continue;item.animal=live;const size=ANIMAL_SIZE[live.kind],p=livestockMotion(item.box,item.index,item.count,size,time,item.box.x,live.kind);
    if(vitalAt(live,this.now())?.resting){p.walking=false;p.x=item.image.x;p.y=item.image.y;}
    if(this.care?.id===live.id){const t=Math.min(1,(time-this.care.start)/700),ease=t*t*(3-2*t);p.x=this.care.from.x+(this.care.x-this.care.from.x)*ease;p.y=this.care.from.y+(this.care.y-this.care.from.y)*ease;p.walking=t<1;p.frame=Math.floor(time/120)%8;}
    const back=this.returning.get(live.id);if(back&&!this.care){const t=Math.min(1,(time-back.start)/800);p.x=back.x+(p.x-back.x)*t;p.y=back.y+(p.y-back.y)*t;if(t>=1)this.returning.delete(live.id);}
    item.image.setTexture(p.walking?`walk-${live.kind}`:`life-${live.kind}`,p.walking?p.frame:undefined).setDisplaySize(size.width,size.height).setPosition(p.x,p.y).setFlipX(live.kind==='cow'?!p.flip:p.flip).setDepth(p.y).setAngle(!p.walking&&['chicken','chick','rooster'].includes(live.kind)?Math.sin(time/240)*3:0);
-   item.shadow.setPosition(p.x,p.y-2).setDepth(p.y-.2);item.icons.update(live,this.now(),p.x,p.y,size.height,item.spot);
+   item.shadow.setPosition(p.x,p.y-2).setDepth(p.y-.2);item.icons.update(live,this.now(),p.x,p.y,size.height,item.spot);const away=autonomous(live)||sleepSelected(f,live.id);item.image.setVisible(!away);item.shadow.setVisible(!away);if(away){item.icons.label.setVisible(false);item.icons.need.setVisible(false);}
   }
  }
  private rebuild(f:Farm){for(const i of this.items){i.image.destroy();i.shadow.destroy();i.icons.destroy();}this.items=[];livestockArt(this.scene);
@@ -25,7 +26,7 @@ export class OutdoorAnimals{
  }
  hit(p:{x:number;y:number}){
   const now=this.now();for(const i of this.items){if(i.icons.product.visible&&Math.hypot(p.x-i.spot.x,p.y-i.spot.y+6)<14)return{...i.access,run:()=>animalReady(i.animal,this.now())?this.collect(i.animal.id):this.animals(i.animal.id)};}
-  for(const i of this.items){if(Math.abs(p.x-i.image.x)<i.image.displayWidth/2&&p.y<i.image.y&&p.y>i.image.y-i.image.displayHeight)return{...i.access,run:()=>this.animals(i.animal.id)};}return null;
+  for(const i of this.items){if(i.image.visible&&Math.abs(p.x-i.image.x)<i.image.displayWidth/2&&p.y<i.image.y&&p.y>i.image.y-i.image.displayHeight)return{...i.access,run:()=>this.animals(i.animal.id)};}return null;
  }
  interact(p:{x:number;y:number}){const item=this.items.find(i=>Math.hypot(p.x-i.access.x,p.y-i.access.y)<75);if(!item)return false;const ready=this.items.find(i=>i.animal.housing===item.animal.housing&&animalReady(i.animal,this.now()));if(ready)this.collect(ready.animal.id);else this.animals(item.animal.id);return true;}
  contact(id:string){const item=this.items.find(i=>i.animal.id===id);return item?{x:item.image.x,y:item.image.y}:null;}
