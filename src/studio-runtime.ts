@@ -6,7 +6,7 @@ import type {Farm} from './farm.js';
 import {FISH,type Fish} from './fishing.js';
 import {applyLife}from'./life-rules.js';
 export type StudioEntry={release?:string;delivery?:string;id:string;version:number;definition:Definition};
-export type StudioPet={walking?:boolean;walkReturnMode?:'stay'|'follow';scale?:number;offlineCap?:number;neglect?:number;id:string;content:string;name:string;room:string;mode:'stay'|'follow';food:number;water:number;happy:number;clean:number;health:number;energy:number;at:number};
+export type StudioPet={autonomy?:boolean;walking?:boolean;walkReturnMode?:'stay'|'follow';scale?:number;offlineCap?:number;neglect?:number;id:string;content:string;name:string;room:string;mode:'stay'|'follow';food:number;water:number;happy:number;clean:number;health:number;energy:number;at:number};
 export type StudioCell={x:number;y:number;type:string;destination?:string;fishing?:boolean};
 export type StudioState={recoveryId?:string;resources?:StudioEntry[];purchases?:Record<string,number>;activeTool?:string;rules?:Record<string,unknown>;ruleVersion?:string;owned:StudioEntry[];inventory:Record<string,number>;animals:StudioPet[];plots:Record<string,{content:string;at:number;water:boolean;tilled:boolean}>;structures:{id:string;content:string;scene:string;x:number;y:number;rotation:number}[];position:{scene:string;x:number;y:number;direction?:number};equipped?:string;model?:string;fishedAt?:number};
 export const newStudio=():StudioState=>({owned:[],inventory:{},animals:[],plots:{},structures:[],position:{scene:'farm',x:0,y:0}});

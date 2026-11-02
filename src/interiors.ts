@@ -24,7 +24,7 @@ import { AvatarArt } from './avatar-art';
 import { buildBarn, type RoomPoint } from './barn-art';
 import type { Farm, Tool } from './farm';
 import { findPath } from './pathfinding';
-type Services={createdInteract?:()=>boolean;parentScene?:string|(()=>string);farm:()=>Farm;stick:()=>{x:number;y:number};modal:()=>boolean;tool:()=>Tool;now:()=>number;avatar:()=>void;wardrobe?:()=>void;animals:(id?:string)=>void;equipment:()=>void;toast:(s:string)=>void;open:(title:string,html:string)=>void;exit:()=>void;collect?:(id:string)=>Promise<unknown>;home?:(c:{type:'home';action:'tv'|'lights'|'sleep'|'wake';on?:boolean;wakeAt?:number})=>Promise<unknown>;care?:(c:{type:'pet-animal'|'play-animal';id:string})=>Promise<unknown>;failed?:(error:Error,room:'house'|'barn')=>void};
+type Services={createdInteract?:()=>boolean;parentScene?:string|(()=>string);farm:()=>Farm;stick:()=>{x:number;y:number};modal:()=>boolean;tool:()=>Tool;now:()=>number;avatar:()=>void;wardrobe?:()=>void;animals:(id?:string)=>void;equipment:()=>void;toast:(s:string)=>void;open:(title:string,html:string)=>void;exit:()=>void;collect?:(id:string)=>Promise<unknown>;home?:(c:{type:'home';action:'tv'|'lights'|'sleep'|'wake';on?:boolean;wakeAt?:number;companions?:string[]})=>Promise<unknown>;care?:(c:{type:'pet-animal'|'play-animal';id:string})=>Promise<unknown>;failed?:(error:Error,room:'house'|'barn')=>void};
 export class InteriorScene extends Phaser.Scene {
  pets!:PetWorld;private sleepShade!:Phaser.GameObjects.Rectangle;private failed=false;
  private bonding:{id:string;type:'pet-animal'|'play-animal';phase:'arriving'|'contact'|'saving'|'reacting';start:number;resolve:()=>void;reject:(e:Error)=>void}|null=null;private gesture!:Phaser.GameObjects.Graphics;private reduced=matchMedia('(prefers-reduced-motion: reduce)');
@@ -78,7 +78,7 @@ export class InteriorScene extends Phaser.Scene {
  getRoom(){return this.room;}
  async bond(id:string,type:'pet-animal'|'play-animal'):Promise<void>{
   if(this.bonding||this.pets.locked)throw Error('Aguarde a interação atual.');
-  if(this.services.farm().animals.some(a=>a.id===id&&isPet(a))){this.pets.update(this.time.now,this.player);return this.pets.bond(id,type);}
+  if(this.pets.hasAnimal(id)||this.services.farm().animals.some(a=>a.id===id&&isPet(a))){this.pets.update(this.time.now,this.player);return this.pets.bond(id,type);}
   const signature=barnSignature(this.services.farm(),this.services.now());
   if(this.room==='barn'&&this.animalSignature!==signature){const created=new Promise<void>(resolve=>this.events.once('create',resolve));this.scene.restart({room:'barn'});await created;}
   if(this.bonding)return Promise.reject(new Error('Aguarde a interação atual.'));
@@ -105,7 +105,7 @@ export class InteriorScene extends Phaser.Scene {
   if(kind==='lamp'){if(s.home){this.homeBusy=true;void s.home({type:'home',action:'lights',on:s.farm().home?.lightsOn===false}).catch(e=>s.toast(e.message)).finally(()=>this.homeBusy=false);}return;}
   if(kind==='bed'||kind==='tv'){
    if(!s.home){s.toast('Interação indisponível neste ambiente.');return;}
-   if(kind==='bed'){sleepPicker(s.farm,s.now,s.open,async wakeAt=>{if(this.homeBusy)return;this.homeBusy=true;try{await s.home!({type:'home',action:'sleep',wakeAt});this.rest={kind:'sleep',start:this.time.now,from:{x:this.player.x,y:this.player.y-2}};}catch(e){s.toast((e as Error).message);throw e;}finally{this.homeBusy=false;}});return;}
+   if(kind==='bed'){sleepPicker(s.farm,s.now,s.open,async(wakeAt,companions)=>{if(this.homeBusy)return;this.homeBusy=true;try{await s.home!({type:'home',action:'sleep',wakeAt,companions});this.rest={kind:'sleep',start:this.time.now,from:{x:this.player.x,y:this.player.y-2}};}catch(e){s.toast((e as Error).message);throw e;}finally{this.homeBusy=false;}});return;}
    this.homeBusy=true;this.player.setVelocity(0);this.target=null;this.route=[];
    const c={type:'home' as const,action:'tv' as const,on:!s.farm().home?.tvOn};
    void s.home(c).catch(e=>s.toast(e.message)).finally(()=>{this.homeBusy=false;});return;

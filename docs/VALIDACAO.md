@@ -777,3 +777,7 @@ Clareira 0.48: navegador sandbox em 1280/390px validou preço R$15, Pix/cartão,
 Lazer 0.50: sandbox autenticado confirmou bancos/piquenique/patos pelo botão em 1440/390px e bens preservados. Revisão final da margem dos patos conferida nas duas larguras, sem erros. Nenhuma cobrança ou migração.
 
 0.50.1: encenação dos patos com braço substituído em quatro quadros, barco ancorado à mão, soltura em arco/respingo e aproximação após pousar. 375 testes e build aprovados; navegador local computador/celular validado. Somente animação, sem migração/economia.
+
+0.51.0: autonomia individual/coletiva, navegação entre fazenda/casa/celeiro/sul, brincadeiras entre espécies nativas e entre criações administrativas, companhia selecionável ao dormir. Campos opcionais preservam baia, inventários, compras e necessidades; protocolo 21. 381 testes/build e navegador local 1440/390px. Escopo e limitações em AUTONOMIA_0_51.md.
+
+Homologação online 0.51.0: API autenticada no projeto fazendinha-wj-mp-test confirmou autonomia individual/coletiva persistente, escolha de companhia e despertar, rejeição de ID alheio, repetição idempotente e bloqueio de cliente antigo (409)/não autenticado (401). Bens, moedas e identidade/baia dos animais preservados. Navegador autenticado 1440/390px validou o botão coletivo, painel e recarga. Apenas conta QA isolada; foram adicionados dois animais de fixture nessa conta vazia, sem alterar suas moedas. Nenhuma escrita em banco de produção e nenhuma cobrança.
