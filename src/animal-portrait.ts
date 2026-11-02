@@ -1,0 +1,2 @@
+import type{Animal,AnimalKind}from'./content';
+export function animalPortrait(kind:AnimalKind,color='black',breed?:Animal['breed']){return ['pig','horse','bull','donkey'].includes(kind)?'/assets/v54/'+kind+'.png':kind==='dog'&&breed&&breed!=='caramelo'?'/assets/v54/dog-'+breed+'.png':kind==='cat'?'/assets/v27/cat-'+color+'-right.png':kind==='dog'?'/assets/v27/dog-stand-right.png':['chick','rooster'].includes(kind)?'/assets/v8/'+kind+'.png':'/assets/v5/'+kind+'.png';}

@@ -445,3 +445,5 @@ Preparada publicação por R$ 15,00 via Pix/cartão; 366 testes e build aprovado
 0.53.2: cadência do navegador sem limitador manual que eliminava quadros em intervalos irregulares. Meta mínima de 60 FPS, sem promessa por aparelho; confirmar no Samsung A34 do jogador.
 
 0.53.3: colisões de vasos, jardineiras e pedras integradas às rotas da fazenda e visitas, sem mudar posições ou propriedades salvas.
+
+0.54.0: porco, cavalo montável, touro, burro e três raças adicionais de cães; fases visuais, gestação com vaga reservada, fezes/xixi e limpeza. Doença grave requer 6 horas ativas; sem morte offline e legado adulto preservado. Pendente ensaio no aparelho físico e confirmação online desta entrega.

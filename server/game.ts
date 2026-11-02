@@ -1,3 +1,4 @@
+import{movementLimit}from'../src/animal-life.js';
 import{autonomous,roamingRoom}from'../src/animal-autonomy.js';
 import{applyGuestAnimalItem}from'../src/product-effects.js';
 import{raidState}from'./raid-window.js';
@@ -63,7 +64,7 @@ function move(row: any, position: any, now: number) {
   if (!position || !Number.isFinite(position.x) || !Number.isFinite(position.y) || position.x<100 || position.x>1480 || position.y<180 || position.y>1090) throw new GameError('Posição inválida.');
   if(row.state.playerArea!=='expansion'&&!riverWalkable(position))throw new GameError('Não é possível caminhar sobre a água.');
   const elapsed = Math.max(0,(now-new Date(row.position_at).getTime())/1000);
-  if (Math.hypot(position.x-row.state.player.x,position.y-row.state.player.y)>elapsed*190+45) throw new GameError('Movimento rápido demais. Aguarde a sincronização.',409);
+  if (Math.hypot(position.x-row.state.player.x,position.y-row.state.player.y)>elapsed*movementLimit(row.state,now)+45) throw new GameError('Movimento rápido demais. Aguarde a sincronização.',409);
   row.state.player={x:position.x,y:position.y};
 }
 export async function mutate(user: string, body: any, version?: string|null) {
@@ -91,7 +92,7 @@ export async function mutate(user: string, body: any, version?: string|null) {
     }else if(c.type==='studio-visit'){try{row.result=await mutateStudioVisit(db,user,row.state,c,now);}catch(e){if(e instanceof StudioValidationError)throw new GameError(e.message);throw e;}}else if(c.type==='studio'){try{const catalog=await catalogFor(db,user);await reconcileStudio(db,user,row.state,now,catalog);row.result=applyStudio(row.state,catalog,c,now);}catch(e){if(e instanceof StudioValidationError)throw new GameError(e.message);throw e;}}
     else if(c.type==='position') move(row,body.position,now);
     else if(['work','buy','sell','expand',...LIFE_COMMANDS].includes(c.type)) {
-      if(['place-building','move-building','travel-area','prepare-expansion','cure-plant','fertilize','cast-line','reel-line','sell','till-ground'].includes(c.type))move(row,body.position,now);
+      if(['mount-horse','place-building','move-building','travel-area','prepare-expansion','cure-plant','fertilize','cast-line','reel-line','sell','till-ground'].includes(c.type))move(row,body.position,now);
       if(c.type==='work'||c.type==='fertilize'||c.type==='cure-plant'||c.type==='prepare-expansion') {
         move(row,body.position,now);
         const point=plotPosition(c.plot,row.state);if(!point)throw new GameError('Canteiro inválido.');

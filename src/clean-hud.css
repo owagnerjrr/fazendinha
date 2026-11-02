@@ -93,3 +93,6 @@ body.friend-barn #enter-place{display:none!important}
 #world-actions>#expansion-build{min-height:44px;border-radius:10px;font-size:13px;padding:10px 14px;width:auto;max-width:140px}
 @media(max-width:520px){#world-navigation{top:calc(max(10px,env(safe-area-inset-top)) + 62px);left:max(10px,env(safe-area-inset-left))}}
 @media(max-height:500px) and (orientation:landscape){#world-actions{top:calc(max(16px,env(safe-area-inset-top)) + 60px);flex-direction:row-reverse;align-items:center}#world-navigation{max-width:200px}}
+
+#world-actions>#dismount-horse{position:static;pointer-events:auto;border:1px solid #d5be80;border-radius:10px;background:#354f3b;color:#fff6d6;padding:10px 14px;min-height:44px;font:600 13px inherit;max-width:150px}
+#world-actions>#dismount-horse[hidden]{display:none}

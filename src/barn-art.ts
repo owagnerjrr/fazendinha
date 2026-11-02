@@ -1,3 +1,5 @@
+import{petDogArt}from'./pet-dog-art';import{dogBreedArt,dogKey}from'./dog-breed-art';
+import{alive}from'./animal-life-model';
 import{autonomous,sleepSelected}from'./animal-autonomy';
 import{isPet}from'./pet-rules';
 import{vitalAt}from'./living-animals';
@@ -21,7 +23,7 @@ export function buildBarn(scene:Phaser.Scene,farm:Farm,block:Block,animals:(id?:
  const returning=new Map<string,{x:number;y:number;start:number}>();
  let gateState:number|null=null;let visitor:{x:number;y:number}|undefined;
  let care:{id:string;type:'pet-animal'|'play-animal';start:number;from:{x:number;y:number};pen:BarnPen}|null=null;
- barnMaterials(scene);barnDetails(scene);dogArt(scene);catArt(scene);livestockArt(scene);const pens=barnLayout(farm.animals);
+ barnMaterials(scene);barnDetails(scene);dogArt(scene);petDogArt(scene);dogBreedArt(scene);catArt(scene);livestockArt(scene);const pens=barnLayout(farm.animals);
  const board=(x:number,y:number,w:number,h:number,depth:number,vertical=false)=>{const tile=scene.add.tileSprite(x,y,vertical?h:w,vertical?w:h,'barn-rail').setOrigin(.5).setDepth(depth);if(vertical)tile.setRotation(Math.PI/2);return tile;};
  scene.add.tileSprite(531,250,137,550,'barn-stone').setOrigin(0).setDepth(1);const aisle=scene.add.graphics().setDepth(1.1);aisle.fillStyle(0x403a2b,.12);aisle.fillRect(531,250,9,550).fillRect(659,250,9,550);aisle.lineStyle(2,0xbca16a,.5);aisle.lineBetween(538,260,538,782);aisle.lineBetween(661,260,661,782);
  // Reuse the original equipment sprite at a scale consistent with the player.
@@ -64,7 +66,7 @@ export function buildBarn(scene:Phaser.Scene,farm:Farm,block:Block,animals:(id?:
   const openingPen=care?.pen.id??pens.find(p=>p.animals.some(a=>a.id===petId))?.id;
   if(gateState!==(openingPen??null)){gateState=openingPen??null;for(const pen of pens){const gate=gates.get(pen.id)!;const gateX=pen.side==='left'?pen.x+pen.width-10:pen.x-2;gateLeaves.get(pen.id)?.setVisible(openingPen!==pen.id);gate.clear().lineStyle(2,0xc09759,.65);if(openingPen===pen.id){gate.lineBetween(gateX,pen.y+39,gateX+(pen.side==='left'?-27:27),pen.y+39);}else{gate.strokeRect(gateX,pen.y+39,12,39);gate.lineBetween(gateX,pen.y+42,gateX+12,pen.y+75);}}}
 
-  for(const a of actors){const pose=animalPose(a.pen,a.index,time),kind=a.pen.animals[a.index].kind;if(vitalAt(current.animals.find(v=>v.id===a.pen.animals[a.index].id)??a.pen.animals[a.index],now)?.resting){pose.walking=false;pose.eating=false;pose.x=a.sprite.x;pose.y=a.sprite.y;}
+  for(const a of actors){const pose=animalPose(a.pen,a.index,time),kind=a.pen.animals[a.index].kind;if(vitalAt(current.animals.find(v=>v.id===a.pen.animals[a.index].id)??a.pen.animals[a.index],now)?.resting||now-(current.animals.find(v=>v.id===a.pen.animals[a.index].id)?.life?.lastExcretionAt??0)<1400){pose.walking=false;pose.eating=false;pose.x=a.sprite.x;pose.y=a.sprite.y;}
    if(pose.dog&&scene.textures.exists('dog-walk')&&scene.textures.exists('dog-rest'))a.sprite.setTexture(dogTexture(pose.dog.walking,pose.dog.walking?pose.dog.frame:(pose.dog.resting?4:0)+pose.dog.facing));
    else if(pose.walking&&scene.textures.exists(`walk-${kind}`))a.sprite.setTexture(`walk-${kind}`,pose.frame);else a.sprite.setTexture(`life-${kind}${pose.blink?'-blink':''}`);
    if(kind==='cat')a.sprite.setTexture(catTexture(a.pen.animals[a.index].color),pose.walking?pose.frame:0);
@@ -77,7 +79,7 @@ export function buildBarn(scene:Phaser.Scene,farm:Farm,block:Block,animals:(id?:
     pose.eating=false;if(t>=1&&!matchMedia('(prefers-reduced-motion: reduce)').matches){pose.y+=Math.sin(elapsed/330)*.5;const happy=`life-${kind}-blink`;if(elapsed%1700>1000&&scene.textures.exists(happy))a.sprite.setTexture(happy);}
    }else if(care){pose.x=a.sprite.x;pose.y=a.sprite.y;pose.eating=false;}
    const back=returning.get(a.pen.animals[a.index].id);if(back&&!care){const t=Math.min(1,(time-back.start)/700);pose.x=back.x+(pose.x-back.x)*t;pose.y=back.y+(pose.y-back.y)*t;if(t>=1)returning.delete(a.pen.animals[a.index].id);}
-   a.sprite.setPosition(pose.x,pose.y).setDisplaySize(pose.width,pose.height).setFlipX(kind==='cow'?!pose.flip:pose.flip).setAngle(pose.eating?(pose.flip?-4:4):0).setDepth(pose.y);a.shadow.setPosition(pose.x,pose.y-2).setDepth(pose.y-.2);a.point.hitX=pose.x;a.point.hitY=pose.y-pose.height/2;const live=current.animals.find(v=>v.id===a.pen.animals[a.index].id)??a.pen.animals[a.index];a.indicators.update(live,now,pose.x,pose.y,pose.height,a.spot);const away=autonomous(live)||sleepSelected(current,live.id);a.sprite.setVisible(!away);a.shadow.setVisible(!away);if(away){a.point.hitX=-10000;a.point.hitY=-10000;a.indicators.label.setVisible(false);a.indicators.need.setVisible(false);}
+   if(kind==='dog'){const live=a.pen.animals[a.index],dir=pose.flip?'left':'right';a.sprite.setTexture(dogKey(care?'happy':'stand',dir,live.breed),pose.walking?pose.frame%8:8);pose.flip=false;}const herd=`herd-${kind}-${pose.flip?'left':'right'}`;if(scene.textures.exists(herd))a.sprite.setTexture(herd,pose.walking?pose.frame:8);a.sprite.setPosition(pose.x,pose.y).setDisplaySize(pose.width,pose.height).setFlipX(scene.textures.exists(herd)?false:kind==='cow'?!pose.flip:pose.flip).setAngle(pose.eating?(pose.flip?-4:4):0).setDepth(pose.y);a.shadow.setPosition(pose.x,pose.y-2).setDepth(pose.y-.2);a.point.hitX=pose.x;a.point.hitY=pose.y-pose.height/2;const live=current.animals.find(v=>v.id===a.pen.animals[a.index].id)??a.pen.animals[a.index];a.indicators.update(live,now,pose.x,pose.y,pose.height,a.spot);const away=!alive(live)||live.life?.riding||autonomous(live)||sleepSelected(current,live.id);a.sprite.setVisible(!away);a.shadow.setVisible(!away);if(away){a.point.hitX=-10000;a.point.hitY=-10000;a.indicators.label.setVisible(false);a.indicators.need.setVisible(false);}
   }
  }};
 }
@@ -85,6 +87,6 @@ function ensureBlink(scene:Phaser.Scene,kind:AnimalKind){
  const key=`life-${kind}-blink`;if(scene.textures.exists(key))return;
  const source=scene.textures.get(`life-${kind}`).getSourceImage() as HTMLImageElement;
  const canvas=document.createElement('canvas');canvas.width=source.width;canvas.height=source.height;const c=canvas.getContext('2d')!;c.drawImage(source,0,0);
- const eye:Record<AnimalKind,[number,number]>={cat:[.72,.40],rooster:[.72,.40],chick:[.72,.40],cow:[.72,.42],goat:[.72,.39],chicken:[.80,.35],dog:[.67,.34]};const [px,py]=eye[kind],x=Math.round(px*source.width),y=Math.round(py*source.height),fur=c.getImageData(Math.max(0,x-5),y,1,1).data;
+ const eye:Record<AnimalKind,[number,number]>={pig:[.78,.42],horse:[.8,.25],bull:[.75,.4],donkey:[.8,.25],cat:[.72,.40],rooster:[.72,.40],chick:[.72,.40],cow:[.72,.42],goat:[.72,.39],chicken:[.80,.35],dog:[.67,.34]};const [px,py]=eye[kind],x=Math.round(px*source.width),y=Math.round(py*source.height),fur=c.getImageData(Math.max(0,x-5),y,1,1).data;
  c.fillStyle=`rgb(${fur[0]},${fur[1]},${fur[2]})`;c.fillRect(x-3,y-3,6,6);c.fillStyle='#3c2c20';c.fillRect(x-3,y,6,1);scene.textures.addCanvas(key,canvas);
 }

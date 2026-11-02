@@ -1,3 +1,4 @@
+import{alive,animalScale}from'./animal-life-model';
 import{autonomous,sleepSelected}from'./animal-autonomy';
 import{guestWalking}from'./guest-animal-care';
 import{vitalAt}from'./living-animals';
@@ -10,17 +11,17 @@ export class OutdoorAnimals{
  private items:Item[]=[];private signature='';private nextSignature=0;
  constructor(private scene:Phaser.Scene,private farm:()=>Farm,private now:()=>number,private animals:(id?:string)=>void,private collect:(id:string)=>void){scene.events.once('shutdown',()=>{this.items=[];this.signature='';this.care=undefined;this.returning.clear();});}
  update(time:number){if(!this.scene.sys.isActive())return;if(this.items.some(i=>!i.image.scene)){this.signature='';this.nextSignature=0;}const f=this.farm();
-  if(time>=this.nextSignature){this.nextSignature=time+300;const sig=JSON.stringify([f.buildings,f.animals.map(a=>[a.id,a.kind,a.housing,a.walking,guestWalking(a),autonomous(a),sleepSelected(f,a.id)])]);if(sig!==this.signature){this.signature=sig;this.rebuild(f);}}
-  for(const item of this.items){if(!item.image.scene)continue;const live=f.animals.find(a=>a.id===item.animal.id);if(!live)continue;item.animal=live;const size=ANIMAL_SIZE[live.kind],p=livestockMotion(item.box,item.index,item.count,size,time,item.box.x,live.kind);
-   if(vitalAt(live,this.now())?.resting){p.walking=false;p.x=item.image.x;p.y=item.image.y;}
+  if(time>=this.nextSignature){this.nextSignature=time+300;const sig=JSON.stringify([f.buildings,f.animals.map(a=>[a.id,a.kind,a.life?.deadAt,a.life?.riding,a.housing,a.walking,guestWalking(a),autonomous(a),sleepSelected(f,a.id)])]);if(sig!==this.signature){this.signature=sig;this.rebuild(f);}}
+  for(const item of this.items){if(!item.image.scene)continue;const live=f.animals.find(a=>a.id===item.animal.id);if(!live)continue;item.animal=live;const base=ANIMAL_SIZE[live.kind],growth=animalScale(live,this.now()),size={width:base.width*growth,height:base.height*growth},p=livestockMotion(item.box,item.index,item.count,size,time,item.box.x,live.kind);
+   if(vitalAt(live,this.now())?.resting||this.now()-(live.life?.lastExcretionAt??0)<1400){p.walking=false;p.x=item.image.x;p.y=item.image.y;}
    if(this.care?.id===live.id){const t=Math.min(1,(time-this.care.start)/700),ease=t*t*(3-2*t);p.x=this.care.from.x+(this.care.x-this.care.from.x)*ease;p.y=this.care.from.y+(this.care.y-this.care.from.y)*ease;p.walking=t<1;p.frame=Math.floor(time/120)%8;}
    const back=this.returning.get(live.id);if(back&&!this.care){const t=Math.min(1,(time-back.start)/800);p.x=back.x+(p.x-back.x)*t;p.y=back.y+(p.y-back.y)*t;if(t>=1)this.returning.delete(live.id);}
-   item.image.setTexture(p.walking?`walk-${live.kind}`:`life-${live.kind}`,p.walking?p.frame:undefined).setDisplaySize(size.width,size.height).setPosition(p.x,p.y).setFlipX(live.kind==='cow'?!p.flip:p.flip).setDepth(p.y).setAngle(!p.walking&&['chicken','chick','rooster'].includes(live.kind)?Math.sin(time/240)*3:0);
-   item.shadow.setPosition(p.x,p.y-2).setDepth(p.y-.2);item.icons.update(live,this.now(),p.x,p.y,size.height,item.spot);const away=autonomous(live)||sleepSelected(f,live.id);item.image.setVisible(!away);item.shadow.setVisible(!away);if(away){item.icons.label.setVisible(false);item.icons.need.setVisible(false);}
+   const herd=`herd-${live.kind}-${p.flip?'left':'right'}`,newArt=this.scene.textures.exists(herd);item.image.setTexture(newArt?herd:p.walking?`walk-${live.kind}`:`life-${live.kind}`,newArt?(p.walking?p.frame:8):p.walking?p.frame:undefined).setDisplaySize(size.width,size.height).setPosition(p.x,p.y).setFlipX(newArt?false:live.kind==='cow'?!p.flip:p.flip).setDepth(p.y).setAngle(!p.walking&&['chicken','chick','rooster'].includes(live.kind)?Math.sin(time/240)*3:0);
+   item.shadow.setPosition(p.x,p.y-2).setDepth(p.y-.2);item.icons.update(live,this.now(),p.x,p.y,size.height,item.spot);const away=!alive(live)||live.life?.riding||autonomous(live)||sleepSelected(f,live.id);item.image.setVisible(!away);item.shadow.setVisible(!away);if(away){item.icons.label.setVisible(false);item.icons.need.setVisible(false);}
   }
  }
  private rebuild(f:Farm){for(const i of this.items){i.image.destroy();i.shadow.destroy();i.icons.destroy();}this.items=[];livestockArt(this.scene);
-  for(const b of (f.buildings??[]).filter(b=>(b.area??'farm')===(f.playerArea??'farm'))){if(!['coop','pasture'].includes(b.kind))continue;const box=outdoorBox(b),animals=f.animals.filter(a=>a.housing===b.id&&!a.walking&&!guestWalking(a)),access={x:box.x+box.width/2,y:box.y+box.height+36};
+  for(const b of (f.buildings??[]).filter(b=>(b.area??'farm')===(f.playerArea??'farm'))){if(!['coop','pasture'].includes(b.kind))continue;const box=outdoorBox(b),animals=f.animals.filter(a=>alive(a)&&!a.life?.riding&&a.housing===b.id&&!a.walking&&!guestWalking(a)),access={x:box.x+box.width/2,y:box.y+box.height+36};
    animals.forEach((animal,index)=>{const size=ANIMAL_SIZE[animal.kind],p=livestockMotion(box,index,animals.length,size,0),image=this.scene.add.image(p.x,p.y,`life-${animal.kind}`).setOrigin(.5,1).setDisplaySize(size.width,size.height),shadow=this.scene.add.ellipse(p.x,p.y-2,size.width*.7,8,0x2b432c,.25),spot={x:box.x+15+(index%3)*27+(index>=3?8:0),y:box.y+28+(index>=3?3:0)};this.items.push({animal,image,shadow,icons:new AnimalIndicators(this.scene),box,index,count:animals.length,spot,access});});
   }
  }
