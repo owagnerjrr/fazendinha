@@ -3,7 +3,7 @@ import{effectsAudio}from'./sound';
 import type{Farm}from'./farm';
 import{MUSIC_TRACKS,MUSIC_FADE,LOOP_FADE,musicGain,nearMusicEnd,musicFadeCurve,type MusicEnvironment}from'./music-policy';
 type Track={key:string;src:string;name:string};
-type Slot={element:HTMLAudioElement;node:MediaElementAudioSourceNode;gain:GainNode;key:string;serial:number;playing?:Promise<void>};
+type Slot={element:HTMLAudioElement;node:MediaElementAudioSourceNode;gain:GainNode;key:string;serial:number;unlocked:boolean;playing?:Promise<void>};
 /** Two reusable streaming players: bounded memory, one score, brief crossfades only. */
 export class FarmMusic{
  private ctx?:AudioContext;private master?:GainNode;private analyser?:AnalyserNode;
@@ -12,20 +12,21 @@ export class FarmMusic{
  private timer?:ReturnType<typeof setInterval>;volume=.25;muted=false;
  constructor(private farm:()=>Farm,private now:()=>number,private environment:()=>MusicEnvironment=()=> 'outdoors'){
   try{const p=JSON.parse(localStorage.getItem('wj-music-v1')??'null');if(p){this.volume=Math.max(0,Math.min(1,Number(p.volume)||0));this.muted=p.muted===true;}}catch{}
-  const start=()=>{this.activated=true;void this.play();};document.addEventListener('pointerdown',start,{passive:true});document.addEventListener('keydown',start);
+  const start=()=>{this.activated=true;this.retryAt=0;void this.play();this.primeSpare();};document.addEventListener('pointerdown',start,{passive:true});document.addEventListener('pointerup',start,{passive:true});document.addEventListener('click',start,{passive:true});document.addEventListener('keydown',start);
   document.addEventListener('visibilitychange',()=>{if(document.hidden)this.silence();else if(this.activated)void this.play();});
  }
  private track():Track{const f=this.farm(),s=f.studio,scene=s?.owned.find(e=>e.id===s.position.scene&&e.definition.kind==='scene'),ref=scene?.definition.data.music as MediaRef|undefined,src=audioSource(ref);if(ref&&src)return{key:'studio:'+ref.asset+':'+ref.version,src,name:scene!.definition.name};const id=this.environment(),t=MUSIC_TRACKS[id];return{key:id,src:t.src,name:t.name};}
  private ready(){if(this.ctx)return;const c=this.ctx=new AudioContext({latencyHint:'playback'}),master=this.master=c.createGain(),compressor=c.createDynamicsCompressor(),analyser=this.analyser=c.createAnalyser();master.gain.value=0;compressor.threshold.value=-8;compressor.knee.value=8;compressor.ratio.value=2;compressor.attack.value=.015;compressor.release.value=.25;analyser.fftSize=256;master.connect(compressor).connect(analyser).connect(c.destination);
-  for(let i=0;i<2;i++){const element=new Audio();element.preload='none';element.crossOrigin='anonymous';element.loop=false;const node=c.createMediaElementSource(element),gain=c.createGain();gain.gain.value=0;node.connect(gain).connect(master);this.slots.push({element,node,gain,key:'',serial:0});}
+  for(let i=0;i<2;i++){const element=new Audio();element.preload='none';element.crossOrigin='anonymous';element.loop=false;const node=c.createMediaElementSource(element),gain=c.createGain();gain.gain.value=0;node.connect(gain).connect(master);this.slots.push({element,node,gain,key:'',serial:0,unlocked:false});}
   // Both persistent media elements are touched by the first gesture for mobile playback.
-  const spare=this.slots[1];spare.key='__prime';spare.element.src='data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAAAA';void spare.element.play().then(()=>{if(spare.key==='__prime')this.clear(spare);}).catch(()=>{if(spare.key==='__prime')this.clear(spare);});
+  this.primeSpare();
   this.timer=setInterval(()=>this.tick(),120);
  }
+ private primeSpare(){if(!this.ctx||this.muted||!this.volume)return;const spare=this.slots.filter(s=>s!==this.current&&s!==this.pending&&!s.unlocked).at(-1);if(!spare)return;const serial=++spare.serial;spare.key='__prime';if(!spare.element.src.startsWith('data:audio/wav'))spare.element.src='data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAAAA';void spare.element.play().then(()=>{if(spare.serial===serial&&spare.key==='__prime'){spare.unlocked=true;this.clear(spare);}}).catch(()=>{if(spare.serial===serial&&spare.key==='__prime')this.clear(spare);});}
  async play(){if(!this.activated||this.muted||this.volume<=0||document.hidden)return;try{this.ready();void this.ctx!.resume().catch(()=>{});this.output(musicGain(this.volume,Number(this.farm().studio?.rules?.musicCeiling??1)),.1);this.tick();}catch{this.error='Toque novamente para iniciar a música.';}}
  private clear(s:Slot){s.serial++;s.element.pause();s.gain.gain.cancelScheduledValues(0);s.gain.gain.value=0;s.element.removeAttribute('src');s.element.load();s.key='';s.playing=undefined;}
  private begin(track:Track,loop=false){const c=this.ctx!,slot=this.slots.find(s=>s!==this.current&&s!==this.retired);if(!slot)return;this.clear(slot);slot.key=track.key;const serial=slot.serial;this.pending=slot;slot.element.src=track.src;slot.element.preload='auto';const start=slot.element.play();slot.playing=start;
-  void start.then(()=>{slot.playing=undefined;if(slot.serial!==serial||this.pending!==slot)return;if(this.muted||document.hidden||this.volume<=0||this.track().key!==track.key){this.pending=undefined;this.clear(slot);return;}
+  void start.then(()=>{slot.unlocked=true;slot.playing=undefined;if(slot.serial!==serial||this.pending!==slot)return;if(this.muted||document.hidden||this.volume<=0||this.track().key!==track.key){this.pending=undefined;this.clear(slot);return;}
    const old=this.current,t=c.currentTime,fade=loop?LOOP_FADE:MUSIC_FADE;slot.gain.gain.setValueAtTime(0,t);slot.gain.gain.setValueCurveAtTime(musicFadeCurve(true),t,fade);if(old){const level=old.gain.gain.value;old.gain.gain.cancelScheduledValues(0);old.gain.gain.setValueCurveAtTime(musicFadeCurve(false,level),t,fade);this.retired=old;}
    this.current=slot;this.pending=undefined;this.until=t+fade;this.starts++;if(loop)this.loops++;this.error='';
   }).catch(()=>{if(slot.serial!==serial)return;slot.playing=undefined;if(this.pending===slot)this.pending=undefined;this.clear(slot);this.retryAt=performance.now()+5000;this.error='A trilha não carregou. Verifique a conexão e toque para tentar novamente.';});
