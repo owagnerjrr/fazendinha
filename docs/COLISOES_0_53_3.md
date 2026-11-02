@@ -12,6 +12,6 @@ As decorações compradas mantêm id, tipo e slot. Sua imagem e colisão são at
 - Runtime desktop 1280px e emulação móvel 390px, fazenda própria e visita com dados isolados: jardineira, pedra e vaso bloqueiam caminhada e a navegação contorna suas bases. Jardineira deteve o personagem em y≈599; pedra em y≈711; vaso em y≈479.
 - Atualização de decoração durante a visita removeu o obstáculo antigo e criou o novo nos dois tamanhos.
 - Regressões: base física proporcional à arte, rotas, posições de slots preservadas, recuperação próxima sem cruzar outro obstáculo e ausência de deslocamento indevido após reset de posição.
-- Autenticação e versão publicada: conferir após deploy.
+- Sandbox autenticado com toque 390px: personagem parou diante da pedra em (831,710,96); posição foi salva pelo servidor e moedas, itens, propriedades, decorações e ids dos animais foram preservados. Publicação pela PR #57.
 
 Sem mudanças em contas, moedas, inventários, propriedades, plantações, animais ou economia. Sem migração de banco. Mantida a cadência nativa 0.53.2.
