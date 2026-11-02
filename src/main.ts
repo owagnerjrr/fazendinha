@@ -1,3 +1,4 @@
+import{postPhysicsDraw}from'./frame-presentation';
 import{musicEnvironment}from'./music-policy';
 import{autonomous,roamingRoom,sleepSelected}from'./animal-autonomy';
 import{FramePacer,paceLoop}from'./frame-pacer';
@@ -312,7 +313,7 @@ class FarmScene extends Phaser.Scene {
     if (inObstacle) this.player.setPosition(710, 650);
     this.select = this.add.rectangle(0, 0, 40, 40).setStrokeStyle(2, 0xf9edba, .85).setDepth(3).setVisible(false);
     this.entranceControl=new EntranceControl(this,this.player,$<HTMLButtonElement>('enter-place'),e=>{this.cancelMovement();if(e.id==='shop')shop();else enterInterior(e.id);},()=>({inside,modal,working:!!this.activeWork||this.pets.locked||this.outdoorBond,lockedUntil:entranceLockedUntil}));
-    this.cameras.main.setBounds(0, 0, 1600, 1200); this.cameras.main.startFollow(this.player, true, .09, .09, 0, 45);
+    this.presentAvatar=postPhysicsDraw(this,(time,moving)=>this.drawAvatar(time,moving));this.cameras.main.setBounds(0, 0, 1600, 1200); this.cameras.main.startFollow(this.player, true, .09, .09, 0, 45);
     this.vignette = this.add.image(0, 0, 'vignette').setOrigin(0).setScrollFactor(0).setDepth(2400).setAlpha(.1);
     const ambientDecor:(Phaser.GameObjects.Image|Phaser.GameObjects.Rectangle)[]=[...this.ripples];
     for (let i = 0; i < (this.scale.width<600?2:3); i++) {
@@ -448,7 +449,9 @@ class FarmScene extends Phaser.Scene {
   careHeart(id:string){const p=this.outdoor.contact(id);if(!p)return;const arm=this.add.graphics(),skin=parseInt(SKIN_TONES[farm.avatar.skin].slice(1),16),shirt=parseInt(outfitSleeveColor(appearanceOf(farm)).slice(1),16);this.direction=p.x<this.player.x?'left':'right';this.tweens.addCounter({from:0,to:1,duration:1400,onUpdate:t=>{const pet=this.outdoor.contact(id);if(!pet)return;const side=pet.x<this.player.x?-1:1,hx=this.player.x+side*Math.min(45,Math.abs(pet.x-this.player.x)),hy=this.player.y-26+Math.sin((t.getValue()??0)*Math.PI*8)*2;arm.clear().setDepth(Math.max(pet.y,this.player.y)+2).lineStyle(6,shirt).lineBetween(this.player.x+side*8,this.player.y-30,this.player.x+side*20,this.player.y-24).lineStyle(4,skin).lineBetween(this.player.x+side*20,this.player.y-24,hx,hy).fillStyle(skin).fillRoundedRect(hx-4,hy-3,8,5,2);},onComplete:()=>arm.destroy()});const heart=this.add.text(p.x,p.y-45,'♥',{fontFamily:'monospace',fontSize:'18px',color:'#f0a47e',stroke:'#4e4734',strokeThickness:2}).setDepth(p.y+2);this.tweens.add({targets:heart,y:p.y-67,alpha:0,duration:1100,onComplete:()=>heart.destroy()});}
   treatPlant(id:number){const field=this.fields.find(f=>f.id===id);if(!field)return;this.navigate({x:field.x,y:field.y+45,run:()=>{void lifeCommand({type:'cure-plant',plot:id,position:{x:this.player.x,y:this.player.y}}).then(r=>{this.workEffects.plant(field);toast(r.message??'Planta tratada! Uma dose utilizada.');this.paintFields();}).catch(e=>toast(e.message));}});}
   tendPlot(id:number,next:Tool){const field=this.fields.find(f=>f.id===id);if(!field)return;setTool(next);const blocks=this.obstacles.getChildren().map(o=>{const b=(o as Phaser.GameObjects.Zone).body as Phaser.Physics.Arcade.StaticBody;return{x:b.x,y:b.y,width:b.width,height:b.height};});const target=[[42,10],[-42,10],[0,45],[0,-45]].map(([dx,dy])=>({x:field.x+dx,y:field.y+dy,field:id})).find(p=>findPath(this.player,p,blocks).length);if(target)this.navigate(target);else toast('Não há passagem livre.');}
-  renderAvatar(time: number, moving: boolean) {
+  private presentAvatar?:ReturnType<typeof postPhysicsDraw>;
+  renderAvatar(time:number,moving:boolean){this.presentAvatar?.(time,moving);}
+  private drawAvatar(time: number, moving: boolean) {
     const work = this.activeWork, equipped = this.pets?.locked||this.outdoorBond?'hand':work?.clock.tool ?? (tool==='rod'?'hand':tool);
     const usingActionSheet = !!work && (equipped === 'hoe' || equipped === 'water');
     const elapsed = work?.clock.elapsed(time) ?? 0;
@@ -603,7 +606,7 @@ setInterval(()=>{if(!document.hidden)void cloud.refresh();},15000);
 window.addEventListener('online',()=>{if(cloud.active)void cloud.retryPending().then(()=>cloud.refresh()).catch(()=>{});});
 window.addEventListener('focus',()=>void cloud.refresh());
 syncUI();
-const game = new Phaser.Game({ type: Phaser.AUTO, parent: 'game', backgroundColor: '#92ae69', pixelArt: true, roundPixels: true, antialias: false, scale: { mode: Phaser.Scale.RESIZE, width: window.innerWidth, height: window.innerHeight }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [FarmScene], input: { activePointers: 3 }, fps:{target:60,smoothStep:false},render: { powerPreference: 'high-performance' } });
+const game = new Phaser.Game({ type: Phaser.AUTO, parent: 'game', backgroundColor: '#92ae69', pixelArt: true, roundPixels: false, antialias: false, scale: { mode: Phaser.Scale.RESIZE, width: window.innerWidth, height: window.innerHeight }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [FarmScene], input: { activePointers: 3 }, fps:{target:60,smoothStep:false},render: { powerPreference: 'high-performance' } });
 const framePacer=new FramePacer(60);game.events.once('postrender',()=>paceLoop(game.loop,framePacer));document.addEventListener('visibilitychange',()=>framePacer.reset());
 const frameBudget=new FrameBudget(innerWidth<600||navigator.hardwareConcurrency>0&&navigator.hardwareConcurrency<=4);setAutomaticLight(frameBudget.light);let frameStart=0;
 game.events.on('prestep',()=>{frameStart=performance.now();});
