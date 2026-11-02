@@ -1,7 +1,7 @@
 import{postPhysicsDraw}from'./frame-presentation';
 import{musicEnvironment}from'./music-policy';
 import{autonomous,roamingRoom,sleepSelected}from'./animal-autonomy';
-import{FramePacer,paceLoop}from'./frame-pacer';
+import{useNativeFrames}from'./frame-loop';
 import{createdFriendPanel}from'./created-friend-ui';
 import{protectDialogGesture}from'./dialog-gesture';
 import{studioGuestUI}from'./studio-guest-ui';
@@ -607,7 +607,7 @@ window.addEventListener('online',()=>{if(cloud.active)void cloud.retryPending().
 window.addEventListener('focus',()=>void cloud.refresh());
 syncUI();
 const game = new Phaser.Game({ type: Phaser.AUTO, parent: 'game', backgroundColor: '#92ae69', pixelArt: true, roundPixels: false, antialias: false, scale: { mode: Phaser.Scale.RESIZE, width: window.innerWidth, height: window.innerHeight }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [FarmScene], input: { activePointers: 3 }, fps:{target:60,smoothStep:false},render: { powerPreference: 'high-performance' } });
-const framePacer=new FramePacer(60);game.events.once('postrender',()=>paceLoop(game.loop,framePacer));document.addEventListener('visibilitychange',()=>framePacer.reset());
+game.events.once('postrender',()=>useNativeFrames(game.loop));
 const frameBudget=new FrameBudget(innerWidth<600||navigator.hardwareConcurrency>0&&navigator.hardwareConcurrency<=4);setAutomaticLight(frameBudget.light);let frameStart=0;
 game.events.on('prestep',()=>{frameStart=performance.now();});
 document.addEventListener('visibilitychange',()=>frameBudget.reset());
