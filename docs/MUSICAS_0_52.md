@@ -35,3 +35,5 @@ As músicas não entram no download antecipado do service worker. Requisições 
 ## Validação
 
 389 testes e build. Navegador Edge headless em 1440 e 390 px: início por gesto, seleção real dos quatro ambientes, fazenda/sul sem reiniciar, caminhada/abas sem reiniciar, trechos mais intensos de cada faixa com sinal medido no AnalyserNode, emenda dos quatro loops, um player após a transição, limite de dois durante trocas, trocas rápidas, silenciar sem suspender efeitos e recuperação de preferências após recarga. Limites: não houve teste em Safari/iPhone ou aparelho físico; a avaliação de nível é objetiva, não uma audição humana.
+
+Homologação online: projeto fazendinha-wj-mp-test no commit 82b6b56, navegador autenticado em 1440/390px. Os quatro ambientes tocaram pelos controles existentes; tabs/sul não reiniciaram a trilha; volume/mute, players limitados e streaming HTTP 206 conferidos. Economia e bens da conta QA preservados. Sem cobranças e sem erros JavaScript/5xx. A verificação pública de produção ocorre após a integração.
