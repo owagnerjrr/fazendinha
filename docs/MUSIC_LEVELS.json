@@ -1,0 +1,130 @@
+[
+  {
+    "id": "barn",
+    "source": "Musica Celeiro.mp3",
+    "duration": 180.048,
+    "compressor": {
+      "thresholdDb": -18.06,
+      "ratio": 1.6,
+      "attackMs": 25,
+      "releaseMs": 300
+    },
+    "preNormalization": {
+      "input_i": "-15.88",
+      "input_tp": "-2.55",
+      "input_lra": "2.90",
+      "input_thresh": "-26.01",
+      "output_i": "-21.84",
+      "output_tp": "-8.53",
+      "output_lra": "3.00",
+      "output_thresh": "-31.90",
+      "normalization_type": "dynamic",
+      "target_offset": "-0.16"
+    },
+    "final": {
+      "integratedLUFS": -21.99,
+      "truePeakDbTP": -8.79,
+      "rangeLU": 2.9
+    },
+    "loudest": {
+      "seconds": 59.6,
+      "momentary": -18.5
+    }
+  },
+  {
+    "id": "house",
+    "source": "Musica da casa.mp3",
+    "duration": 189.336,
+    "compressor": {
+      "thresholdDb": -18.06,
+      "ratio": 1.6,
+      "attackMs": 25,
+      "releaseMs": 300
+    },
+    "preNormalization": {
+      "input_i": "-16.24",
+      "input_tp": "-3.62",
+      "input_lra": "5.00",
+      "input_thresh": "-26.40",
+      "output_i": "-22.12",
+      "output_tp": "-9.78",
+      "output_lra": "4.90",
+      "output_thresh": "-32.21",
+      "normalization_type": "dynamic",
+      "target_offset": "0.12"
+    },
+    "final": {
+      "integratedLUFS": -22,
+      "truePeakDbTP": -9.57,
+      "rangeLU": 4.9
+    },
+    "loudest": {
+      "seconds": 85.6,
+      "momentary": -19.3
+    }
+  },
+  {
+    "id": "outdoors",
+    "source": "Musica da Fazenda e Sul.mp3",
+    "duration": 184.44,
+    "compressor": {
+      "thresholdDb": -18.06,
+      "ratio": 1.6,
+      "attackMs": 25,
+      "releaseMs": 300
+    },
+    "preNormalization": {
+      "input_i": "-16.35",
+      "input_tp": "-2.88",
+      "input_lra": "3.90",
+      "input_thresh": "-26.46",
+      "output_i": "-21.08",
+      "output_tp": "-7.99",
+      "output_lra": "2.40",
+      "output_thresh": "-31.13",
+      "normalization_type": "dynamic",
+      "target_offset": "-0.92"
+    },
+    "final": {
+      "integratedLUFS": -21.99,
+      "truePeakDbTP": -8.58,
+      "rangeLU": 3.9
+    },
+    "loudest": {
+      "seconds": 171.5,
+      "momentary": -18.8
+    }
+  },
+  {
+    "id": "vartin",
+    "source": "Venda do Vartin.mp3",
+    "duration": 122.04,
+    "compressor": {
+      "thresholdDb": -18.06,
+      "ratio": 1.6,
+      "attackMs": 25,
+      "releaseMs": 300
+    },
+    "preNormalization": {
+      "input_i": "-16.45",
+      "input_tp": "-1.39",
+      "input_lra": "1.40",
+      "input_thresh": "-26.47",
+      "output_i": "-21.98",
+      "output_tp": "-7.04",
+      "output_lra": "1.30",
+      "output_thresh": "-31.99",
+      "normalization_type": "dynamic",
+      "target_offset": "-0.02"
+    },
+    "final": {
+      "integratedLUFS": -21.99,
+      "truePeakDbTP": -6.84,
+      "rangeLU": 1.4
+    },
+    "loudest": {
+      "seconds": 53.2,
+      "momentary": -19.5
+    }
+  }
+]

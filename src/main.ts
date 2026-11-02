@@ -1,3 +1,4 @@
+import{musicEnvironment}from'./music-policy';
 import{autonomous,roamingRoom,sleepSelected}from'./animal-autonomy';
 import{FramePacer,paceLoop}from'./frame-pacer';
 import{createdFriendPanel}from'./created-friend-ui';
@@ -96,7 +97,7 @@ enableFarmCare(farm);farm.livingSince??=Date.now();
 let panelOpenedAt=0;
 let selected: Crop = 'carrot', tool: Tool = 'hand', modal = false, toastTimer: ReturnType<typeof setTimeout>;
 let equippedTool:Exclude<Tool,'hand'|'hoe'|'seed'>='water';try{if(localStorage.getItem('wj-tool-slot-v1')==='rod')equippedTool='rod';}catch{/* Farm progress is independent of preferences. */}
-const music=new FarmMusic(()=>currentWorldFarm(),()=>Date.now()+cloud.offset);
+const music=new FarmMusic(()=>currentWorldFarm(),()=>Date.now()+cloud.offset,()=>musicEnvironment({shop:dialog.open&&activePanel==='shop',room:friendBarnActive||expansionBarn?'barn':inside?currentInterior:null}));
 let joystick = { x: 0, y: 0 };
 let scene: FarmScene;
 let life:ReturnType<typeof setupLifeUI>;
