@@ -1,6 +1,6 @@
 import{summoned}from'./pet-call-rules.js';
 import type{Animal}from'./content.js';
-export const PET_MODES={barn:'Ficar no celeiro',house:'Ficar em casa',farm:'Ficar na fazenda',follow:'Acompanhar você'} as const;
+export const PET_MODES={barn:'Ficar no celeiro',house:'Ficar em casa',farm:'Ficar na fazenda e no sul',follow:'Acompanhar você'} as const;
 export type PetMode=keyof typeof PET_MODES;export type PetRoom='farm'|'house'|'barn'|'visit';
 export const isPet=(a:Pick<Animal,'kind'>)=>a.kind==='cat'||a.kind==='dog';
 export const petMode=(a:Animal):PetMode=>a.petMode??(a.kind==='dog'?'follow':'barn');

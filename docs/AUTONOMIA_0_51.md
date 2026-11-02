@@ -16,3 +16,6 @@ Homologação online: projeto de testes no commit 470a0b1, API autenticada e nav
 
 ## Ajuste 0.51.1
 A exploração exige `autonomy: true` explícito. Animais sem essa seleção conservam seu local e baia; os que apenas passaram a explorar com o padrão anterior retornam automaticamente. Escolhas explícitas já salvas não são apagadas. Passeios, chamados e companhia no sono continuam disponíveis. Não há migração ou escrita em massa de dados.
+
+## Acesso ao sul — 0.51.2
+Quando o dono entra no sul, os animais com autonomia liberada podem explorá-lo imediatamente, sem esperar a janela de dois minutos do roteiro. A permanência fixa no celeiro não é alterada. Rotas individuais usam distribuição pelo ciclo completo, e a autonomia tem prioridade sobre uma opção antiga de acompanhamento. As permissões administrativas de fazenda externa também abrangem o sul; espécies limitadas ao celeiro ou à casa não recebem acesso extra. Sem alteração de identidades, necessidades, compras ou campos salvos.
