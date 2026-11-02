@@ -1,3 +1,4 @@
+import{DecorationWorld,addGardenBlock,clearGardenArrival}from'./decoration-world';import{MEADOW_POTS,propFootprint,meadowProps}from'./garden-collision';
 import{postPhysicsDraw}from'./frame-presentation';
 import{musicEnvironment}from'./music-policy';
 import{autonomous,roamingRoom,sleepSelected}from'./animal-autonomy';
@@ -53,7 +54,7 @@ import { applyLife } from './life-rules';
 import {IdleBreathing} from './idle-art';
 import { AvatarArt } from './avatar-art';
 import { InteriorScene } from './interiors';
-import { ANIMALS, DECOR, DECOR_SLOTS, type Avatar } from './content';
+import { ANIMALS, type Avatar } from './content';
 import Phaser from 'phaser';
 import { CloudFarm } from './cloud';
 import { setupOnlineUI } from './online-ui';
@@ -206,7 +207,7 @@ class FarmScene extends Phaser.Scene {
   private timeLighting!:TimeLighting;private climateFX!:ClimateFX;
   avatarArt!:AvatarArt;
   previewArt!:AvatarArt;
-  private decorSprites:Phaser.GameObjects.Image[]=[];
+  private gardenDecor!:DecorationWorld;
   private decorSignature='';
   workEffects!: WorkEffects;private sprayer!:SprayerVisual;
   focusedField: number | null = null;
@@ -246,7 +247,7 @@ class FarmScene extends Phaser.Scene {
     this.remote=new RemoteFarmers(this);this.cameras.main.setBackgroundColor('#287287');this.add.rectangle(800,600,5000,5000,0x287287).setDepth(-2);
     this.add.image(0, 0, 'terrain').setOrigin(0);valleyScenery(this);
     this.physics.world.setBounds(WORLD_BOUNDS.x,WORLD_BOUNDS.y,WORLD_BOUNDS.width,WORLD_BOUNDS.height);
-    this.obstacles = this.physics.add.staticGroup();
+    this.obstacles = this.physics.add.staticGroup();this.gardenDecor=new DecorationWorld(this,this.obstacles);this.gardenDecor.update(farm.decorations);for(const[x,y]of MEADOW_POTS)addGardenBlock(this,this.obstacles,propFootprint('pot',x,y));
     const block = (x: number, y: number, w: number, h: number, river=false) => { const zone = this.add.zone(x, y, w, h);if(river)zone.setData('river',true); this.obstacles.add(zone); (zone.body as Phaser.Physics.Arcade.StaticBody).setSize(w, h); };
     const shadow = (x: number, y: number, w: number, h: number) => this.add.ellipse(x, y, w, h, 0x203726, .24).setDepth(2);
     shadow(415, 445, 214, 46); shadow(1030, 386, 170, 33); shadow(1050, 787, 154, 40);
@@ -293,7 +294,7 @@ class FarmScene extends Phaser.Scene {
     for (let i = 0; i < 4; i++) { this.add.image(350 + i * 48, 889, 'fence').setOrigin(.5, 1).setDepth(889); block(350 + i * 48, 882, 46, 9); }
     this.flock = new ChickenFlock(this,0);
     const windPlants:Phaser.GameObjects.Image[] = this.fields.map(f=>f.plant);
-    for (let i = 0; i < 27; i++) { const x = rand!.between(250, 1190), y = rand!.between(280, 980); if (fishingClearance(x,y)||reservedLandPoint(x,y) || x > 580 && x < 900 && y < 620 || Math.abs(y - 640) < 50 || Math.abs(x - 750) < 50 || (x>200 && x<385 && y>500 && y<665)) continue; const foliage=this.add.image(x, y, i % 3 ? 'bush' : 'rock').setOrigin(.5, 1).setDepth(y);if(i%3)windPlants.push(foliage); }
+    for(const {x,y,kind}of meadowProps(rand!)){const foliage=this.add.image(x,y,kind).setOrigin(.5,1).setDepth(y);if(kind==='bush')windPlants.push(foliage);else addGardenBlock(this,this.obstacles,propFootprint('rock',x,y));}
     // River bank is solid, with one crossing at the bridge.
     for(const b of riverObstacles())block(b.x+b.width/2,b.y+b.height/2,b.width,b.height,true);
     for (let i = 0; i < 40; i++) {
@@ -363,7 +364,7 @@ class FarmScene extends Phaser.Scene {
     for(const p of farm.customPlots??[])if(!this.fields[p.id]){const q=p.position!;this.fields[p.id]={...q,id:p.id,soil:this.add.image(q.x,q.y,'plot-raw').setDepth(1),plant:this.add.image(q.x,q.y+11,'carrot-0').setOrigin(.5,1).setDepth(q.y+2),label:this.add.text(q.x,q.y-27,'').setVisible(false)};}
     for(const field of this.fields)if(field.id>=60&&!getPlot(farm,field.id)){field.soil.setVisible(false);field.plant.setVisible(false);}
     const now = Date.now() + (cloud.active ? cloud.offset : 0);
-    const signature=JSON.stringify(farm.decorations);if(signature!==this.decorSignature){this.decorSprites.forEach(x=>x.destroy());this.decorSprites=[];this.decorSignature=signature;for(const d of farm.decorations){const slot=DECOR_SLOTS[d.slot],item=DECOR[d.kind];if(slot&&item)this.decorSprites.push(this.add.image(slot.x,slot.y,`life-${item.texture}`).setOrigin(.5,1).setDepth(slot.y).setScale(d.kind==='cocoaTree'?.85:.65));}}
+    this.gardenDecor?.update(farm.decorations);if(this.player&&clearGardenArrival(this.player,this.obstacles))this.cancelMovement();
     this.landWorld?.update(farm);
     for(const b of (farm.buildings??[]).filter(b=>b.area!=='expansion')){const site=LAND_SITES[b.site],cx=site.x+b.col*40+20,cy=site.y+b.row*40+38;if(this.player&&Math.abs(this.player.x-cx)<43&&Math.abs(this.player.y-cy)<30){this.cancelMovement();const access=this.landWorld.access(b);this.player.setPosition(access.x,access.y);}}
     for (const field of this.fields) {

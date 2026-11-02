@@ -802,3 +802,6 @@ Avatar desenhado após a física, câmera contínua e acompanhamento dependente 
 
 ## 0.53.2 — limitador descartava quadros
 Removido relógio manual que reproduziu aproximadamente 40 apresentações para 60 callbacks/s com intervalos irregulares. Agora nenhum callback é descartado. 400 testes/build; comparação no runtime com timestamps controlados. Sem migrações. Veja CADENCIA_0_53_2.md. Sandbox autenticado PC/toque aprovado; painel móvel emulado mediu 120 FPS, quadro p95 8,6 ms e CPU p95 0,4 ms.
+
+## 0.53.3 — vasos e pedras
+Adicionados corpos na base de jardineiras, vasos, pedras e decorações. Rotas e visitas compartilham os obstáculos; posições e compras preservadas. 404 testes/build e runtime PC/390px com colisão, contorno e atualização durante visitas. Veja COLISOES_0_53_3.md.

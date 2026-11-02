@@ -1,3 +1,4 @@
+import{MEADOW_POTS}from'./garden-collision';
 import type Phaser from 'phaser';
 import {reservedLandPoint} from './plots';
 import {riverWalkable,riverBank,DOCK} from './river-boundary';
@@ -8,7 +9,7 @@ export function valleyScenery(scene:Phaser.Scene){
   const cv=document.createElement('canvas');cv.width=1600;cv.height=1200;const c=cv.getContext('2d')!;let seed=719;const random=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
   const clear=(x:number,y:number)=>!riverWalkable({x,y})||reservedLandPoint(x,y)||x>590&&x<890&&y>390&&y<630||x>330&&x<500&&y>290&&y<485||x>950&&x<1120&&y>280&&y<435||x>950&&x<1150&&y>660&&y<850||Math.abs(x-750)<32||Math.abs(y-650)<26||Math.abs(y-865)<24;
   for(let i=0;i<2100;i++){const x=Math.round(120+random()*1190),y=Math.round(220+random()*850);if(clear(x,y))continue;c.fillStyle=['#75974d70','#4b793e65','#b1c77965'][i%3];c.fillRect(x,y,1,3);c.fillRect(x-2,y-1,1,2);if(i%6===0){const colors=['#f4e1a8','#d6b6c3','#ebbe70','#e7edd3'],flower=colors[i%4];c.fillStyle='#476c3e';c.fillRect(x,y-3,1,4);c.fillStyle=flower;c.fillRect(x-2,y-5,5,2);c.fillRect(x-1,y-6,3,4);c.fillStyle='#c2a15b';c.fillRect(x,y-5,1,1);}}
-  for(const [x,y]of [[350,465],[466,465],[976,421],[1091,421],[981,831],[1115,831]]){c.fillStyle='#2e482c20';c.beginPath();c.ellipse(x,y+2,18,5,0,0,Math.PI*2);c.fill();c.fillStyle='#8e6646';c.fillRect(x-9,y-14,18,15);c.fillStyle='#c29662';c.fillRect(x-11,y-16,22,4);for(let n=0;n<7;n++){c.fillStyle=n%2?'#f3d6ac':'#d49ea3';c.fillRect(x-10+n*3,y-25-(n%3)*3,5,5);c.fillStyle='#557c43';c.fillRect(x-8+n*3,y-20,2,5);}}
+  for(const [x,y]of MEADOW_POTS){c.fillStyle='#2e482c20';c.beginPath();c.ellipse(x,y+2,18,5,0,0,Math.PI*2);c.fill();c.fillStyle='#8e6646';c.fillRect(x-9,y-14,18,15);c.fillStyle='#c29662';c.fillRect(x-11,y-16,22,4);for(let n=0;n<7;n++){c.fillStyle=n%2?'#f3d6ac':'#d49ea3';c.fillRect(x-10+n*3,y-25-(n%3)*3,5,5);c.fillStyle='#557c43';c.fillRect(x-8+n*3,y-20,2,5);}}
   // Pebbles, reeds and moss give the shoreline a natural edge while preserving collision bounds.
   for(let y=200;y<1100;y+=23){if(y>DOCK.top-18&&y<DOCK.bottom+18)continue;const x=riverBank(y)-2;c.fillStyle='#385f3e80';c.fillRect(x-10,y,12,4);c.fillStyle='#b1b896';c.fillRect(x-5,y-2,7,4);c.fillStyle='#d5d2ac';c.fillRect(x-4,y-3,4,1);if(y%3===0){c.fillStyle='#54783f';c.fillRect(x-16,y-8,2,12);c.fillRect(x-20,y-5,2,8);c.fillStyle='#d5bd83';c.fillRect(x-16,y-11,2,5);}}
   // Terrace timber has grain, small joinery and a shadow rather than a flat frame.
