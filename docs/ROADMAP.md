@@ -431,3 +431,5 @@ Preparada publicação por R$ 15,00 via Pix/cartão; 366 testes e build aprovado
 0.50.1: refinada somente a encenação da brincadeira com patos, mantendo bancos/piquenique/flores e progresso.
 
 0.51.0: exploração autônoma dos animais e escolha persistente de companhia para o sono, integradas a passeios/cuidados existentes. Espécies do painel respeitam ambientes suportados. Sem migração de progresso. Próximos refinamentos: brincadeiras entre espécies nativas e administrativas e ensaio prolongado de lotação máxima em celulares físicos.
+
+0.51.1: autonomia passa a ser optativa; animais permanecem no local salvo por padrão. Grupos de navegação e construção corrigem sobreposição dos controles em computador e celular.

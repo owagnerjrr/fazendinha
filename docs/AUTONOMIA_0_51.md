@@ -13,3 +13,6 @@ Dados: somente campos opcionais `Animal.autonomy`, `StudioPet.autonomy`, `home.s
 Validação local: 381 testes de regras/regressão e build; navegador Edge headless em 1440 e 390 px, com quatro espécies nativas, presença nos quatro ambientes, deslocamento real, seleção e salvamento de companhia e despertar. Revisadas capturas da casa e do seletor móvel. Esses testes usam fixtures locais, não contas reais. Não representam medição de 60 FPS em aparelhos físicos nem teste prolongado de 40 animais. Validação online e publicação são registradas em VALIDACAO.md após execução.
 
 Homologação online: projeto de testes no commit 470a0b1, API autenticada e navegador 1440/390px aprovaram persistência, botão coletivo, recarga, companhia/despertar, autorização e idempotência. A conta QA isolada recebeu dois animais de fixture; permaneceu com 50 moedas. Não foram criadas cobranças nem alteradas contas reais. A publicação principal é conferida depois da integração do PR.
+
+## Ajuste 0.51.1
+A exploração exige `autonomy: true` explícito. Animais sem essa seleção conservam seu local e baia; os que apenas passaram a explorar com o padrão anterior retornam automaticamente. Escolhas explícitas já salvas não são apagadas. Passeios, chamados e companhia no sono continuam disponíveis. Não há migração ou escrita em massa de dados.
