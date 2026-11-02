@@ -441,3 +441,5 @@ Preparada publicação por R$ 15,00 via Pix/cartão; 366 testes e build aprovado
 0.53.0: navegação suave e companhia na cama com chegada, salto, sono e despertar. Capacidade de dois gatos/cachorros nativos. Próximos ensaios: celulares físicos, lotação máxima e poses configuráveis para espécies administrativas. Sem migração de progresso.
 
 0.53.1: apresentação do personagem/ferramentas após a física em ambientes externos e interiores; câmera sem arredondamento inteiro e resposta consistente por tempo. Pendente ensaio no celular físico do jogador.
+
+0.53.2: cadência do navegador sem limitador manual que eliminava quadros em intervalos irregulares. Meta mínima de 60 FPS, sem promessa por aparelho; confirmar no Samsung A34 do jogador.

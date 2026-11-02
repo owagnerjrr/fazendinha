@@ -799,3 +799,6 @@ Motor contínuo, rotas/folgas consistentes e sequência visível de sono com at�
 
 ## 0.53.1 — sincronização visual no celular
 Avatar desenhado após a física, câmera contínua e acompanhamento dependente do tempo. 398 testes/build; toque 390px com CPU 4× confirmou ausência do atraso entre avatar e posição física. Veja FLUIDEZ_0_53_1.md. Sandbox autenticado confirmou ambientes em desktop/toque e sono completo após recarregar, sem alterar bens. Publicação pela PR #55.
+
+## 0.53.2 — limitador descartava quadros
+Removido relógio manual que reproduziu aproximadamente 40 apresentações para 60 callbacks/s com intervalos irregulares. Agora nenhum callback é descartado. 400 testes/build; comparação no runtime com timestamps controlados. Sem migrações. Veja CADENCIA_0_53_2.md. Validação online em andamento.
