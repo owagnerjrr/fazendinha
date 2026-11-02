@@ -22,3 +22,17 @@
 body.visiting #exit-interior{display:grid!important}#visit-banner{position:fixed;z-index:12;top:85px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;background:#294539ee;color:#f0e7c2;border:1px solid #bda874;border-radius:9px;padding:8px 12px;font-size:12px;max-width:75vw}#visit-banner button{background:#536b43;color:#f4e8bf;border:1px solid #ad9d6c;border-radius:6px;padding:7px}
 
 @media(max-width:600px){#visit-banner{max-width:94vw;width:max-content;flex-wrap:wrap;justify-content:center;gap:5px;top:94px;padding:6px 9px}#visit-banner>span{flex-basis:100%;text-align:center}#visit-banner button{min-height:36px;flex:1;padding:6px}}
+
+/* Animal life: compact controls that wrap on touch screens. */
+.animal-life-details {display:grid;gap:8px;border-top:1px solid #d5c69c;margin-top:14px;padding-top:12px;min-width:0}
+.animal-life-details p {margin:0;line-height:1.5}
+.animal-life-details button,.animal-life-details select {width:100%;min-height:44px}
+.animal-purchase select {max-width:100%;min-height:40px}
+#dismount-horse {max-width:150px;white-space:normal;font-size:13px}
+
+#panel .item-row.animal-purchase{display:grid;grid-template-columns:64px minmax(0,1fr);align-items:center;gap:10px 14px}
+#panel .animal-purchase>.item-info{min-width:0;grid-column:2;grid-row:1}
+#panel .animal-purchase>.shop-art{width:60px;max-width:60px;grid-column:1;grid-row:1}
+#panel .animal-purchase>label{grid-column:1/-1;display:grid;grid-template-columns:minmax(95px,1fr) minmax(0,2fr);align-items:center;gap:10px;margin:0;min-width:0}
+#panel .animal-purchase>label select{width:100%;min-width:0;box-sizing:border-box}
+#panel .animal-purchase>button{grid-column:1/-1;width:100%;min-height:44px}

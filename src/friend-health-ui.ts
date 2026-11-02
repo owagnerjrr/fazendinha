@@ -1,8 +1,9 @@
+import{alive}from'./animal-life-model';
 import{animalPortrait}from'./studio-portrait';import{petNeeds}from'./studio-runtime';import{loadEntryAssets}from'./studio-assets-client';
 import{summoned}from'./pet-call-rules';
 import type{Animal}from'./content';import{ANIMALS}from'./content';import{animalNeeds}from'./animal-needs';import{animalMeters}from'./care-ui';import{housingName}from'./housing';import type{Farm}from'./farm';
 const esc=(s:string)=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
-export function friendCareAvailable(a:Animal,allowed:boolean,now:number){return allowed&&!a.walking&&!summoned(a,now);}
+export function friendCareAvailable(a:Animal,allowed:boolean,now:number){return allowed&&alive(a)&&!a.life?.riding&&!a.walking&&!summoned(a,now);}
 export function friendAnimalHealth(a:Animal,now:number){const n=animalNeeds(a,now);return animalMeters(n.food,n.water,n.clean,n.health,n.energy??100,n.happy??75)+(n.sick?'<p class="animal-sick">Doente · precisa de cuidados e tratamento.</p>':'');}
 type View={studio?:Farm['studio'];name:string;now:number;animals:Animal[];buildings:Farm['buildings'];visitorCare?:boolean};
 export function friendHealthUI(s:{fetch:(code:string)=>Promise<View>;open:(title:string,html:string)=>void;close:()=>void;help:(code:string,id:string)=>Promise<void>;toast:(text:string)=>void}){

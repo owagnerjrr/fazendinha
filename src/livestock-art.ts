@@ -1,7 +1,8 @@
+import{newAnimalsArt}from'./new-animal-art';
 import {gaitPixels} from './animal-gait';
 import type Phaser from 'phaser';import {ANIMAL_SIZE} from './barn-layout';
 /** Eight cached original-asset gait frames; one opaque animal, no layered trails. */
-export function livestockArt(scene:Phaser.Scene){
+export function livestockArt(scene:Phaser.Scene){newAnimalsArt(scene);
  for(const kind of ['cow','goat','chicken','rooster','chick'] as const){const key=`walk-${kind}`;if(scene.textures.exists(key)||!scene.textures.exists(`life-${kind}`))continue;
   const {width:w,height:h}=ANIMAL_SIZE[kind],source=scene.textures.get(`life-${kind}`).getSourceImage() as HTMLImageElement;
   const base=document.createElement('canvas');base.width=w;base.height=h;const b=base.getContext('2d')!;b.imageSmoothingEnabled=false;b.drawImage(source,0,0,w,h);

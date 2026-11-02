@@ -1,9 +1,10 @@
+import{alive,reserveBirth}from'./animal-life-model.js';
 import{buildingSite,buildingSize}from'./expansion-rules.js';
 import{availablePen,penCount,validPen,BARN_CAPACITY}from'./barn-slots.js';
 import {BUILDINGS,LAND_SITES,type LandBuilding} from './plots.js';import type {Farm} from './farm.js';import type {Animal,AnimalKind} from './content.js';
 export function habitatCapacity(b:LandBuilding){return b.kind==='coop'?6:b.kind==='pasture'?2:0;}
-export function habitatAccepts(kind:AnimalKind,b:LandBuilding){return b.kind==='coop'?['chicken','rooster','chick'].includes(kind):b.kind==='pasture'?['cow','goat'].includes(kind):false;}
-export function housingCount(f:Farm,house='barn',except?:string){return f.animals.filter(a=>(a.housing??'barn')===house&&a.id!==except).reduce((n,a)=>n+1+(a.incubationAt!=null?1:0),0);}
+export function habitatAccepts(kind:AnimalKind,b:LandBuilding){return b.kind==='coop'?['chicken','rooster','chick'].includes(kind):b.kind==='pasture'?['cow','goat','pig','horse','bull','donkey'].includes(kind):false;}
+export function housingCount(f:Farm,house='barn',except?:string){return f.animals.filter(a=>alive(a)&&(a.housing??'barn')===house&&a.id!==except).reduce((n,a)=>n+1+reserveBirth(a),0);}
 export function housingProblem(f:Farm,kind:AnimalKind,house:unknown,except?:string,slots=1,pen?:unknown){
  if(typeof house!=='string')return 'Escolha uma instalação válida.';
  const b=f.buildings?.find(b=>b.id===house),cap=house==='barn'?BARN_CAPACITY:b?habitatCapacity(b):0;

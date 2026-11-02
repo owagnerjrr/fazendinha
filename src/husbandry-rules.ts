@@ -1,3 +1,4 @@
+import{newAnimalLife,alive,adult,reserveBirth}from'./animal-life-model.js';
 import{availablePen,assignBarnPens,penAssignments}from'./barn-slots.js';
 import{boostVital}from'./living-animals.js';
 import {getPlot} from './farm.js';
@@ -18,7 +19,7 @@ export function applyHusbandry(f:Farm,c:any,now:number){
   const p=getPlot(f,c.plot)!,needs=plantNeeds(p,now);if(!p.crop||!p.care||!needs.sick)return fail('Esta planta não está doente.');if(needs.dry)return fail('Regue a planta antes de aplicar o defensivo.');if(f.supplies.plantMedicine<1)return fail('Compre defensivo orgânico na venda.');
   settlePlant(p,now);p.care.illnessAt=null;p.care.checkpointAt=now;p.pestAt=now+PLANT_CARE.pestReturnMs;if(p.climate)p.climate.stress=0;f.supplies.plantMedicine--;return{ok:true,message:'Planta tratada! O crescimento foi retomado.'+(p.climate&&p.climate.wet>80&&!p.climate.drained?' O solo está encharcado: use Drenar, sem custo, para evitar nova doença.':'')};
  }
- const original=f.animals.find(a=>a.id===c.id);if(!original)return fail('Animal não encontrado.');const a=settledAnimal(original,now),needs=animalNeeds(a,now),house=a.housing??'barn';
+ const original=f.animals.find(a=>a.id===c.id);if(!original)return fail('Animal não encontrado.');if(!alive(original))return fail('Este animal faleceu. Seu registro foi preservado.');const a=settledAnimal(original,now),needs=animalNeeds(a,now),house=a.housing??'barn';
  const commit=(message:string)=>{boostVital(a,c.type,now);Object.assign(original,a);return{ok:true,message};};
  if(c.type==='feed-animal'){
   if(needs.food>ANIMAL_CARE.refillAt&&a.fedAt!==null)return fail('O comedouro ainda está abastecido.');if(f.feed<1)return fail('Compre ração na venda.');
@@ -36,13 +37,13 @@ export function applyHusbandry(f:Farm,c:any,now:number){
   f.supplies.medicine--;a.care!.illnessAt=null;a.care!.recoveredAt=now;return commit('Animal tratado! A recuperação permite retomar a produção.');
  }
  if(c.type==='move-animal'){
-  const selected=c.pen??(c.housing===house?a.pen:availablePen(f.animals,a.id,1+(a.incubationAt!=null?1:0)));if(c.housing===house&&(house!=='barn'||selected===a.pen))return fail('O animal já está neste local.');const error=housingProblem(f,a.kind,c.housing,a.id,1+(a.incubationAt!=null?1:0),selected);if(error)return fail(error);
+  const selected=c.pen??(c.housing===house?a.pen:availablePen(f.animals,a.id,1+reserveBirth(a)));if(c.housing===house&&(house!=='barn'||selected===a.pen))return fail('O animal já está neste local.');const error=housingProblem(f,a.kind,c.housing,a.id,1+reserveBirth(a),selected);if(error)return fail(error);
   a.housing=c.housing;a.walking=false;delete a.guestWalk;if(c.housing==='barn'&&(a.kind==='cat'||a.kind==='dog'))a.petMode='barn';if(c.housing==='barn')a.pen=selected;else delete a.pen;f.barnVersion=1;assignBarnPens(f);return commit('Animal transferido com seus cuidados e produção preservados.');
  }
  const cared=a.fedAt!=null&&a.wateredAt!=null&&needs.food>0&&needs.water>0&&needs.clean>0&&!needs.sick;
  if(c.type==='start-incubation'){
-  if(a.kind!=='chicken'||a.incubationAt!=null)return fail('Escolha uma galinha que não esteja chocando.');
-  if(!cared||!f.animals.some(r=>r.kind==='rooster'&&(r.housing??'barn')===house&&(()=>{const n=animalNeeds(r,now);return n.food>0&&n.water>0&&!n.sick;})()))return fail('A galinha e um galo saudáveis precisam de ração, água e estar na mesma instalação.');
+  if(a.kind!=='chicken'||!adult(a,now)||a.incubationAt!=null)return fail('Escolha uma galinha que não esteja chocando.');
+  if(!cared||!f.animals.some(r=>adult(r,now)&&r.kind==='rooster'&&(r.housing??'barn')===house&&(()=>{const n=animalNeeds(r,now);return n.food>0&&n.water>0&&!n.sick;})()))return fail('A galinha e um galo saudáveis precisam de ração, água e estar na mesma instalação.');
   const space=housingProblem(f,'chick',house,undefined,1,a.pen??penAssignments(f.animals).get(a.id));if(space)return fail(space);
   if(f.products.egg>0)f.products.egg--;else if(a.pendingAt!=null){a.pendingAt=null;a.collectedAt=now;a.productionVersion=1;}else return fail('Colete um ovo ou espere surgir um ovo no ninho.');
   a.incubationAt=now;return commit('Ovo reservado e choco iniciado. O pintinho nasce após 2 minutos reais se a mãe estiver saudável.');
@@ -52,10 +53,10 @@ export function applyHusbandry(f:Farm,c:any,now:number){
   // The reserved egg already occupies this slot; validate its conversion without counting twice.
   const space=housingProblem(f,'chick',house,a.id,2,a.pen??penAssignments(f.animals).get(a.id));if(space)return fail(space);
   const sex=f.animals.filter(a=>a.bornAt!=null).length%4===3?'male':'female';a.incubationAt=null;a.collectedAt=now;a.productionVersion=1;
-  f.animals.push({id:`chick-${now}-${f.animals.length}`,kind:'chick',sex,housing:house,pen:a.pen??penAssignments(f.animals).get(a.id),fedAt:null,wateredAt:null,collectedAt:now,productionVersion:1,bornAt:now,care:{startedAt:now,cleanedAt:now,illnessAt:null}});return commit('O ovo eclodiu: nasceu um pintinho! Ofereça água e ração.');
+  f.animals.push({id:`chick-${now}-${f.animals.length}`,kind:'chick',sex,housing:house,pen:a.pen??penAssignments(f.animals).get(a.id),fedAt:null,wateredAt:null,collectedAt:now,productionVersion:1,bornAt:now,life:newAnimalLife('chick',now,true),care:{startedAt:now,cleanedAt:now,illnessAt:null}});return commit('O ovo eclodiu: nasceu um pintinho! Ofereça água e ração.');
  }
  if(c.type==='mature-chick'){
-  if(a.kind!=='chick'||a.bornAt==null)return fail('Este animal não é um pintinho.');if(now-a.bornAt<300000||!cared)return fail('O pintinho precisa de 5 minutos reais e estar bem cuidado.');a.kind=a.sex==='male'?'rooster':'chicken';a.collectedAt=now;a.productionVersion=1;a.pendingAt=null;return commit(a.kind==='rooster'?'Seu pintinho cresceu e virou um galo!':'Seu pintinho cresceu e virou uma galinha!');
+  if(a.kind!=='chick'||a.bornAt==null)return fail('Este animal não é um pintinho.');if(now-a.bornAt<300000||!cared)return fail('O pintinho precisa de 5 minutos reais e estar bem cuidado.');a.kind=a.sex==='male'?'rooster':'chicken';a.life??=newAnimalLife(a.kind,now,false);a.life.adultAt=now;a.collectedAt=now;a.productionVersion=1;a.pendingAt=null;return commit(a.kind==='rooster'?'Seu pintinho cresceu e virou um galo!':'Seu pintinho cresceu e virou uma galinha!');
  }
  if(c.type==='collect-animal'){
   const item=ANIMALS[a.kind];if(!item.product||a.pendingAt==null)return fail('Ainda não há produto. Verifique ração, água, saúde e o tempo de produção.');
