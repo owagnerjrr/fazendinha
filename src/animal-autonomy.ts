@@ -3,7 +3,7 @@ export type AnimalRoom='farm'|'house'|'barn'|'expansion';
 type Roamer={id:string;autonomy?:boolean;walking?:boolean;petMode?:string;mode?:string;guestWalk?:unknown};
 const TOUR:AnimalRoom[]=['barn','farm','house','farm','expansion','farm'];export const ROAM_STEP=120000;
 export const animalSeed=(id:string)=>{let n=0;for(const c of id)n=(Math.imul(n,31)+c.charCodeAt(0))>>>0;return n;};
-export function autonomous(a:Roamer){return !a.walking&&!(('kind'in a)&&guestWalking(a as Animal))&&!(('kind'in a)&&summoned(a as Animal))&&(a.autonomy===true||a.autonomy!==false&&a.petMode!=='follow'&&a.mode!=='follow');}
+export function autonomous(a:Roamer){return !a.walking&&!(('kind'in a)&&guestWalking(a as Animal))&&!(('kind'in a)&&summoned(a as Animal))&&a.autonomy===true;}
 export function roamTour(a:Roamer,now:number,allowed:readonly string[]=TOUR){const t=now+animalSeed(a.id)%ROAM_STEP,step=Math.floor(t/ROAM_STEP),phase=t%ROAM_STEP,choose=(i:number)=>allowed.includes(TOUR[(i%6+6)%6])?TOUR[(i%6+6)%6]:(allowed.find(r=>TOUR.includes(r as AnimalRoom))??'barn') as AnimalRoom;return{room:choose(step),next:choose(step+1),previous:choose(step-1),departing:phase>ROAM_STEP-24000,phase};}
 export function sleepSelected(f:Pick<Farm,'home'>,id:string){return !!f.home?.sleep?.companions?.includes(id);}
 export function roamingRoom(f:Pick<Farm,'home'>,a:Roamer,now:number,allowed?:readonly string[]):AnimalRoom|undefined{if(sleepSelected(f,a.id))return'house';if(!autonomous(a))return;const r=roamTour(a,now,allowed).room;return f.home?.sleep&&r==='house'?'barn':r;}
