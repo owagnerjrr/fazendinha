@@ -46,7 +46,7 @@ export function applyStudio(f:Farm,catalog:StudioEntry[],c:Record<string,any>,no
 
 
 
-export function petAllowed(d:Definition,room:string){const rooms=d.data.environments as string[]|undefined;return !rooms||rooms.includes(room)||rooms.includes('scene')&&uuid(room);}
+export{petAllowed}from'./animal-environments.js';
 
 export function studioCell(f:Pick<Farm,'studio'>,all:StudioEntry[],scene:string,x:number,y:number){for(const b of f.studio?.structures??[]){if(b.scene!==scene)continue;const d=all.find(e=>e.id===b.content)?.definition;if(!d)continue;const z=footprint(d,b.rotation);if(x>=b.x&&x<b.x+z.width&&y>=b.y&&y<b.y+z.height){if(d.data.function==='garden')return{x,y,type:'crop'};if(d.data.function==='portal')return{x,y,type:'door',destination:String(d.data.destination)};}}const d=all.find(e=>e.id===scene)?.definition;return d?mapCell(d,x,y):undefined;}
 
