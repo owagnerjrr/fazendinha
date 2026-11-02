@@ -60,7 +60,7 @@ export class InteriorScene extends Phaser.Scene {
   const qa=import.meta.env.DEV&&s.farm().playerName?.startsWith('QA')?new URLSearchParams(location.search).get('qa-room'):null;
   const spawn=this.room==='barn'&&qa==='barn'?{x:550,y:323}:this.room==='house'&&qa?({sofa:{x:829,y:497},bed:{x:376,y:337},lamp:{x:352,y:685}} as Record<string,{x:number;y:number}>)[qa]:undefined;
   this.player=this.physics.add.sprite(600,spawnY,'farmer-down-0').setVisible(false).setOrigin(.5,1).setCollideWorldBounds(true);this.player.body!.setSize(14,10).setOffset(17,52);this.physics.world.setBounds(this.room==='house'?278:165,224,this.room==='house'?644:870,this.room==='house'?500:596);this.physics.add.collider(this.player,group);
-  if(spawn)this.player.setPosition(spawn.x,spawn.y);
+  if(spawn)this.player.setPosition(spawn.x,spawn.y);if(this.room==='house'&&s.farm().home?.sleep?.sequence===1){const off=houseOffset(s.farm(),'bed'),arrival=bedArrival({x:600,y:660},{x:317+off.x,y:315+off.y},0,this.blocks);if(arrival)this.player.body!.reset(arrival.approach.x,arrival.approach.y);}
   this.actor=this.add.sprite(this.player.x,this.player.y,'farmer-down-0').setOrigin(.5,62/64).setScale(1.08);
   this.lighting=new TimeLighting(this,true,this.room,()=>({x:303+houseOffset(s.farm(),'lamp').x,y:670+houseOffset(s.farm(),'lamp').y}));
   this.houseButton=document.getElementById('house-action') as HTMLButtonElement|null;this.tvButton=document.getElementById('house-tv') as HTMLButtonElement|null;if(this.houseButton)this.houseButton.onclick=()=>this.interact();if(this.tvButton)this.tvButton.onclick=()=>this.useHouse('tv');
