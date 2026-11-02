@@ -798,4 +798,4 @@ Homologação 0.52.1: site HTTPS do sandbox em 1280/390px, com clique real e toq
 Motor contínuo, rotas/folgas consistentes e sequência visível de sono com até dois gatos/cachorros. 396 testes e build; ensaios desktop/toque e recarregamento locais. Sandbox autenticado confirmou sono, horário escolhido, recuperação, despertar/descida e bens preservados. Veja ANIMAIS_SONO_0_53.md.
 
 ## 0.53.1 — sincronização visual no celular
-Avatar desenhado após a física, câmera contínua e acompanhamento dependente do tempo. 398 testes/build; toque 390px com CPU 4× confirmou ausência do atraso entre avatar e posição física. Veja FLUIDEZ_0_53_1.md. Sandbox e produção em conferência.
+Avatar desenhado após a física, câmera contínua e acompanhamento dependente do tempo. 398 testes/build; toque 390px com CPU 4× confirmou ausência do atraso entre avatar e posição física. Veja FLUIDEZ_0_53_1.md. Sandbox autenticado confirmou ambientes em desktop/toque e sono completo após recarregar, sem alterar bens. Publicação pela PR #55.

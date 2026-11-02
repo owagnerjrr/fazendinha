@@ -14,6 +14,6 @@ Aplicado à fazenda, sul, visitas, casa e celeiro. Ferramentas, sombra e poses a
 - Edge em 390×844 com toque real via CDP e CPU 4×: 278 quadros de movimento sem atraso avatar/física; sem erro JavaScript. Vídeo local isolado MOBILE_WALK_FIXED.mp4.
 - Perfil comparável sem gravação: p95 de quadro 18,7 ms antes e 18,1 ms depois. Essa pequena diferença não comprova ganho geral de FPS; a correção comprovada é a sincronização visual. Desenhar canteiros não foi o gargalo nesse ensaio.
 - Prévia de sono conferida após reorganizar a apresentação: cama, roupa e acompanhantes mantidos.
-- Sandbox autenticado e conferência pública: registrar após publicação.
+- Sandbox autenticado em desktop e toque: casa, celeiro, venda e sul carregaram sem erro JS/5xx; trilhas e preferências preservadas. Sono com dois animais, horário 07:25 e recarregamento foi concluído com despertar/descida e bens preservados. Publicação pela PR #55.
 
 Limites: não houve execução diretamente no celular físico do jogador. Não é promessa de 60 FPS em qualquer aparelho; gravação de tela e outros processos também podem reduzir a fluidez.
