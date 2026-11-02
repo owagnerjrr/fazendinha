@@ -14,7 +14,7 @@ export function homeLayoutProblem(f:Farm,base:HouseDesign['base'],items:HouseDes
  return null;
 }
 export function applyHouseDesign(f:Farm,c:any){
- const fail=(message:string)=>({ok:false,message});
+ const fail=(message:string)=>({ok:false,message});if(f.home?.sleep)return fail('Aguarde o sono terminar para remodelar a casa.');
  if(c.type==='buy-house-item'){
   if(!Object.hasOwn(HOME_ITEMS,c.kind))return fail('Peça inválida.');const item=HOME_ITEMS[c.kind as keyof typeof HOME_ITEMS];
   if((f.houseDesign?.items.length??0)>=30)return fail('Sua casa já possui 30 peças.');if(f.coins<item.price)return fail('Moedas insuficientes.');

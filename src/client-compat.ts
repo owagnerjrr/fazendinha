@@ -1,6 +1,6 @@
 import type { Farm } from './farm.js';
 export function requiresNewClient(farm:Farm,version:string|null|undefined):boolean {
- if(version==='21')return false;if(farm.home?.sleepCompanions||farm.animals.some(a=>a.autonomy!==undefined)||farm.studio?.animals.some(a=>a.autonomy!==undefined))return true;
+ if(version==='22')return false;if(farm.home?.sleep?.sequence===1)return true;if(version==='21')return false;if(farm.home?.sleepCompanions||farm.animals.some(a=>a.autonomy!==undefined)||farm.studio?.animals.some(a=>a.autonomy!==undefined))return true;
  if(version==='20')return false;if(farm.wardrobe?.owned.includes('forest'))return true;
  if(version==='19')return false;if(farm.wardrobe?.owned.includes('nebula'))return true;
  if(version==='18')return false;if(farm.avatar.hair>=5||farm.studio?.owned.some(e=>e.definition.kind==='model'&&Number(e.definition.data.hair)>=5))return true;

@@ -69,7 +69,7 @@ export function buildHouse(scene:Phaser.Scene,block:(x:number,y:number,w:number,
   return scene.add.image(x,y,key).setOrigin(.5,1).setDepth(depth);
  };
  overlay('house-sofa-rail','house-sofa-back',124,78,50,740+sofa.x,520+sofa.y,521+sofa.y);
- overlay('house-bed-cover','life-bed',74,84,34,317+bed.x,315+bed.y,317+bed.y);
+ overlay('house-bed-cover','life-bed',74,84,34,317+bed.x,315+bed.y,317+bed.y);overlay('house-bed-footboard','life-bed',74,84,58,317+bed.x,315+bed.y,321+bed.y);
  drawHomePurchases(scene,farm?.houseDesign,block);
  const screen=scene.add.graphics().setDepth(327+tv.y);
  let lastFrame=-1;
