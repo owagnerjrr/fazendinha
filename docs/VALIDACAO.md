@@ -806,4 +806,4 @@ Removido relógio manual que reproduziu aproximadamente 40 apresentações para 
 ## 0.53.3 — vasos e pedras
 Adicionados corpos na base de jardineiras, vasos, pedras e decorações. Rotas e visitas compartilham os obstáculos; posições e compras preservadas. 404 testes/build e runtime PC/390px com colisão, contorno e atualização durante visitas. Veja COLISOES_0_53_3.md.
 
-0.54.0 — Consulte docs/ANIMAIS_0_54_0.md: novas espécies/raças, crescimento, gestação, montaria, resíduos e doença grave ativa. 417 testes locais e build; validação online em andamento, sem pagamentos reais.
+0.54.0 — Consulte docs/ANIMAIS_0_54_0.md: novas espécies/raças, crescimento, gestação, montaria, resíduos e doença grave ativa. 417 testes e build passaram; sandbox autenticado validou compras idempotentes, cuidados, montaria, recarga, nascimento e limpeza. Mouse/toque em desktop e emulação móvel; sem pagamentos reais.
