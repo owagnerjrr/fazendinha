@@ -1,0 +1,4 @@
+import type Phaser from 'phaser';
+/** Draw after Arcade commits its position, before camera rendering. Physics/collisions remain fixed-step. */
+export function postPhysicsDraw(scene:Phaser.Scene,draw:(time:number,moving:boolean)=>void){let pending=false,time=0,moving=false,last=0;const render=()=>{if(!pending)return;pending=false;const dt=last?Math.min(100,Math.max(0,time-last)):1000/60;last=time;const cam=scene.cameras.main;cam.roundPixels=false;cam.setLerp(followLerp(.09,dt),followLerp(.09,dt));draw(time,moving);};scene.events.on('postupdate',render);scene.events.once('shutdown',()=>scene.events.off('postupdate',render));return(t:number,m:boolean)=>{time=t;moving=m;pending=true;};}
+export function followLerp(base:number,delta:number){return 1-Math.pow(1-base,Math.max(0,delta)/(1000/60));}
