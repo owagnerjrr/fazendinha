@@ -10,7 +10,7 @@
 - Autorização de propriedade, limite e horários validados no servidor. Protocolo 22 impede clientes antigos de sobrescrever o novo estado. Remodelagem bloqueada durante o sono.
 
 ## Evidências locais
-- 395 testes automatizados, incluindo chegada estável a 30/60/120 FPS, colisão sem correção lateral, percurso com obstáculo, propriedade, repetição de comandos, recuperação e avanço único do relógio/energia.
+- 396 testes automatizados, incluindo chegada estável a 30/60/120 FPS, colisão sem correção lateral, percurso com obstáculo, propriedade, repetição de comandos, recuperação e avanço único do relógio/energia.
 - Comparação gravada no mesmo percurso de aproximadamente 11 segundos com cinco acompanhantes: o primeiro gato passou de 85 para 8 mudanças de orientação e de 34 para zero pequenos passos reversos. Os cinco tiveram zero passos reversos no ensaio posterior. Isso não constitui garantia para todo mapa/dispositivo.
 - Navegador Edge desktop e emulação de toque 390×844: gato, cachorro, ambos e sem companhia; animais inicialmente na fazenda/celeiro; chegada, subida, sono, despertar, descida e preservação de nomes/modos. Recarregamento durante a acomodação retomou os dois animais sem duplicação.
 - Vídeos reais do runtime local com dados isolados, sem manipular contas de produção. Stills de revisão de fases também usam relógio controlado e não substituem os vídeos em tempo real.
@@ -22,4 +22,4 @@
 - Emulação móvel não substitui ensaio em aparelhos físicos Android/iPhone. Lotação máxima e sessões de várias horas não foram validadas nesta rodada.
 - Nenhuma migração de banco, cobrança, concessão ou alteração em saldos/animais reais.
 
-Validação online e publicação: registrar o resultado após conferir o deployment.
+Sandbox autenticado: confirmado seletor pela cama, dois animais, horário 07:25, recarregamento durante o sono, despertar/descida e preservação de moedas, itens, nomes, propriedade e modos anteriores. Nenhuma cobrança.

@@ -37,7 +37,7 @@ export class AvatarArt {
    const cv=document.createElement('canvas');cv.width=48;cv.height=64;const c=cv.getContext('2d')!;c.imageSmoothingEnabled=false;
    c.drawImage(source,0,base==='pose-sit'?192:0,48,48,0,0,48,48);
    if(base==='pose-sleep'){// Keep face/skin; cover open-eye pixels with skin and closed lids.
-    const pixels=c.getImageData(0,0,48,48);pixels.data.set(sleepingFace(pixels.data,48,48,rgb(SKIN_TONES[avatar.skin]) as [number,number,number]));c.putImageData(pixels,0,0);
+    const pixels=c.getImageData(0,0,48,48);pixels.data.set(sleepingFace(pixels.data,48,48,rgb(SKIN_TONES[avatar.skin]) as [number,number,number],avatar.outfit==='forest'));c.putImageData(pixels,0,0);
    }const key=`avatar-${this.instance}-${this.generation}-${base}`;this.scene.textures.addCanvas(key,cv);this.keys.set(base,key);return key;
   }
   const {w,h}=spec[base],source=this.scene.textures.get(base).getSourceImage() as HTMLImageElement;

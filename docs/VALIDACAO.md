@@ -795,4 +795,4 @@ Homologação online 0.52.0: sandbox autenticado em 1440/390px abriu casa, celei
 Homologação 0.52.1: site HTTPS do sandbox em 1280/390px, com clique real e toque real (pointerup), reproduziu a trilha externa, concluiu loop e silenciou corretamente. Streaming 206 dos quatro MP3, controles, APIs protegidas e saúde dos pagamentos conferidos. Sem erros JavaScript/5xx; nenhum pagamento criado.
 
 ## 0.53.0 — caminhada e cama
-Motor contínuo, rotas/folgas consistentes e sequência visível de sono com até dois gatos/cachorros. 395 testes e build; ensaios desktop/toque e recarregamento locais. Validação online em andamento. Veja ANIMAIS_SONO_0_53.md.
+Motor contínuo, rotas/folgas consistentes e sequência visível de sono com até dois gatos/cachorros. 396 testes e build; ensaios desktop/toque e recarregamento locais. Sandbox autenticado confirmou sono, horário escolhido, recuperação, despertar/descida e bens preservados. Veja ANIMAIS_SONO_0_53.md.
