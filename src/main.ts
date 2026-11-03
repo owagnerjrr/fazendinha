@@ -320,7 +320,7 @@ class FarmScene extends Phaser.Scene {
     if (inObstacle) this.player.setPosition(710, 650);
     this.select = this.add.rectangle(0, 0, 40, 40).setStrokeStyle(2, 0xf9edba, .85).setDepth(3).setVisible(false);
     this.entranceControl=new EntranceControl(this,this.player,$<HTMLButtonElement>('enter-place'),e=>{this.cancelMovement();if(e.id==='shop')shop();else enterInterior(e.id);},()=>({inside,modal,working:!!this.activeWork||this.pets.locked||this.outdoorBond,lockedUntil:entranceLockedUntil}));
-    this.presentAvatar=postPhysicsDraw(this,(time,moving)=>this.drawAvatar(time,moving));this.cameras.main.setBounds(0, 0, 1600, 1200); this.cameras.main.startFollow(this.player, true, .09, .09, 0, 45);
+    this.presentAvatar=postPhysicsDraw(this,(time,moving,pose)=>this.drawAvatar(time,moving,pose),false,this.player);this.cameras.main.setBounds(0, 0, 1600, 1200); this.cameras.main.startFollow(this.presentAvatar.position, true, .09, .09, 0, 45);
     this.vignette = this.add.image(0, 0, 'vignette').setOrigin(0).setScrollFactor(0).setDepth(2400).setAlpha(.1);
     const ambientDecor:(Phaser.GameObjects.Image|Phaser.GameObjects.Rectangle)[]=[...this.ripples];
     for (let i = 0; i < (this.scale.width<600?2:3); i++) {
@@ -458,7 +458,7 @@ class FarmScene extends Phaser.Scene {
   tendPlot(id:number,next:Tool){const field=this.fields.find(f=>f.id===id);if(!field)return;setTool(next);const blocks=this.obstacles.getChildren().map(o=>{const b=(o as Phaser.GameObjects.Zone).body as Phaser.Physics.Arcade.StaticBody;return{x:b.x,y:b.y,width:b.width,height:b.height};});const target=[[42,10],[-42,10],[0,45],[0,-45]].map(([dx,dy])=>({x:field.x+dx,y:field.y+dy,field:id})).find(p=>findPath(this.player,p,blocks).length);if(target)this.navigate(target);else toast('Não há passagem livre.');}
   private presentAvatar?:ReturnType<typeof postPhysicsDraw>;
   renderAvatar(time:number,moving:boolean){this.presentAvatar?.(time,moving);}
-  private drawAvatar(time: number, moving: boolean) {
+  private drawAvatar(time: number, moving: boolean, pose:{x:number;y:number}=this.player) {
     const work = this.activeWork, equipped = this.pets?.locked||this.outdoorBond?'hand':work?.clock.tool ?? (tool==='rod'?'hand':tool);
     const usingActionSheet = !!work && (equipped === 'hoe' || equipped === 'water');
     const elapsed = work?.clock.elapsed(time) ?? 0;
@@ -475,8 +475,8 @@ class FarmScene extends Phaser.Scene {
     } else {
       this.actor.setTexture((idle?this.avatarArt.idleKey('farmer-v2',appearanceOf(farm)):this.avatarArt.key('farmer-v2',appearanceOf(farm))),DIRECTION_ROW[this.direction]*4+frame).setOrigin(.5, 62 / 64).setScale(1.08, 1.08 * (1 - bend * .07));
     }
-    this.actor.setPosition(this.player.x, this.player.y - 2 + bob).setDepth(this.player.y);this.sprayer.update(this.actor,DIRECTION_ROW[this.direction],isSpray(equipped)?equipped:undefined,work?elapsed:undefined);
-    applyCareBody(this,this.avatarArt,this.actor,appearanceOf(farm));this.playerShadow.setPosition(this.player.x + 1, this.player.y - 3);this.mountedView?.update(farm,this.player,this.actor,time,DIRECTION_ROW[this.direction],moving,this.playerShadow);
+    this.actor.setPosition(pose.x, pose.y - 2 + bob).setDepth(pose.y);this.sprayer.update(this.actor,DIRECTION_ROW[this.direction],isSpray(equipped)?equipped:undefined,work?elapsed:undefined);
+    applyCareBody(this,this.avatarArt,this.actor,appearanceOf(farm));this.playerShadow.setPosition(pose.x + 1, pose.y - 3);this.mountedView?.update(farm,this.player,this.actor,time,DIRECTION_ROW[this.direction],moving,this.playerShadow,pose);
   }
   waterGround(point: Point) {
     if (this.activeWork || modal) return;
