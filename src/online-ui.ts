@@ -84,13 +84,13 @@ export function setupOnlineUI(cloud:CloudFarm,open:(title:string,html:string)=>v
     try{
       const v=await cloud.request(`?visit=${code}`),now=v.now;if(onVisit){close();onVisit(code,v);return;}
       const own=getFarm();
-      open(`Fazenda de ${esc(v.name)}`,`<p>Ajude a regar, plantar com uma semente sua ou remover pragas: cuidados em vários canteiros; +5 XP no primeiro cuidado de cada tipo por canteiro/dia.</p><label class="farm-form">Semente para ajudar<select id="visit-seed">${(Object.keys(CROPS) as Crop[]).map(c=>`<option value="${c}">${CROPS[c].name} (${own.seeds[c]})</option>`).join('')}</select></label><p class="quiet-note">${v.protected?raidProtectionMessage(v,now):v.socialRaids&&own.socialRaids?'A brincadeira está ativada para vocês. Até 5 produtos por fazenda nos últimos 60 minutos.':'Roubo disponível apenas quando os dois amigos ativam a opção em Minha fazenda.'}</p><div class="visit-grid">${v.plots.map((p:any)=>{
+      open(`Fazenda de ${esc(v.name)}`,`<p>Ajude a regar, plantar com uma semente sua ou remover pragas: cuidados em vários canteiros; +5 XP no primeiro cuidado de cada tipo por canteiro/dia.</p><label class="farm-form">Semente para ajudar<select id="visit-seed">${(Object.keys(CROPS) as Crop[]).map(c=>`<option value="${c}">${CROPS[c].name} (${own.seeds[c]})</option>`).join('')}</select></label><p class="quiet-note">${v.protected?raidProtectionMessage(v,now):'Roubo de plantações e cuidados fazem parte do jogo. Até 5 roubos por fazenda nos últimos 60 minutos.'}</p><div class="visit-grid">${v.plots.map((p:any)=>{
        if(p.id>=(v.unlockedPlots??24))return '<button class="visit-plot" disabled><small>Bloqueado</small></button>';
        const left=remaining(p,now),pest=hasPests(p,now);let action='',mode='',label='Vazio';
        if(!p.crop){action='help';mode='plant';label='Plantar';}
        else if(pest){action='help';mode='clean';label='Tirar pragas';}
        else if(p.wateredAt===null){action='help';mode='water';label='Regar';}
-       else if(left===0){label='Maduro';if(v.socialRaids&&own.socialRaids&&!v.protected&&!(p.stolen??0)){action='steal';label='Pegar 1';}}
+       else if(left===0){label='Maduro';if(!v.protected&&!(p.stolen??0)){action='steal';label='Pegar 1';}}
        else label=`${Math.ceil(left!/1000)}s`;
        return `<button class="visit-plot" data-visit-action="${action}" data-mode="${mode}" data-plot="${p.id}" ${!action?'disabled':''}>${p.crop?`<img src="${['carrot','lettuce','tomato'].includes(p.crop)?`/assets/v2/${p.crop}-3.png`:`/assets/v5/${p.crop}.png`}" alt="${CROPS[p.crop as Crop].name}" />`:'🌱'}<small>${label}</small></button>`;
       }).join('')}</div><p id="online-feedback" role="status"></p><button class="secondary" id="back-community">Voltar aos amigos</button>`);

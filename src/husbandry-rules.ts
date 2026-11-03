@@ -1,10 +1,11 @@
+import{consumeFeed,feedKind}from'./animal-feed.js';
 import{newAnimalLife,alive,adult,reserveBirth}from'./animal-life-model.js';
 import{availablePen,assignBarnPens,penAssignments}from'./barn-slots.js';
 import{boostVital}from'./living-animals.js';
 import {getPlot} from './farm.js';
 import {ANIMALS,type Animal} from './content.js';import {animalNeeds,productionAt,ANIMAL_CARE} from './animal-needs.js';
 import {plantNeeds,settlePlant,PLANT_CARE} from './plant-care.js';import {housingProblem} from './housing.js';import {plotUsable} from './plots.js';import type {Farm} from './farm.js';
-export const SUPPLIES={medicine:{name:'Remédio veterinário',price:30,amount:3},plantMedicine:{name:'Defensivo orgânico borrifador',price:18,amount:3},bedding:{name:'Palha limpa',price:10,amount:5}} as const;
+export const SUPPLIES={medicine:{name:'Remédio veterinário',price:30,amount:3},plantMedicine:{name:'Defensivo orgânico borrifador',price:18,amount:3},bedding:{name:'Limpeza',price:10,amount:5}} as const;
 export const HUSBANDRY_COMMANDS=['buy-supply','clean-animal','treat-animal','move-animal','cure-plant','feed-animal','water-animal','collect-animal','start-incubation','hatch-chick','mature-chick'] as const;
 function settledAnimal(a:Animal,now:number):Animal{const next={...a,care:a.care?{...a.care}:undefined};if(next.care)next.care.illnessAt=animalNeeds(a,now).illnessAt;next.pendingAt=productionAt(a,now,ANIMALS[a.kind].seconds);return next;}
 export function applyHusbandry(f:Farm,c:any,now:number){
@@ -22,15 +23,15 @@ export function applyHusbandry(f:Farm,c:any,now:number){
  const original=f.animals.find(a=>a.id===c.id);if(!original)return fail('Animal não encontrado.');if(!alive(original))return fail('Este animal faleceu. Seu registro foi preservado.');const a=settledAnimal(original,now),needs=animalNeeds(a,now),house=a.housing??'barn';
  const commit=(message:string)=>{boostVital(a,c.type,now);Object.assign(original,a);return{ok:true,message};};
  if(c.type==='feed-animal'){
-  if(needs.food>ANIMAL_CARE.refillAt&&a.fedAt!==null)return fail('O comedouro ainda está abastecido.');if(f.feed<1)return fail('Compre ração na venda.');
-  f.feed--;a.fedAt=now;return commit('Comedouro abastecido. Fique de olho no indicador de alimentação.');
+  if(needs.food>ANIMAL_CARE.refillAt&&a.fedAt!==null)return fail('O comedouro ainda está abastecido.');if(!consumeFeed(f,feedKind(a)))return fail('Compre a ração desta espécie na venda.');
+  a.fedAt=now;return commit('Comedouro abastecido. Fique de olho no indicador de alimentação.');
  }
  if(c.type==='water-animal'){
   if(needs.water>ANIMAL_CARE.refillAt&&a.wateredAt!=null)return fail('O bebedouro ainda tem água fresca.');a.wateredAt=now;return commit('Bebedouro abastecido com água fresca disponível.');
  }
  if(c.type==='clean-animal'){
-  if(needs.clean>ANIMAL_CARE.refillAt)return fail('A cama do animal ainda está limpa.');if(f.supplies.bedding<1)return fail('Compre palha limpa na venda.');
-  f.supplies.bedding--;a.care!.cleanedAt=now;return commit('Instalação limpa e palha trocada.');
+  if(needs.clean>ANIMAL_CARE.refillAt)return fail('A cama do animal ainda está limpa.');if(f.supplies.bedding<1)return fail('Compre Limpeza na venda.');
+  f.supplies.bedding--;if(a.life)a.life.messes=[];a.care!.cleanedAt=now;return commit('Instalação limpa e higiene renovada.');
  }
  if(c.type==='treat-animal'){
   if(!needs.sick)return fail('Este animal não precisa de remédio.');if(needs.food<=0||needs.water<=0||needs.clean<=0)return fail('Ofereça ração, água e uma cama limpa antes do remédio.');if(f.supplies.medicine<1)return fail('Compre remédio veterinário na venda.');

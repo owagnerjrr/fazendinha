@@ -30,7 +30,7 @@ export function buildBarnShell(scene:Phaser.Scene){
  const g=scene.add.graphics().setDepth(1);g.fillStyle(0x4a3527).fillRect(150,140,900,80);g.fillStyle(0xc8b88b).fillRect(164,143,872,64);g.fillStyle(0xd7c69a).fillRect(165,144,870,7);
  // Plaster flecks, carved skirting and joints lend the rear wall a different material.
  for(let i=0;i<100;i++){g.fillStyle(i%3?0xb5a477:0xe1d2aa,.6);g.fillRect(173+(i*83)%850,154+(i*17)%46,2+i%3,1);}
- g.fillStyle(0x443326,.35).fillRect(164,219,872,12);
+ g.fillStyle(0x443326,.35).fillRect(164,219,872,12);g.lineStyle(1,0xe5d2a1,.45).strokeRect(169,148,862,66);
  for(const x of [165,449,751,1035]){scene.add.tileSprite(x,183,83,17,'barn-beam').setRotation(Math.PI/2).setDepth(225);g.fillStyle(0x443326,.15).fillRect(x+11,145,10,75);}
  scene.add.tileSprite(600,214,880,18,'barn-beam').setDepth(226);
  for(const x of [155,1044])scene.add.tileSprite(x,514,596,18,'barn-beam').setRotation(Math.PI/2).setDepth(227);

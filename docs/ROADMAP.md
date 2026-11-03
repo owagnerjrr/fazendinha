@@ -461,3 +461,5 @@ Preparada publicação por R$ 15,00 via Pix/cartão; 366 testes e build aprovado
 0.56.3: organização e compactação do painel de animais, sem mudanças nas regras ou dados.
 
 0.56.4: continuidade visual das saídas de espécies criadas autônomas; propriedade, configuração e progresso preservados.
+
+0.57.0: rações específicas, mecânicas sociais padrão e polimento do celeiro/sono/coelho integrados sem substituir progresso. Ensaio físico continua pendente.

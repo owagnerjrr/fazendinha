@@ -32,11 +32,11 @@ export class AvatarArt {
   if(base==='pose-sit-front'){
    const source=this.scene.textures.get(this.key('farmer-v2',avatar)).getSourceImage() as HTMLCanvasElement,cv=document.createElement('canvas');cv.width=48;cv.height=64;const c=cv.getContext('2d')!;c.imageSmoothingEnabled=false;c.drawImage(source,0,0,48,45,0,0,48,45);c.drawImage(source,0,45,48,18,0,45,48,10);const key=`avatar-${this.instance}-${this.generation}-${base}`;this.scene.textures.addCanvas(key,cv);this.keys.set(base,key);return key;
   }
-  if(base==='pose-sit'||base==='pose-sleep'){
+  if(base==='pose-sit'||base==='pose-sleep'||base==='pose-awake'){
    const source=this.scene.textures.get(this.key('farmer-v2',avatar)).getSourceImage() as HTMLCanvasElement;
    const cv=document.createElement('canvas');cv.width=48;cv.height=64;const c=cv.getContext('2d')!;c.imageSmoothingEnabled=false;
    c.drawImage(source,0,base==='pose-sit'?192:0,48,48,0,0,48,48);
-   if(base==='pose-sleep'){// Keep face/skin; cover open-eye pixels with skin and closed lids.
+   if(base==='pose-sleep'&&avatar.outfit!=='nebula'){// Keep face/skin; cover open-eye pixels with skin and closed lids.
     const pixels=c.getImageData(0,0,48,48);pixels.data.set(sleepingFace(pixels.data,48,48,rgb(SKIN_TONES[avatar.skin]) as [number,number,number],avatar.outfit==='forest'));c.putImageData(pixels,0,0);
    }const key=`avatar-${this.instance}-${this.generation}-${base}`;this.scene.textures.addCanvas(key,cv);this.keys.set(base,key);return key;
   }
