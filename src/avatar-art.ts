@@ -30,7 +30,7 @@ export class AvatarArt {
   if(base==='hoe-actions'){
    const source=this.scene.textures.get(this.key('farmer-v2',avatar)).getSourceImage() as HTMLCanvasElement,cv=document.createElement('canvas');cv.width=96*HOE_FRAMES;cv.height=448;const c=cv.getContext('2d')!;c.imageSmoothingEnabled=false;
    for(let row=0;row<4;row++){const body=document.createElement('canvas');body.width=48;body.height=64;const b=body.getContext('2d')!;b.imageSmoothingEnabled=false;b.drawImage(source,0,row*64,48,64,0,0,48,64);b.clearRect(7,35,row===3&&avatar.outfit==='forest'?8:10,16);b.clearRect(row===3&&avatar.outfit==='forest'?35:30,35,row===3&&avatar.outfit==='forest'?6:11,16);for(let frame=0;frame<HOE_FRAMES;frame++){c.save();c.translate(frame*96,row*112);drawHoeFrame(c,body,avatar,row,frame);c.restore();}}
-   const key=`avatar-${this.instance}-${this.generation}-hoe-actions`,texture=this.scene.textures.addCanvas(key,cv)!;this.scene.textures.addSpriteSheet('',texture,{frameWidth:96,frameHeight:112});this.keys.set(base,key);return key;
+   const pixels=c.getImageData(0,0,cv.width,cv.height);for(let i=3;i<pixels.data.length;i+=4)pixels.data[i]=pixels.data[i]>=180?255:0;c.putImageData(pixels,0,0);const key=`avatar-${this.instance}-${this.generation}-hoe-actions`,texture=this.scene.textures.addCanvas(key,cv)!;this.scene.textures.addSpriteSheet('',texture,{frameWidth:96,frameHeight:112});this.keys.set(base,key);return key;
   }
   if(base==='care-body'){
 
@@ -102,6 +102,7 @@ export class AvatarArt {
   }
   const key=`avatar-${this.instance}-${this.generation}-${base}`;const sourceTexture=this.scene.textures.addCanvas(key,canvas)!;this.scene.textures.addSpriteSheet('',sourceTexture,{frameWidth:w,frameHeight:h});this.keys.set(base,key);return key;
  }
+ warmHoe(avatar:Avatar){if(!this.keys.has('hoe-actions'))this.key('hoe-actions',avatar);}
  idleKey(base:string,avatar:Avatar){
   const sourceKey=this.key(base,avatar),cache=`idle-${base}`;if(this.keys.has(cache))return this.keys.get(cache)!;
   const pose=base.startsWith('pose-'),{w,h}=spec[base]??{w:48,h:64},rows=pose?1:4;
