@@ -18,7 +18,7 @@ export function creationTemplates():CreationTemplate[]{
  for(const[x,y]of[[2,2],[9,2],[18,2],[2,12],[17,12]])cells.push({x,y,type:'tree'});
  cells.push({x:5,y:14,type:'door',destination:'farm'},{x:6,y:8,type:'lamp'});
  return[
- template('rabbit','🐇','Coelho','Já anda, acompanha, aceita carinho, brincadeira, comida e água.','animal','Meu coelho',{shape:'long'},'#a79b84'),
+ template('rabbit','🐇','Coelho','Já anda, acompanha, aceita carinho, brincadeira, comida e água.','animal','Coelho',{shape:'long'},'#a79b84'),
  template('bird','🐦','Ave','Base de ave com patas, cuidados e movimentos próprios.','animal','Minha ave',{shape:'bird',speed:28},'#bc9055'),
  template('pet','🐾','Animal de orelhas curtas','Escolha nome e cor; os cuidados já vêm configurados.','animal','Meu bichinho',{shape:'short'},'#9c7655'),
  template('food','🥕','Alimento para animais','Uma porção repõe a alimentação de um animal compatível.','item','Meu alimento',{action:'feed',effect:100},'#c28b4a',20),

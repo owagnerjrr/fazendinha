@@ -811,3 +811,5 @@ Adicionados corpos na base de jardineiras, vasos, pedras e decorações. Rotas e
 0.54.1 — 419 testes e build; pixel art detalhada de porco/cavalo/touro/burro, 4 direções e patas articuladas. Conferidos no jogo em desktop e emulação móvel, incluindo montaria. Consulte docs/ARTE_ANIMAIS_0_54_1.md.
 
 0.55.0 — 423 testes e build; novas compras de porco/cavalo/touro/burro/cães/gatos como filhotes; 7 dias reais até jovem e mais 7 até adulto. Arte própria por fase, variantes e sono integrados. Legados preservados. Consulte docs/CRESCIMENTO_0_55_0.md.
+
+0.56.0 — 427 testes/build; loja compacta, novos animais na fazenda, confirmação corrigida, aves completas, raças com desenhos próprios e coelho atualizado preservando identidade/cuidados. Consulte docs/VENDA_ANIMAIS_0_56_0.md.

@@ -1,3 +1,4 @@
+import{rabbitEntry,rabbitFarm}from'./rabbit-content.js';
 import{newAnimalLife,alive}from'./animal-life-model.js';
 import{applyAnimalProduct}from'./product-effects.js';
 import{createdCare,createdNeeds}from'./created-animal-rules.js';
@@ -11,8 +12,8 @@ export type StudioPet={sex?:'male'|'female';life?:import('./animal-life-model.js
 export type StudioCell={x:number;y:number;type:string;destination?:string;fishing?:boolean};
 export type StudioState={recoveryId?:string;resources?:StudioEntry[];purchases?:Record<string,number>;activeTool?:string;rules?:Record<string,unknown>;ruleVersion?:string;owned:StudioEntry[];inventory:Record<string,number>;animals:StudioPet[];plots:Record<string,{content:string;at:number;water:boolean;tilled:boolean}>;structures:{id:string;content:string;scene:string;x:number;y:number;rotation:number}[];position:{scene:string;x:number;y:number;direction?:number};equipped?:string;model?:string;fishedAt?:number};
 export const newStudio=():StudioState=>({owned:[],inventory:{},animals:[],plots:{},structures:[],position:{scene:'farm',x:0,y:0}});
-export function studioState(f:Pick<Farm,'studio'>){return f.studio??newStudio();}
-export function studioEntries(f:Pick<Farm,'studio'>,catalog:StudioEntry[]){const owned=f.studio?.owned??[],known=[...owned,...catalog.filter(c=>!owned.some(e=>e.id===c.id))];return [...known,...(f.studio?.resources??[]).filter(e=>!known.some(k=>k.id===e.id))];}
+export function studioState(f:Pick<Farm,'studio'>){rabbitFarm(f);return f.studio??newStudio();}
+export function studioEntries(f:Pick<Farm,'studio'>,catalog:StudioEntry[]){rabbitFarm(f);catalog=catalog.map(rabbitEntry);const owned=f.studio?.owned??[],known=[...owned,...catalog.filter(c=>!owned.some(e=>e.id===c.id))];return [...known,...(f.studio?.resources??[]).filter(e=>!known.some(k=>k.id===e.id))];}
 export function mapCells(d:Definition){return (d.data.cells??[]) as StudioCell[];}
 export function mapCell(d:Definition,x:number,y:number){return mapCells(d).find(c=>c.x===x&&c.y===y);}
 export function mapWalkable(d:Definition,x:number,y:number){return x>=0&&y>=0&&x<Number(d.data.width)&&y<Number(d.data.height)&&!['water','wall','tree','bush','rock'].includes(mapCell(d,x,y)?.type??'grass');}

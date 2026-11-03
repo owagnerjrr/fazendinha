@@ -37,8 +37,8 @@ export function applyHusbandry(f:Farm,c:any,now:number){
   f.supplies.medicine--;a.care!.illnessAt=null;a.care!.recoveredAt=now;return commit('Animal tratado! A recuperação permite retomar a produção.');
  }
  if(c.type==='move-animal'){
-  const selected=c.pen??(c.housing===house?a.pen:availablePen(f.animals,a.id,1+reserveBirth(a)));if(c.housing===house&&(house!=='barn'||selected===a.pen))return fail('O animal já está neste local.');const error=housingProblem(f,a.kind,c.housing,a.id,1+reserveBirth(a),selected);if(error)return fail(error);
-  a.housing=c.housing;a.walking=false;delete a.guestWalk;if(c.housing==='barn'&&(a.kind==='cat'||a.kind==='dog'))a.petMode='barn';if(c.housing==='barn')a.pen=selected;else delete a.pen;f.barnVersion=1;assignBarnPens(f);return commit('Animal transferido com seus cuidados e produção preservados.');
+  const selected=c.pen??(c.housing===house?a.pen:availablePen(f.animals,a.id,1+reserveBirth(a)));if(c.housing===house&&a.petMode!=='farm'&&(house!=='barn'||selected===a.pen))return fail('O animal já está neste local.');const error=housingProblem(f,a.kind,c.housing,a.id,1+reserveBirth(a),selected);if(error)return fail(error);
+  a.housing=c.housing;a.walking=false;delete a.guestWalk;if(c.housing==='barn')a.petMode='barn';if(c.housing==='barn')a.pen=selected;else delete a.pen;f.barnVersion=1;assignBarnPens(f);return commit('Animal transferido com seus cuidados e produção preservados.');
  }
  const cared=a.fedAt!=null&&a.wateredAt!=null&&needs.food>0&&needs.water>0&&needs.clean>0&&!needs.sick;
  if(c.type==='start-incubation'){
