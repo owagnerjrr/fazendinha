@@ -1,0 +1,6 @@
+## 0.57.2 — estabilidade da câmera em movimento
+
+A correção 0.57.1 ainda permitia deslocamento fracionado no desenho final. Comparação direta do framebuffer WebGL reproduziu alterações em até 48 pixels da horta adulta em posições de meio pixel, além da translação esperada. O desenho agora alinha somente a translação final da câmera à grade de pixels. A posição fracionada é guardada para o próximo cálculo de acompanhamento; não há arredondamento acumulado da suavização nem alteração da física, velocidade ou cadência RAF.
+
+Validação: 445 testes e build; comparação antes/depois com cenouras, tomates e girassóis adultos em navegador móvel 390×844, DPR 2,75, caminhada por toque: alterações fora da translação 48 → 0 nos casos medidos. Testes de câmera em 30/60/90/120 Hz comprovam que a acumulação segue o mesmo valor contínuo; posição externa, limpeza dos hooks e zoom/rotação cinematográficos preservados. Sequência de cama com dois acompanhantes e recuperação passou. Perfil com cadência virtual irregular de 60 Hz e CPU limitada 4× preservou 745 desenhos em 745 callbacks; isso não comprova 60 FPS em aparelho físico. Nenhuma migração ou mudança no progresso/economia. A conferência no Samsung A34 físico permanece dependente do usuário.
+
