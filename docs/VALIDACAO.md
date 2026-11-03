@@ -867,3 +867,10 @@ Adicionados corpos na base de jardineiras, vasos, pedras e decorações. Rotas e
 0.56.4 — reproduzido e corrigido sumiço visual do coelho autônomo na mudança de sala pelo relógio. Agora sai pela passagem e permanece durante cuidados/pausa. Caminhada completa e reencontro na casa conferidos em desktop/emulação móvel. Consulte docs/COELHO_AUTONOMO_0_56_4.md.
 
 0.57.0 — 442 testes e build; celeiro com câmera/placas estáveis, sujeira acima do piso, Limpeza, rações por espécie preservando estoque antigo, cuidados/roubo de plantações sem opt-out, brincadeira do coelho, quadros na parede e olhos no sono. Ensaios locais desktop/emulação móvel descritos em docs/CELEIRO_CUIDADOS_0_57_0.md.
+
+
+## 0.57.7 — Fazenda Feliz
+
+Nome público padronizado na abertura, interface, administração, instalação e convites. Identificadores de dados salvos, URLs, autenticação e pagamentos preservados. Sem migração ou alteração de progresso.
+
+Validação: 462 testes aprovados; build concluído; abertura conferida em 1280 e 390 pixels; imagem do convite revisada visualmente.

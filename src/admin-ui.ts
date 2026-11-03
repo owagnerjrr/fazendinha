@@ -13,7 +13,7 @@ import {STUDIO_KINDS,CAPABILITIES,type Definition} from './studio-schema';
 import './admin.css';
 const root=document.querySelector<HTMLDivElement>('#studio')!;
 function el<K extends keyof HTMLElementTagNameMap>(tag:K,label='',parent?:HTMLElement){const e=document.createElement(tag);e.textContent=label;(parent??document.querySelector('#studio main')??root).append(e);return e;}
-const heading=el('header');el('small','FAZENDINHA WJ · ACESSO RESTRITO',heading);el('h1','Central de criação',heading);el('a','Voltar ao jogo',heading).href='/';
+const heading=el('header');el('small','FAZENDA FELIZ · ACESSO RESTRITO',heading);el('h1','Central de criação',heading);el('a','Voltar ao jogo',heading).href='/';
 const status=el('p','Verificando sua conta…'),nav=el('nav'),body=el('main');let contentIndex:any[]=[];let pending=false;let screen=0;let cleanView=()=>{};function clear(){screen++;cleanView();cleanView=()=>{};body.replaceChildren();}
 async function request(view:string,body?:unknown){let token:string|null=null;try{token=await getAccessToken();}catch{}if(!token)throw Error('Entre no jogo com sua conta e volte a esta página.');const r=await fetch('/api/admin'+view,{method:body?'POST':'GET',headers:{Authorization:'Bearer '+token,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,cache:'no-store'});const data=await r.json();if(!r.ok)throw Error(data.error);return data;}
 function button(label:string,run:()=>unknown,parent:HTMLElement=body){const b=el('button',label,parent);b.onclick=()=>{if(pending)return;Promise.resolve().then(run).catch(e=>{status.textContent=e.message;status.scrollIntoView({block:'center'});});};return b;}

@@ -507,3 +507,8 @@ Preparada publicação por R$ 15,00 via Pix/cartão; 366 testes e build aprovado
 0.56.4: continuidade visual das saídas de espécies criadas autônomas; propriedade, configuração e progresso preservados.
 
 0.57.0: rações específicas, mecânicas sociais padrão e polimento do celeiro/sono/coelho integrados sem substituir progresso. Ensaio físico continua pendente.
+
+
+## 0.57.7 — Fazenda Feliz
+
+Nome público padronizado na abertura, interface, administração, instalação e convites. Identificadores de dados salvos, URLs, autenticação e pagamentos preservados. Sem migração ou alteração de progresso.

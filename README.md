@@ -60,7 +60,7 @@ Atualização 0.11.0: iluminação mais clara, respiração com quadros próprio
 
 Correção 0.10.1: respiração contínua em pé, sentada e deitada, com progresso preservado.
 
-# Fazendinha WJ
+# Fazenda Feliz
 
 Versão 0.10.0 — Personagem senta, liga a TV e dorme na cama. Relógio com períodos do dia, estações e iluminação, salvo por fazenda. Detalhes em [TEMPO_E_CASA.md](docs/TEMPO_E_CASA.md).
 
@@ -162,4 +162,4 @@ A versão 0.2 integra sprites originais gerados para o projeto, personagem com 1
 
 Phaser 3.90, TypeScript e Vite. Phaser é distribuído sob licença MIT; as licenças das dependências continuam aplicáveis. As fontes DM Sans e Fraunces são carregadas do Google Fonts com alternativas locais; sem rede, a interface usa fontes do sistema. Futuramente, hospedar as fontes junto ao jogo.
 
-Código e desenhos originais desenvolvidos para WJ Tecnologia. A licença de distribuição do projeto ainda será definida pelo proprietário. A inspiração é de gênero e mecânicas; não há afiliação com os jogos citados.
+Código e desenhos originais desenvolvidos para Fazenda Feliz. A licença de distribuição do projeto ainda será definida pelo proprietário. A inspiração é de gênero e mecânicas; não há afiliação com os jogos citados.
