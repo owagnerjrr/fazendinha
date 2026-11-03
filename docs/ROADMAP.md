@@ -453,3 +453,5 @@ Preparada publicação por R$ 15,00 via Pix/cartão; 366 testes e build aprovado
 0.55.0: ciclo real de 14 dias para novas compras/nascimentos das seis espécies, venda exclusiva de filhotes e arte própria de filhote/jovem. Prazos existentes preservados. Ensaio no aparelho físico permanece pendente.
 
 0.56.0: compra simplificada e localização decidida depois; arte distinta de raças e novo Coelho para proprietários existentes. Validação local desktop/móvel e migração auditada. Pendente ensaio físico.
+
+0.56.1: equilíbrio de proporções — coelho menor que personagem, filhotes 80% e jovens 92% da escala adulta. Sem mudanças de regras ou dados.
