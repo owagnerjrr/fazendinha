@@ -1,3 +1,4 @@
+import{markCareBody,applyCareBody}from'./care-body';
 import{rabbitArtSource}from'./rabbit-art';
 import{MountedHorseView}from'./mounted-horse-view';import{AnimalWasteWorld}from'./animal-waste-world';import{alive}from'./animal-life-model';
 import{DecorationWorld,addGardenBlock,clearGardenArrival}from'./decoration-world';import{MEADOW_POTS,propFootprint,meadowProps}from'./garden-collision';
@@ -298,7 +299,7 @@ class FarmScene extends Phaser.Scene {
     for (let i = 0; i < 6; i++) { const x = 350 + i * 48; this.add.image(x, 762, 'fence').setOrigin(.5, 1).setDepth(762); block(x, 755, 46, 9); }
     for (let i = 0; i < 4; i++) { this.add.image(350 + i * 48, 889, 'fence').setOrigin(.5, 1).setDepth(889); block(350 + i * 48, 882, 46, 9); }
     this.flock = new ChickenFlock(this,0);
-    const windPlants:Phaser.GameObjects.Image[] = this.fields.map(f=>f.plant);
+    const windPlants:Phaser.GameObjects.Image[] = [];
     for(const {x,y,kind}of meadowProps(rand!)){const foliage=this.add.image(x,y,kind).setOrigin(.5,1).setDepth(y);if(kind==='bush')windPlants.push(foliage);else addGardenBlock(this,this.obstacles,propFootprint('rock',x,y));}
     // River bank is solid, with one crossing at the bridge.
     for(const b of riverObstacles())block(b.x+b.width/2,b.y+b.height/2,b.width,b.height,true);
@@ -362,7 +363,7 @@ class FarmScene extends Phaser.Scene {
     if(localSaveBlocked){$('save-status').textContent='Terreno salvo indisponível; salvamento pausado';toast('Não foi possível carregar o terreno salvo. Não altere os dados do navegador.');}
     void journey.start(hadLocalFarm);
   }
-  resize() { this.cameras.main.setZoom(this.scale.width < 600 ? (farm.animals.filter(a=>a.walking).length>4?.9:1.1) : this.scale.height < 560 ? .9 : 1.08); this.vignette?.setDisplaySize(this.scale.width, this.scale.height); }
+  resize() { this.cameras.main.setZoom(1); this.vignette?.setDisplaySize(this.scale.width, this.scale.height); }
   faceDownForCall(){this.direction='down';}
   cancelMovement() { this.destination = null; this.route = []; this.queuedDestination = null; this.player?.setVelocity(0); this.input.keyboard?.resetKeys(); joystick.x = 0; joystick.y = 0; }
   paintFields() {
@@ -451,7 +452,7 @@ class FarmScene extends Phaser.Scene {
   }
   buildingAccess(b:NonNullable<Farm['buildings']>[number]){return this.landWorld.access(b);}
   outdoorBond=false;
-  async bondOutdoor(id:string,type:'pet-animal'|'play-animal'){const animal=farm.animals.find(a=>a.id===id),building=farm.buildings?.find(b=>b.id===animal?.housing);if(!animal||!building)throw Error('Animal não encontrado.');setTool('hand');return new Promise<void>((resolve,reject)=>{let settled=false;const timeout=this.time.delayedCall(22000,()=>{if(!settled){settled=true;reject(Error('Não há passagem livre até o animal.'));}});this.navigate({...this.buildingAccess(building),run:()=>{if(settled)return;timeout.remove();this.outdoorBond=true;this.outdoor.beginCare(id);const g=this.add.graphics(),skin=parseInt(SKIN_TONES[farm.avatar.skin].slice(1),16),shirt=parseInt(outfitSleeveColor(appearanceOf(farm)).slice(1),16);this.tweens.addCounter({from:0,to:3100,duration:3100,onUpdate:t=>{const p=this.outdoor.contact(id);if(!p)return;const side=p.x<this.player.x?-1:1;this.direction=side<0?'left':'right';const head={x:p.x-side*10,y:p.y-(animal.kind==='cow'?28:animal.kind==='goat'?23:17)},pose=petStroke(this.player,head,side,t.getValue()??0),{shoulder:s,elbow:e,hand:h}=pose;g.clear().setDepth(Math.max(p.y,this.player.y)+3);if(pose.visible)g.lineStyle(4,shirt).lineBetween(s.x,s.y,e.x,e.y).lineStyle(3,skin).lineBetween(e.x,e.y,h.x,h.y).fillStyle(skin).fillRect(h.x-2,h.y-1,5,3);if(type==='play-animal')g.fillStyle(0xc0bd6b).fillRect(head.x-3,head.y+Math.sin((t.getValue()??0)/250)*2,7,3);},onComplete:()=>{void lifeCommand({type,id}).then(()=>{settled=true;resolve();}).catch(reject).finally(()=>{g.destroy();this.outdoor.endCare();this.outdoorBond=false;});}});}});});}
+  async bondOutdoor(id:string,type:'pet-animal'|'play-animal'){const animal=farm.animals.find(a=>a.id===id),building=farm.buildings?.find(b=>b.id===animal?.housing);if(!animal||!building)throw Error('Animal não encontrado.');setTool('hand');return new Promise<void>((resolve,reject)=>{let settled=false;const timeout=this.time.delayedCall(22000,()=>{if(!settled){settled=true;reject(Error('Não há passagem livre até o animal.'));}});this.navigate({...this.buildingAccess(building),run:()=>{if(settled)return;timeout.remove();this.outdoorBond=true;this.outdoor.beginCare(id);const g=this.add.graphics(),skin=parseInt(SKIN_TONES[farm.avatar.skin].slice(1),16),shirt=parseInt(outfitSleeveColor(appearanceOf(farm)).slice(1),16);this.tweens.addCounter({from:0,to:3100,duration:3100,onUpdate:t=>{const p=this.outdoor.contact(id);if(!p)return;const side=p.x<this.player.x?-1:1;this.direction=side<0?'left':'right';const head={x:p.x-side*10,y:p.y-(animal.kind==='cow'?28:animal.kind==='goat'?23:17)},pose=petStroke(this.player,head,side,t.getValue()??0),{shoulder:s,elbow:e,hand:h}=pose;markCareBody(this,side,pose.visible);g.clear().setDepth(Math.max(p.y,this.player.y)+3);if(pose.visible)g.lineStyle(4,shirt).lineBetween(s.x,s.y,e.x,e.y).lineStyle(3,skin).lineBetween(e.x,e.y,h.x,h.y).fillStyle(skin).fillRect(h.x-2,h.y-1,5,3);if(type==='play-animal')g.fillStyle(0xc0bd6b).fillRect(head.x-3,head.y+Math.sin((t.getValue()??0)/250)*2,7,3);},onComplete:()=>{void lifeCommand({type,id}).then(()=>{settled=true;resolve();}).catch(reject).finally(()=>{g.destroy();this.outdoor.endCare();this.outdoorBond=false;});}});}});});}
   careHeart(id:string){const p=this.outdoor.contact(id);if(!p)return;const arm=this.add.graphics(),skin=parseInt(SKIN_TONES[farm.avatar.skin].slice(1),16),shirt=parseInt(outfitSleeveColor(appearanceOf(farm)).slice(1),16);this.direction=p.x<this.player.x?'left':'right';this.tweens.addCounter({from:0,to:1,duration:1400,onUpdate:t=>{const pet=this.outdoor.contact(id);if(!pet)return;const side=pet.x<this.player.x?-1:1,hx=this.player.x+side*Math.min(45,Math.abs(pet.x-this.player.x)),hy=this.player.y-26+Math.sin((t.getValue()??0)*Math.PI*8)*2;arm.clear().setDepth(Math.max(pet.y,this.player.y)+2).lineStyle(6,shirt).lineBetween(this.player.x+side*8,this.player.y-30,this.player.x+side*20,this.player.y-24).lineStyle(4,skin).lineBetween(this.player.x+side*20,this.player.y-24,hx,hy).fillStyle(skin).fillRoundedRect(hx-4,hy-3,8,5,2);},onComplete:()=>arm.destroy()});const heart=this.add.text(p.x,p.y-45,'♥',{fontFamily:'monospace',fontSize:'18px',color:'#f0a47e',stroke:'#4e4734',strokeThickness:2}).setDepth(p.y+2);this.tweens.add({targets:heart,y:p.y-67,alpha:0,duration:1100,onComplete:()=>heart.destroy()});}
   treatPlant(id:number){const field=this.fields.find(f=>f.id===id);if(!field)return;this.navigate({x:field.x,y:field.y+45,run:()=>{void lifeCommand({type:'cure-plant',plot:id,position:{x:this.player.x,y:this.player.y}}).then(r=>{this.workEffects.plant(field);toast(r.message??'Planta tratada! Uma dose utilizada.');this.paintFields();}).catch(e=>toast(e.message));}});}
   tendPlot(id:number,next:Tool){const field=this.fields.find(f=>f.id===id);if(!field)return;setTool(next);const blocks=this.obstacles.getChildren().map(o=>{const b=(o as Phaser.GameObjects.Zone).body as Phaser.Physics.Arcade.StaticBody;return{x:b.x,y:b.y,width:b.width,height:b.height};});const target=[[42,10],[-42,10],[0,45],[0,-45]].map(([dx,dy])=>({x:field.x+dx,y:field.y+dy,field:id})).find(p=>findPath(this.player,p,blocks).length);if(target)this.navigate(target);else toast('Não há passagem livre.');}
@@ -475,7 +476,7 @@ class FarmScene extends Phaser.Scene {
       this.actor.setTexture((idle?this.avatarArt.idleKey('farmer-v2',appearanceOf(farm)):this.avatarArt.key('farmer-v2',appearanceOf(farm))),DIRECTION_ROW[this.direction]*4+frame).setOrigin(.5, 62 / 64).setScale(1.08, 1.08 * (1 - bend * .07));
     }
     this.actor.setPosition(this.player.x, this.player.y - 2 + bob).setDepth(this.player.y);this.sprayer.update(this.actor,DIRECTION_ROW[this.direction],isSpray(equipped)?equipped:undefined,work?elapsed:undefined);
-    this.playerShadow.setPosition(this.player.x + 1, this.player.y - 3);this.mountedView?.update(farm,this.player,this.actor,time,DIRECTION_ROW[this.direction],moving,this.playerShadow);
+    applyCareBody(this,this.avatarArt,this.actor,appearanceOf(farm));this.playerShadow.setPosition(this.player.x + 1, this.player.y - 3);this.mountedView?.update(farm,this.player,this.actor,time,DIRECTION_ROW[this.direction],moving,this.playerShadow);
   }
   waterGround(point: Point) {
     if (this.activeWork || modal) return;
@@ -512,7 +513,7 @@ class FarmScene extends Phaser.Scene {
     this.fishingView.update(this.player,this.direction,tool==='rod',modal||inside);
     if(farm.home?.sleep&&!inside&&!modal){enterInterior('house');return;}
     this.entranceControl.update();if(!inside&&!modal&&Math.hypot(this.player.x-750,this.player.y-1040)<70){$('enter-place').hidden=false;$('enter-place').textContent='Entrar · Campos do sul';}
-    if(time>=this.nextContext){this.nextContext=time+100;this.contextLabels();if(this.scale.width<600){const target=farm.animals.filter(a=>a.walking).length>4?.9:1.1,cam=this.cameras.main;if(Math.abs(cam.zoom-target)>.005)cam.setZoom(cam.zoom+(target-cam.zoom)*.2);}}
+    if(time>=this.nextContext){this.nextContext=time+100;this.contextLabels();if(this.scale.width<600){const target=1,cam=this.cameras.main;if(Math.abs(cam.zoom-target)>.005)cam.setZoom(cam.zoom+(target-cam.zoom)*.2);}}
     this.outdoor.update(time);this.flock.update(time, delta); this.pets.update(time,this.player,modal,DIRECTION_ROW[this.direction]); this.atmosphere.update(time); this.workEffects.update(time);this.climateFX.update(time,farm,Date.now()+cloud.offset);
     if(this.outdoorBond){this.cancelMovement();this.renderAvatar(time,false);return;}
     if(this.pets.locked){this.cancelMovement();this.direction=this.pets.direction;this.renderAvatar(time,false);return;}

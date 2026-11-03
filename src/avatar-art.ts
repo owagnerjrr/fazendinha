@@ -26,6 +26,11 @@ export class AvatarArt {
   const old=this.previous;
   if(this.media!==mediaGeneration()||JSON.stringify(old?.studioOverlay)!==JSON.stringify(avatar.studioOverlay)||JSON.stringify(old?.studioBody)!==JSON.stringify(avatar.studioBody)||!old||old.style!==avatar.style||old.skin!==avatar.skin||old.hair!==avatar.hair||old.shirt!==avatar.shirt||old.outfit!==avatar.outfit||old.studioColor!==avatar.studioColor){for(const key of this.keys.values()){this.scene.textures.remove(key);this.scene.textures.remove(`${key}-source`);}this.keys.clear();this.media=mediaGeneration();this.previous={...avatar};this.generation++;}
   if(this.keys.has(base))return this.keys.get(base)!;
+  if(base==='care-body'){
+   const source=this.scene.textures.get(this.key('farmer-v2',avatar)).getSourceImage() as HTMLCanvasElement,cv=document.createElement('canvas');cv.width=48;cv.height=256;const c=cv.getContext('2d')!;c.imageSmoothingEnabled=false;
+   for(let row=0;row<4;row++){c.drawImage(source,0,row*64,48,64,0,row*64,48,64);if(row===1||row===2)c.clearRect(row===1?30:7,row*64+35,11,16);}
+   const key=`avatar-${this.instance}-${this.generation}-care-body`,texture=this.scene.textures.addCanvas(key,cv)!;this.scene.textures.addSpriteSheet('',texture,{frameWidth:48,frameHeight:64});this.keys.set(base,key);return key;
+  }
   if(base==='pose-duck-play'){
    const source=this.scene.textures.get(this.key('farmer-v2',avatar)).getSourceImage() as HTMLCanvasElement,cv=document.createElement('canvas');cv.width=192;cv.height=256;const c=cv.getContext('2d')!;c.imageSmoothingEnabled=false;for(let row=0;row<4;row++)for(let frame=0;frame<4;frame++){c.drawImage(source,0,row*64,48,64,frame*48,row*64,48,64);c.save();c.translate(frame*48,row*64);drawDuckArm(c,avatar,row,frame);c.restore();}const key=`avatar-${this.instance}-${this.generation}-${base}`,texture=this.scene.textures.addCanvas(key,cv)!;this.scene.textures.addSpriteSheet('',texture,{frameWidth:48,frameHeight:64});this.keys.set(base,key);return key;
   }
