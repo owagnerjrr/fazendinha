@@ -1,3 +1,11 @@
+## 0.57.3 — continuidade de movimento no desktop
+
+O relato foi esclarecido como Chrome a 100%, sobretudo ao caminhar. Além da amostragem dos pixels, havia descompasso entre a física fixa de 60 Hz e os quadros de telas mais rápidas: no teste desktop 952×615 / DPR 1,25, o avatar repetia posições em 75/120/144 Hz enquanto a câmera seguia avançando. Isso provocava pequenos recuos em relação ao cenário.
+
+A apresentação agora interpola apenas entre posições já resolvidas pela física. Avatar, câmera, sombra e montaria usam o mesmo ponto visual. A física, colisões, velocidade, comandos e posição salva continuam com o estado real; a apresentação tem até um passo de física (16,7 ms) de atraso. Transições, teletransportes e resets descartam a posição anterior. O alinhamento de pixels da versão anterior continua ativo.
+
+Validação: 455 testes e build; testes de posições contínuas 30/60/75/90/120/144 Hz, cadência irregular, paredes, resets e limpeza dos hooks. Teste desktop em navegador Chromium com 75/120/144 Hz simulados: repetições de posição eliminadas; variação do avatar frente à câmera, após estabilização, caiu de 2–3 pixels para no máximo 1 pixel (grade de desenho). Esses números descrevem simulação das cadências, não FPS medido no monitor do usuário. Testes em execução 390/1280px: ferramentas, cuidados, coelho, celeiro, casa, sono com dois acompanhantes, recuperação, montar/desmontar e passeio. Horta adulta manteve zero pixels alterados além da translação no ensaio WebGL. Não houve migrações nem mudanças em economia ou contas. Conferência no Chrome/monitor físico do usuário permanece pendente; Chrome não está instalado neste ambiente, os ensaios usam Chromium/Edge Chromium.
+
 ## 0.57.2 — estabilidade da câmera em movimento
 
 A correção 0.57.1 ainda permitia deslocamento fracionado no desenho final. Comparação direta do framebuffer WebGL reproduziu alterações em até 48 pixels da horta adulta em posições de meio pixel, além da translação esperada. O desenho agora alinha somente a translação final da câmera à grade de pixels. A posição fracionada é guardada para o próximo cálculo de acompanhamento; não há arredondamento acumulado da suavização nem alteração da física, velocidade ou cadência RAF.
