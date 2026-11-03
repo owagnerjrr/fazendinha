@@ -6,6 +6,6 @@ export function livestockMotion(box:Obstacle,index:number,count:number,size:{wid
  const rx=Math.max(0,Math.min(34,(cw-size.width)/2-9)),ry=Math.max(0,Math.min(22,ch-size.height-18));
  const pace=({cow:.8,goat:1.05,chicken:1.3,rooster:1.2,chick:1.4,cat:1.1} as Record<string,number>)[kind]??1;
  const t=((time*pace+index*2300+seed*1900)%36000+36000)%36000,walking=t<26000,s=walking?t/26000:1,ease=s*s*(3-2*s),angle=ease*Math.PI*2;
- const vx=walking?Math.cos(angle):1;
- return{x:box.x+cw*(col+.5)+Math.sin(angle)*rx,y:box.y+ch*(row+1)-9-(1-Math.cos(angle))*ry/2,walking,flip:vx<0,frame:walking?Math.floor(ellipseDistance(angle,rx,ry)/2.8)%8:0};
+ const vx=walking?Math.cos(angle)*rx:1,vy=walking?-Math.sin(angle)*ry/2:0;const direction=Math.abs(vy)>Math.abs(vx)*1.2?(vy<0?'up':'down'):(vx<0?'left':'right');const distance=ellipseDistance(angle,rx,ry);
+ return{x:box.x+cw*(col+.5)+Math.sin(angle)*rx,y:box.y+ch*(row+1)-9-(1-Math.cos(angle))*ry/2,walking,direction,distance,flip:vx<0,frame:walking?Math.floor(distance/2.8)%8:0};
 }

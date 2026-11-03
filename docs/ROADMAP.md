@@ -455,3 +455,5 @@ Preparada publicação por R$ 15,00 via Pix/cartão; 366 testes e build aprovado
 0.56.0: compra simplificada e localização decidida depois; arte distinta de raças e novo Coelho para proprietários existentes. Validação local desktop/móvel e migração auditada. Pendente ensaio físico.
 
 0.56.1: equilíbrio de proporções — coelho menor que personagem, filhotes 80% e jovens 92% da escala adulta. Sem mudanças de regras ou dados.
+
+0.56.2: passos visíveis dos novos quadrúpedes e do coelho, poses verticais no celeiro e descarte de folhas geradas por animal. Sem alterar tamanhos, regras ou dados; ensaio físico continua pendente.
