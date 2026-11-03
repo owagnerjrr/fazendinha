@@ -9,3 +9,5 @@ Correção visual sem alteração de registros, idades, datas de crescimento, co
 429 testes e build passaram. Navegador local Edge/Phaser em 390×844 e 1280×844: reproduzida a escala anterior por interceptação isolada dos módulos visuais, seguida da conferência da escala corrigida. Medidas reais dos sprites confirmaram 79,2 → 31,68 no coelho e aumento dos seis tipos de filhotes. Conferida baia com cinco filhotes mistos e vacas adultas na baia acima, sem alterar a lotação ou criar sobreposições. Painel do coelho continua acessível e apelido Algodão preservado. Capturas antes/depois na pasta outputs da sessão.
 
 Emulação móvel não substitui ensaio no aparelho físico.
+
+Sandbox autenticado: deploy dpl_HPFJNqxnBxmswX9QwccBCWPSFsw9, código 153977f. Carregamento/reabertura em 1280×844 e 390×844 sem erros JavaScript ou respostas 5xx. Saldos, inventários, IDs, nomes e datas de nascimento/jovem/adulto comparados antes/depois e preservados. Nenhuma migração ou escrita direta no banco.
