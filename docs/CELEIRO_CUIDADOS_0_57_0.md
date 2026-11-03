@@ -23,3 +23,9 @@ Nenhuma migração SQL ou substituição de estados. Raças, idades, moedas, com
 Edge/Phaser em 390×844 e 1280×844: compra de vários pacotes, bolsa, alimentação nativa e do coelho, brincadeira renderizada, sujeira acima do piso e recolhimento sem gasto, quadro adquirido com coordenada antiga e sono/despertar com olhos fechados/abertos. Verificados indicadores da câmera e ausência de erros JavaScript. A interface de criações foi vinculada ao mesmo motor de regras local em fixture isolada para esse ensaio; não equivale, sozinha, à validação da API online. Sono com gato/cachorro, reabertura durante a sequência e restauração dos modos anteriores também passou.
 
 Capturas na pasta outputs da sessão: BARN_POLISHED_WASTE, SPECIES_FEED_SHOP/BAG, RABBIT_PLAY_POLISHED, HOUSE_WALL_ART e PLAYER_EYES_CLOSED/OPEN, em ambas as resoluções. Sujeira/animais usados nessas imagens são fixtures de teste. Aparelho físico Samsung A34 não está disponível para ensaio.
+
+## Conferência online em sandbox
+
+Deploy dpl_G647N4f1qosiBLokeByDqKcDbN5d, código 59666fe. Conta QA separada: compras de ração para cães, gatos e coelhos; repetição do mesmo ID de compra sem novo débito/entrega; espécie inválida rejeitada sem cobrança; alimentação nativa usando estoque específico e repetição recusada sem consumo adicional. Estoque universal, identidade, nomes, roupas, terrenos e demais inventários preservados, além dos 30 coins de teste explicitamente gastos nos três pacotes. Cliente antigo 25 recebe atualização obrigatória; loja paga continua respondendo ao cliente 26 e prontidão do Mercado Pago permanece positiva. Nenhum pedido/pagamento/reembolso foi criado.
+
+Navegador autenticado em 1280 e 390 px abriu/reabriu sem JavaScript/5xx, mantendo dados. Brincadeira do coelho acionada na interface real online, com API aprovada e estoque/moedas/identidade inalterados. O deslocamento de QA para afastar-se da venda foi feito pelos controles normais.
