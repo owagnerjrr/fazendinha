@@ -1,3 +1,4 @@
+import{buyFeed,consumeFeed,feedKind}from'./animal-feed.js';
 import{ANIMAL_LIFE_COMMANDS,animalLifeCommand}from'./animal-life.js';import{DOG_BREEDS,animalPrice,newAnimalLife,alive,adult,weeklySpecies}from'./animal-life-model.js';
 import{setAutonomy}from'./animal-autonomy.js';
 import{createdLife}from'./created-animal-rules.js';
@@ -33,7 +34,7 @@ export function applyLife(f:Farm,c:any,now:number):{ok:boolean;message:string;ca
  if(c.type==='home'){if(f.mount)return fail('Desmonte antes de usar os móveis da casa.');return applyHome(f,c,now);}
  if(c.type==='avatar'){if(!validAvatar(c.avatar))return fail('Escolha um avatar válido.');if(f.studio)delete f.studio.model;f.avatar={style:c.avatar.style,skin:c.avatar.skin,hair:c.avatar.hair,shirt:c.avatar.shirt};return {ok:true,message:'Seu avatar foi atualizado!'};}
  if(c.type==='animal-raids-setting'){if(typeof c.enabled!=='boolean')return fail('Opção inválida.');f.animalRaids=c.enabled;return{ok:true,message:c.enabled?'Roubo de animais ativado entre amigos participantes.':'Seus animais estão fora da brincadeira.'};}
- if(c.type==='raids-setting'){if(typeof c.enabled!=='boolean')return fail('Opção inválida.');f.socialRaids=c.enabled;return {ok:true,message:c.enabled?'Brincadeira ativada entre amigos participantes, mesmo com cachorro. Limite diário e pausa após roubo continuam valendo.':'Sua fazenda está fora da brincadeira de roubo.'};}
+ if(c.type==='raids-setting'){if(typeof c.enabled!=='boolean')return fail('Opção inválida.');f.socialRaids=true;return {ok:true,message:'Roubo de plantações faz parte do jogo para todos os amigos: 5 por fazenda a cada hora.'};}
  if(c.type==='buy-land'){
   const site=(c.site??'west') as LandSite;if(!Object.hasOwn(LAND_SITES,site))return fail('Escolha um terreno válido.');
   const owned=parcels(f);if(owned.some(p=>p.site===site))return fail('Este terreno já pertence à sua fazenda.');
@@ -58,7 +59,7 @@ export function applyLife(f:Farm,c:any,now:number):{ok:boolean;message:string;ca
   if(kind==='cat'&&c.color!==undefined&&!['black','white','ginger','gray','calico'].includes(c.color))return fail('Escolha uma cor válida.');
   const purchaseName=kind==='dog'?'Cachorro '+DOG_BREEDS[(c.breed??'caramelo') as keyof typeof DOG_BREEDS].name:item.name;f.coins-=price;f.animalLifeVersion=1;f.animals.push({life:newAnimalLife(kind,now,stage==='young'||kind==='chick'),sex:kind==='bull'||kind==='rooster'?'male':kind==='cow'||kind==='chicken'?'female':c.sex??'female',...(kind==='dog'?{breed:c.breed??'caramelo'}:{}),id:`animal-${now}-${f.animals.length}`,kind,...(housing==='barn'?{pen:c.pen??availablePen(f.animals)}:{}),...(c.housing===undefined&&c.pen===undefined?{petMode:'farm' as const}:kind==='dog'?{petMode:'barn' as const}:{}),...(kind==='cat'?{color:c.color??'black'}:{}),fedAt:null,wateredAt:null,pettedAt:null,collectedAt:now,productionVersion:1,...(f.careVersion?{housing,care:{startedAt:now,cleanedAt:now,illnessAt:null}}:{}),...(kind==='chick'?{bornAt:now}:{})});f.barnVersion=1;assignBarnPens(f);return {ok:true,message:c.housing===undefined&&c.pen===undefined?`Compra feita! ${purchaseName} está passeando na sua fazenda.`:`Compra feita! ${item.name} entregue em ${housing==='barn'?'seu celeiro · Baia '+((f.animals.at(-1)!.pen??0)+1):'sua instalação'}. Alimente e ofereça água!`};
  }
- if(c.type==='buy-feed'){if(f.coins<10)return fail('Você precisa de 10 moedas.');f.coins-=10;f.feed+=5;return {ok:true,message:'+5 porções de ração.'};}
+ if(c.type==='buy-feed')return buyFeed(f,c);
  if(['feed-animal','water-animal','pet-animal','play-animal','rename-animal','start-incubation','hatch-chick','mature-chick','collect-animal'].includes(c.type)){
   const a=f.animals.find(a=>a.id===c.id);if(!a)return fail('Animal não encontrado.');
   const cared=(a:Farm['animals'][number])=>a.fedAt!==null&&now>=a.fedAt&&now-a.fedAt<86400000&&animalHydrated(a,now);
@@ -83,9 +84,9 @@ export function applyLife(f:Farm,c:any,now:number):{ok:boolean;message:string;ca
   }
   if(c.type==='feed-animal'){
    if(a.fedAt!==null&&now-a.fedAt<86400000)return fail('Este animal já está alimentado pelas próximas 24 horas.');
-   if(f.feed<1)return fail('Compre ração na venda.');f.feed--;a.fedAt=now;a.collectedAt=now;return {ok:true,message:'Animal alimentado! Garanta também água para ativar sua função.'};
+   if(!consumeFeed(f,feedKind(a)))return fail('Compre a ração desta espécie na venda.');a.fedAt=now;a.collectedAt=now;return {ok:true,message:'Animal alimentado! Garanta também água para ativar sua função.'};
   }
-  if(!animalReady(a,now))return fail('Alimente, ofereça água e aguarde a produção.');const item=ANIMALS[a.kind];if(!item.product)return fail('O cachorro protege a plantação.');f.products[item.product]++;a.collectedAt=now;a.productionVersion=1;return {ok:true,message:`+1 ${item.productName.toLowerCase()} no celeiro!`};
+  if(!animalReady(a,now))return fail('Alimente, ofereça água e aguarde a produção.');const item=ANIMALS[a.kind];if(!item.product)return fail('Este animal é de companhia e não produz itens.');f.products[item.product]++;a.collectedAt=now;a.productionVersion=1;return {ok:true,message:`+1 ${item.productName.toLowerCase()} no celeiro!`};
  }
  if(c.type==='buy-decor'){
   if(!Object.hasOwn(DECOR,c.kind))return fail('Decoração inválida.');const item=DECOR[c.kind as DecorationKind];

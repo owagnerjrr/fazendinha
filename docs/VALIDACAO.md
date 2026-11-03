@@ -821,3 +821,5 @@ Adicionados corpos na base de jardineiras, vasos, pedras e decorações. Rotas e
 0.56.3 — painel individual compacto para animais nativos e criados; grade de cuidados, indicadores com largura total e gerenciamento recolhido. Layout em 320/390/1280 px, água e renomeação conferidos. Consulte docs/PAINEL_ANIMAIS_0_56_3.md.
 
 0.56.4 — reproduzido e corrigido sumiço visual do coelho autônomo na mudança de sala pelo relógio. Agora sai pela passagem e permanece durante cuidados/pausa. Caminhada completa e reencontro na casa conferidos em desktop/emulação móvel. Consulte docs/COELHO_AUTONOMO_0_56_4.md.
+
+0.57.0 — 442 testes e build; celeiro com câmera/placas estáveis, sujeira acima do piso, Limpeza, rações por espécie preservando estoque antigo, cuidados/roubo de plantações sem opt-out, brincadeira do coelho, quadros na parede e olhos no sono. Ensaios locais desktop/emulação móvel descritos em docs/CELEIRO_CUIDADOS_0_57_0.md.

@@ -8,7 +8,7 @@ import {HOUSE_PROPS,HOUSE_WALLS,HOUSE_LAMP,HOUSE_DETAIL_BODIES,HOUSE_TV_SCREEN} 
 export {HOUSE_BOUNDS,HOUSE_PROPS,HOUSE_WALLS,HOUSE_LAMP,HOUSE_DETAIL_BODIES,HOUSE_TV_SCREEN,HOUSE_SEAT,HOUSE_SLEEP} from './house-layout';
 type Rect=(color:string,x:number,y:number,w:number,h:number)=>void;
 function drawHomePurchases(scene:Phaser.Scene,design?:HouseDesign,block?:(x:number,y:number,w:number,h:number)=>void){
- for(const item of design?.items??[]){if(item.stored)continue;const {x,y,kind}=item;if(kind==='bookcase'||kind==='stool')block?.(x-25,y-18,50,18);
+ for(const item of design?.items??[]){if(item.stored)continue;const {x,kind}=item,y=kind==='painting'?210:item.y;if(kind==='bookcase'||kind==='stool')block?.(x-25,y-18,50,18);
   if(kind==='plant'||kind==='flowers'){scene.add.ellipse(x,y-2,28,8,0x30291e,.18).setDepth(y-.1);scene.add.image(x,y,kind==='plant'?'life-cocoaTree':'life-flowerPlanter').setOrigin(.5,1).setDisplaySize(kind==='plant'?45:30,kind==='plant'?64:36).setDepth(y);continue;}
   const g=scene.add.graphics().setDepth(kind==='rug'?1.2:y);
   if(kind==='rug'){rug(scene,x-40,y-28,80,56,[0x487a70,0xc9c5a0,0x7b9a7a]);continue;}

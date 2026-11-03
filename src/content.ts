@@ -17,7 +17,7 @@ export const ANIMALS={
  horse:{name:'Cavalo',icon:'🐎',price:650,product:null,productName:'Montaria adulta',sellPrice:0,seconds:0},
  bull:{name:'Touro',icon:'🐂',price:420,product:null,productName:'Reprodução com vaca',sellPrice:0,seconds:0},
  donkey:{name:'Burro',icon:'🫏',price:380,product:null,productName:'Companhia',sellPrice:0,seconds:0},
- dog:{name:'Cachorro',icon:'🐕',price:180,product:null,productName:'Proteção',sellPrice:0,seconds:0}
+ dog:{name:'Cachorro',icon:'🐕',price:180,product:null,productName:'Companhia',sellPrice:0,seconds:0}
 } as const;
 export type AnimalKind=keyof typeof ANIMALS;
 export type AnimalProduct='egg'|'milk'|'goatMilk';

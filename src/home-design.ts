@@ -25,7 +25,8 @@ export function applyHouseDesign(f:Farm,c:any){
   if(f.coins<price)return fail('Moedas insuficientes.');f.houseDesign??={theme:'natural',themes:['natural'],base:{},items:[]};f.coins-=price;f.houseDesign.theme=theme;if(!owned)f.houseDesign.themes.push(theme);return{ok:true,message:'Paredes, piso e tecidos renovados!'};
  }
  if(c.type==='place-house-item'){
-  if(!Number.isInteger(c.x)||!Number.isInteger(c.y)||c.x<310||c.x>880||c.y<310||c.y>650)return fail('Escolha uma posição dentro da casa, deixando a entrada livre.');
+  const painting=f.houseDesign?.items.find(i=>i.id===c.id)?.kind==='painting';if(painting)c={...c,y:210};
+  if(!Number.isInteger(c.x)||!Number.isInteger(c.y)||c.x<310||c.x>880||!painting&&(c.y<310||c.y>650))return fail('Escolha uma posição dentro da casa, deixando a entrada livre.');
   const base=typeof c.base==='string'&&Object.hasOwn(BASE_HOME,c.base)?c.base as keyof typeof BASE_HOME:null;
   const item=f.houseDesign?.items.find(i=>i.id===c.id);if(!base&&!item)return fail('Você não possui esta peça.');
   // Doors stay accessible. Rugs and wall paintings do not block walking.

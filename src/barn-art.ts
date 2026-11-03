@@ -36,7 +36,7 @@ export function buildBarn(scene:Phaser.Scene,farm:Farm,block:Block,animals:(id?:
   const floor=scene.add.graphics().setDepth(2);floor.fillStyle(0x30271b,.5);floor.fillRect(x-3,y+5,w+7,h+5);
   scene.add.tileSprite(x,y,w,h,'barn-earth').setOrigin(0).setDepth(2.1);
   floor.setDepth(2.2).fillStyle(0x3f3020,.26).fillRect(x,y,w,11).fillRect(x,y,8,h);
-  decorateBarnPen(scene,pen);scene.add.text(x+w/2,y+4,pen.purpose,{fontFamily:'monospace',fontSize:'10px',color:'#f4e2b2',stroke:'#302a20',strokeThickness:3}).setOrigin(.5,0).setDepth(y+h+20);
+  decorateBarnPen(scene,pen);scene.add.text(x+w/2,y+8,'Baia '+(pen.id+1)+' · '+pen.animals.length+'/5',{fontFamily:'monospace',fontSize:'10px',color:'#f4e2b2',backgroundColor:'#3b3226',padding:{x:5,y:2}}).setOrigin(.5,0).setDepth(1400);
   // Rear boards, feeding trough and water. They sit behind the animals.
   const rear=scene.add.graphics().setDepth(y+26);rear.fillStyle(0x513b28);rear.fillRect(x,y-3,w,7);rear.fillStyle(0xa47b45);rear.fillRect(x,y-7,w,5);rear.lineStyle(1,0xe5c38a,.5);for(let k=12;k<w;k+=38){rear.lineBetween(x+k,y-6,x+k+20,y-6);}
   board(x+w/2,y-1,w,14,y+27);if(pen.kind)scene.add.image(x+w-42,y+25,'barn-water').setOrigin(.5,1).setDisplaySize(58,25).setDepth(y+28);
