@@ -8,7 +8,7 @@ export const alive=(a:{life?:AnimalLife})=>a.life?.deadAt==null;
 export function newAnimalLife(kind:string,now:number,young:boolean):AnimalLife{return{version:1,arrivedAt:now,...(young?{bornAt:now,...(weeklySpecies(kind)?{growthVersion:2 as const,youngAt:now+WEEK_MS}:{})}:{}),adultAt:young?now+(GROWTH_HOURS[kind]??4)*3600000:now,criticalMs:0,poopMs:0,peeMs:0,messes:[]};}
 export function animalStage(a:{kind?:string;life?:AnimalLife},now:number){if(!a.life)return a.kind==='chick'?'Filhote':'Adulto';const start=a.life.bornAt;if(start==null||now>=a.life.adultAt)return'Adulto';return now<(a.life.youngAt??start+(a.life.adultAt-start)*.4)?'Filhote':'Jovem';}
 export const adult=(a:{kind?:string;life?:AnimalLife},now:number)=>alive(a)&&animalStage(a,now)==='Adulto';
-export const animalScale=(a:{kind?:string;life?:AnimalLife},now:number)=>animalStage(a,now)==='Filhote'?.55:animalStage(a,now)==='Jovem'?.78:1;
+export const animalScale=(a:{kind?:string;life?:AnimalLife},now:number)=>animalStage(a,now)==='Filhote'?.8:animalStage(a,now)==='Jovem'?.92:1;
 export function animalPrice(base:number,stage:unknown,breed?:unknown){const extra=typeof breed==='string'&&Object.hasOwn(DOG_BREEDS,breed)?DOG_BREEDS[breed as DogBreed].extra:0;return Math.ceil((base+extra)*(stage==='young'?.6:1));}
 export function reserveBirth(a:{incubationAt?:number|null;life?:AnimalLife}){return(a.incubationAt!=null?1:0)+(a.life?.pregnancy?1:0);}
 export const sexOf=(a:{kind:string;sex?:'male'|'female'})=>a.kind==='bull'||a.kind==='rooster'?'male':a.kind==='cow'||a.kind==='chicken'?'female':a.sex;

@@ -813,3 +813,5 @@ Adicionados corpos na base de jardineiras, vasos, pedras e decorações. Rotas e
 0.55.0 — 423 testes e build; novas compras de porco/cavalo/touro/burro/cães/gatos como filhotes; 7 dias reais até jovem e mais 7 até adulto. Arte própria por fase, variantes e sono integrados. Legados preservados. Consulte docs/CRESCIMENTO_0_55_0.md.
 
 0.56.0 — 427 testes/build; loja compacta, novos animais na fazenda, confirmação corrigida, aves completas, raças com desenhos próprios e coelho atualizado preservando identidade/cuidados. Consulte docs/VENDA_ANIMAIS_0_56_0.md.
+
+0.56.1 — 429 testes/build; coelho com escala própria e filhotes maiores, preservando idades/progresso. Medidas reais e baia mista conferidas em desktop e emulação móvel. Consulte docs/PROPORCOES_0_56_1.md.
