@@ -21,3 +21,5 @@ Preservadas as escalas da 0.56.1 (filhote 80%, jovem 92%, coelho 0,44), desenhos
 Capturas e vídeos na pasta outputs da sessão: WALK_BEFORE_1280.webm, WALK_AFTER_1280.webm, WALK_AFTER_390.webm e WALK_GAME_FRAMES.png. São ensaios locais com animais de teste, sem modificar contas reais.
 
 Emulação não substitui conferência no Samsung A34 físico. Sem promessa de 60 FPS em qualquer dispositivo.
+
+Sandbox autenticado conferido: dpl_EMbbd4JfUbpa8EKmZk6EJCndQcDG, código 2333028. Versão 0.56.2 abriu e reabriu em 1280×844 e 390×844 sem erros JavaScript/5xx. Comparação antes/depois preservou moedas, inventários, bens, IDs, nomes e datas de crescimento. Nenhuma migração ou escrita direta no banco.
