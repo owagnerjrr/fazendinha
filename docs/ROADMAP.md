@@ -449,3 +449,5 @@ Preparada publicação por R$ 15,00 via Pix/cartão; 366 testes e build aprovado
 0.54.0: porco, cavalo montável, touro, burro e três raças adicionais de cães; fases visuais, gestação com vaga reservada, fezes/xixi e limpeza. Doença grave requer 6 horas ativas; sem morte offline e legado adulto preservado. Sandbox autenticado validado com mouse/toque, persistência, nascimento e limpeza. Pendente ensaio no aparelho físico.
 
 0.54.1: arte dos novos quadrúpedes aproximada da vaca/cabra, retratos e montaria integrados. Sem mudanças de economia ou progresso. Validação em aparelho físico permanece pendente.
+
+0.55.0: ciclo real de 14 dias para novas compras/nascimentos das seis espécies, venda exclusiva de filhotes e arte própria de filhote/jovem. Prazos existentes preservados. Ensaio no aparelho físico permanece pendente.

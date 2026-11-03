@@ -1,3 +1,4 @@
+import{ageTexture}from'./animal-age-art';
 import{alive,animalScale}from'./animal-life-model';
 import{autonomous,sleepSelected}from'./animal-autonomy';
 import{guestWalking}from'./guest-animal-care';
@@ -16,7 +17,7 @@ export class OutdoorAnimals{
    if(vitalAt(live,this.now())?.resting||this.now()-(live.life?.lastExcretionAt??0)<1400){p.walking=false;p.x=item.image.x;p.y=item.image.y;}
    if(this.care?.id===live.id){const t=Math.min(1,(time-this.care.start)/700),ease=t*t*(3-2*t);p.x=this.care.from.x+(this.care.x-this.care.from.x)*ease;p.y=this.care.from.y+(this.care.y-this.care.from.y)*ease;p.walking=t<1;p.frame=Math.floor(time/120)%8;}
    const back=this.returning.get(live.id);if(back&&!this.care){const t=Math.min(1,(time-back.start)/800);p.x=back.x+(p.x-back.x)*t;p.y=back.y+(p.y-back.y)*t;if(t>=1)this.returning.delete(live.id);}
-   const herd=`herd-${live.kind}-${p.flip?'left':'right'}`,newArt=this.scene.textures.exists(herd);item.image.setTexture(newArt?herd:p.walking?`walk-${live.kind}`:`life-${live.kind}`,newArt?(p.walking?p.frame:8):p.walking?p.frame:undefined).setDisplaySize(size.width,size.height).setPosition(p.x,p.y).setFlipX(newArt?false:live.kind==='cow'?!p.flip:p.flip).setDepth(p.y).setAngle(!p.walking&&['chicken','chick','rooster'].includes(live.kind)?Math.sin(time/240)*3:0);
+   const herd=`herd-${live.kind}-${p.flip?'left':'right'}`,newArt=this.scene.textures.exists(herd),ageKey=ageTexture(this.scene,live,this.now(),p.flip?'left':'right');item.image.setTexture(ageKey??(newArt?herd:p.walking?`walk-${live.kind}`:`life-${live.kind}`),ageKey?(p.walking?p.frame:8):newArt?(p.walking?p.frame:8):p.walking?p.frame:undefined).setDisplaySize(size.width,size.height).setPosition(p.x,p.y).setFlipX(ageKey||newArt?false:live.kind==='cow'?!p.flip:p.flip).setDepth(p.y).setAngle(!p.walking&&['chicken','chick','rooster'].includes(live.kind)?Math.sin(time/240)*3:0);
    item.shadow.setPosition(p.x,p.y-2).setDepth(p.y-.2);item.icons.update(live,this.now(),p.x,p.y,size.height,item.spot);const away=!alive(live)||live.life?.riding||autonomous(live)||sleepSelected(f,live.id);item.image.setVisible(!away);item.shadow.setVisible(!away);if(away){item.icons.label.setVisible(false);item.icons.need.setVisible(false);}
   }
  }
