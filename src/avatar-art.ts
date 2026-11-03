@@ -1,3 +1,4 @@
+import{drawHoeFrame}from'./hoe-animation';import{HOE_FRAMES}from'./hoe-motion';
 import{sleepingFace}from'./sleep-face';
 import{drawDuckArm}from'./duck-play-art';
 import{outfitAppearance}from'./outfit-appearance';
@@ -26,7 +27,13 @@ export class AvatarArt {
   const old=this.previous;
   if(this.media!==mediaGeneration()||JSON.stringify(old?.studioOverlay)!==JSON.stringify(avatar.studioOverlay)||JSON.stringify(old?.studioBody)!==JSON.stringify(avatar.studioBody)||!old||old.style!==avatar.style||old.skin!==avatar.skin||old.hair!==avatar.hair||old.shirt!==avatar.shirt||old.outfit!==avatar.outfit||old.studioColor!==avatar.studioColor){for(const key of this.keys.values()){this.scene.textures.remove(key);this.scene.textures.remove(`${key}-source`);}this.keys.clear();this.media=mediaGeneration();this.previous={...avatar};this.generation++;}
   if(this.keys.has(base))return this.keys.get(base)!;
+  if(base==='hoe-actions'){
+   const source=this.scene.textures.get(this.key('farmer-v2',avatar)).getSourceImage() as HTMLCanvasElement,cv=document.createElement('canvas');cv.width=96*HOE_FRAMES;cv.height=448;const c=cv.getContext('2d')!;c.imageSmoothingEnabled=false;
+   for(let row=0;row<4;row++){const body=document.createElement('canvas');body.width=48;body.height=64;const b=body.getContext('2d')!;b.imageSmoothingEnabled=false;b.drawImage(source,0,row*64,48,64,0,0,48,64);b.clearRect(7,35,row===3&&avatar.outfit==='forest'?8:10,16);b.clearRect(row===3&&avatar.outfit==='forest'?35:30,35,row===3&&avatar.outfit==='forest'?6:11,16);for(let frame=0;frame<HOE_FRAMES;frame++){c.save();c.translate(frame*96,row*112);drawHoeFrame(c,body,avatar,row,frame);c.restore();}}
+   const key=`avatar-${this.instance}-${this.generation}-hoe-actions`,texture=this.scene.textures.addCanvas(key,cv)!;this.scene.textures.addSpriteSheet('',texture,{frameWidth:96,frameHeight:112});this.keys.set(base,key);return key;
+  }
   if(base==='care-body'){
+
    const source=this.scene.textures.get(this.key('farmer-v2',avatar)).getSourceImage() as HTMLCanvasElement,cv=document.createElement('canvas');cv.width=48;cv.height=256;const c=cv.getContext('2d')!;c.imageSmoothingEnabled=false;
    for(let row=0;row<4;row++){c.drawImage(source,0,row*64,48,64,0,row*64,48,64);if(row===1||row===2)c.clearRect(row===1?30:7,row*64+35,11,16);}
    const key=`avatar-${this.instance}-${this.generation}-care-body`,texture=this.scene.textures.addCanvas(key,cv)!;this.scene.textures.addSpriteSheet('',texture,{frameWidth:48,frameHeight:64});this.keys.set(base,key);return key;

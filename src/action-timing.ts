@@ -1,3 +1,4 @@
+import{hoeFrame}from'./hoe-motion';
 import type { Tool } from './farm';
 
 export type Direction = 'down' | 'left' | 'right' | 'up';
@@ -11,6 +12,7 @@ export const ACTIONS = {
   hand: { duration: 480, impact: 210 },
 } as const;
 export function actionFrame(tool: Tool, elapsed: number) {
+  if(tool==='hoe')return hoeFrame(elapsed);
   if (tool === 'water') return elapsed < 180 ? 0 : elapsed < 330 ? 1 : elapsed < 1150 ? 2 : 3;
   const progress = elapsed / ACTIONS[tool].duration;
   return progress < .15 ? 0 : progress < .46 ? 1 : progress < .76 ? 2 : 3;

@@ -1,3 +1,4 @@
+import{HOE_FRAMES}from'./hoe-motion';
 import{markCareBody,applyCareBody}from'./care-body';
 import{rabbitArtSource}from'./rabbit-art';
 import{MountedHorseView}from'./mounted-horse-view';import{AnimalWasteWorld}from'./animal-waste-world';import{alive}from'./animal-life-model';
@@ -467,7 +468,7 @@ class FarmScene extends Phaser.Scene {
     const bend = work && !usingActionSheet&&!isSpray(equipped) ? Math.sin(Math.min(1, elapsed / ACTIONS[equipped].duration) * Math.PI) : 0;
     const bob = (moving ? Math.sin(time / 65) * .65 : 0) + bend * 1.5;
     if (usingActionSheet) {
-      this.actor.setTexture(this.avatarArt.key(`${equipped}-actions`,appearanceOf(farm)), DIRECTION_ROW[this.direction] * 4 + actionFrame(equipped, elapsed)).setOrigin(.5, 100 / 112).setScale(1.08);
+      this.actor.setTexture(this.avatarArt.key(`${equipped}-actions`,appearanceOf(farm)), DIRECTION_ROW[this.direction] * (equipped==='hoe'?HOE_FRAMES:4) + actionFrame(equipped, elapsed)).setOrigin(.5, 100 / 112).setScale(1.08);
     } else if (equipped !== 'hand'&&!isSpray(equipped)) {
       // Hands, grip and equipment are a single authored sprite in every frame.
       // No mirroring/pivot guesses or detached inventory icons during movement.
