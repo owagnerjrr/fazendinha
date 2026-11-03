@@ -3,6 +3,6 @@ export function setupInstall(toast:(message:string)=>void) {
   const button=document.getElementById('install-app')!;
   window.addEventListener('beforeinstallprompt',(event:Event)=>{event.preventDefault();prompt=event;button.hidden=false;});
   button.onclick=async()=>{if(prompt){await prompt.prompt();prompt=null;button.hidden=true;}else toast('No Safari, toque em Compartilhar e Adicionar à Tela de Início.');};
-  window.addEventListener('appinstalled',()=>{button.hidden=true;toast('Fazendinha instalada!');});
+  window.addEventListener('appinstalled',()=>{button.hidden=true;toast('Fazenda Feliz instalada!');});
   if('serviceWorker' in navigator)window.addEventListener('load',()=>{void navigator.serviceWorker.register('/sw.js').catch(()=>{});});
 }
