@@ -1,3 +1,9 @@
+## 0.57.1 — carinho, brincadeira e nitidez da horta
+
+Plantas retiradas da rotação fracionada do vento; câmera externa em escala 1× na fazenda, sul e visitas, mantendo acompanhamento suave e RAF nativo. Pose de cuidado substitui o braço em repouso; alcance em dois segmentos, contato proporcional à imagem e à idade. Animais em brincadeira mantêm orientação do deslocamento; animais de produção não perseguem brinquedos na velocidade de cães. Coelho usa salto curto e apresentação do objeto na mão.
+
+Validação: 442 testes; reprodução antes/depois em navegador móvel 390px (rotação antes até 0,056°, depois 0°, zoom 1×); carinho/brincadeira em execução; fluxos locais 390/1280px com coelho, celeiro, casa, sono/despertar e sem erros JS. Dados de teste locais separados das contas reais. Sem migrações, alterações econômicas ou cobranças. Verificação física no Samsung A34 depende do usuário.
+
 ## 0.45 — visitas, produtos e cinco roubos por hora
 
 Cota móvel por visitante/fazenda, mensagens reais do servidor, produtos com estoque do visitante e comportamentos compartilhados entre criações. Botões compactos de chamada e atalho R$ à direita. Migração 019 aditiva, sem converter estados antigos. 346 testes/build aprovados; sandbox PC/celular e API confirmaram produtos do visitante, loja sem cobrança, cinco roubos, sexto bloqueado, mensagens distintas, cota e persistência. Cenários criados/sul e expiração da hora cobertos no motor/banco isolado. Publicação de produção em andamento; veja VISITAS_045.md.
