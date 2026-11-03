@@ -46,7 +46,7 @@ test('a reserved nest counts towards capacity and cannot be overbooked',()=>{
 test('legacy client cannot modify farms containing new kinds',async()=>{
  const {requiresNewClient}=await import('../src/client-compat');const f=makeFarm();assert.equal(requiresNewClient(f,null),false);
  f.coins=500;assert.equal(applyLife(f,{type:'buy-animal',kind:'rooster'},5).ok,true);
- assert.equal(requiresNewClient(f,null),true);assert.equal(requiresNewClient(f,'23'),false);
+ assert.equal(requiresNewClient(f,null),true);assert.equal(requiresNewClient(f,'25'),false);
 });
 
 test('buying extra land preserves old crops and grants twelve usable plots exactly once',()=>{

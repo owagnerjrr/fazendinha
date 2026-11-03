@@ -1,3 +1,4 @@
+import{rabbitArtSource}from'./rabbit-art';
 import{MountedHorseView}from'./mounted-horse-view';import{AnimalWasteWorld}from'./animal-waste-world';import{alive}from'./animal-life-model';
 import{DecorationWorld,addGardenBlock,clearGardenArrival}from'./decoration-world';import{MEADOW_POTS,propFootprint,meadowProps}from'./garden-collision';
 import{postPhysicsDraw}from'./frame-presentation';
@@ -226,6 +227,7 @@ class FarmScene extends Phaser.Scene {
   select!: Phaser.GameObjects.Rectangle;
   constructor() { super('Farm'); }
   preload() {
+    for(const breed of ['border','shepherd','husky'])this.load.image('breed57-'+breed,'/assets/v57/'+breed+'-atlas.png');this.load.image('friends57','/assets/v57/friends-atlas.png');
     for(const age of ['baby','young'])this.load.image('animal-'+age+'-base','/assets/v56/'+age+'-atlas.png');
     this.load.image('polished-herd-base','/assets/v55/herd-atlas.png');
     this.load.on('progress', (value: number) => { $('loading-percent').textContent = `${Math.round(value * 100)}%`; });
@@ -233,7 +235,7 @@ class FarmScene extends Phaser.Scene {
       this.load.image(key, `/assets/v2/${key}.png`);
     }
     for(const key of ['bed','tv','sofa','window','wardrobe','rack','cow','goat','dog','chicken','strawberry','tulip','sunflower','corn','cocoaTree','flowerPlanter'])this.load.image(`life-${key}`,`/assets/${['sunflower','cocoaTree'].includes(key)?'v29':'v5'}/${key}.png`);
-    for(const key of ['rooster','chick'])this.load.image(`life-${key}`,`/assets/v8/${key}.png`);
+    for(const key of ['rooster','chick'])this.load.image(`life-${key}`,`/assets/v57/${key}.png`);
     this.load.image('portrait-heads-v9','/assets/v9/heads.png');
     this.load.image('farmer-v2', '/assets/v2/farmer.png');
     this.load.spritesheet('dog-walk','/assets/v7/dog-walk.png',{frameWidth:48,frameHeight:48});
@@ -244,7 +246,7 @@ class FarmScene extends Phaser.Scene {
     for (const crop of ['carrot','lettuce','tomato']) for (let stage = 0; stage < 4; stage++) this.load.image(`${crop}-${stage}`, `/assets/v2/${crop}-${stage}.png`);
   }
   create() {
-    scene = this; createArt(this);this.avatarArt=new AvatarArt(this);this.previewArt=new AvatarArt(this);
+    scene = this;rabbitArtSource(this.textures.get('friends57').getSourceImage() as HTMLImageElement); createArt(this);this.avatarArt=new AvatarArt(this);this.previewArt=new AvatarArt(this);
     for(const crop of cropKeys.filter(c=>!['carrot','lettuce','tomato'].includes(c))){const image=this.textures.get(`life-${crop}`).getSourceImage() as HTMLImageElement;for(let stage=0;stage<4;stage++){const key=`${crop}-${stage}`;if(this.textures.exists(key))continue;const t=this.textures.createCanvas(key,48,64)!;const ctx=t.getContext();ctx.imageSmoothingEnabled=false;const scale=.35+stage*.216;const h=(crop==='sunflower'?56:38)*scale,w=Math.min(44,h*image.width/image.height);ctx.drawImage(image,(48-w)/2,63-h,w,h);t.refresh();}}
     $('loading').hidden = true;
     this.remote=new RemoteFarmers(this);this.cameras.main.setBackgroundColor('#287287');this.add.rectangle(800,600,5000,5000,0x287287).setDepth(-2);
@@ -595,7 +597,7 @@ function enterInterior(room:'house'|'barn'){if(farm.mount){void endRide().then((
 async function bondAnimal(id:string,type:'pet-animal'|'play-animal',fish?:string){const native=farm.animals.find(a=>a.id===id);if(native&&(autonomous(native)||sleepSelected(farm,id))){const active=game.scene.getScene(expansionBarn?'ExpansionBarn':inside?'Interior':expansionActive?'Expansion':'Farm') as any;if(active?.pets?.hasAnimal(id)){closePanel();return fish?active.pets.giveFish(id,fish):active.pets.bond(id,type);}throw Error('Vá até o ambiente em que o animal está explorando.');}if(expansionActive){const v=game.scene.getScene('Expansion') as VisitScene;if(expansionBarn){closePanel();return fish?(game.scene.getScene('ExpansionBarn') as InteriorScene).pets.giveFish(id,fish):(game.scene.getScene('ExpansionBarn') as InteriorScene).bond(id,type);}if(v.pets.hasAnimal(id)){closePanel();return fish?v.pets.giveFish(id,fish):v.pets.bond(id,type);}closePanel();const a=farm.animals.find(a=>a.id===id);if(!a?.housing)throw Error('Animal não está nesta área.');v.enterBarn(a.housing);const end=performance.now()+20000;while(!expansionBarn&&performance.now()<end)await new Promise(r=>setTimeout(r,100));if(!expansionBarn)throw Error('Aproxime-se da instalação.');await new Promise(r=>setTimeout(r,200));return (game.scene.getScene('ExpansionBarn') as InteriorScene).bond(id,type);}
  closePanel();const animal=farm.animals.find(a=>a.id===id);
  if(animal?.walking&&!inside&&!visiting)return fish?scene.pets.giveFish(id,fish):scene.pets.bond(id,type);
- if(animal&&isPet(animal)){const interact=(pets:PetWorld)=>fish?pets.giveFish(id,fish):pets.bond(id,type);setTool('hand');if(visiting){const visit=activeVisit();if(animal.walking||petMode(animal)==='follow')return interact(visit.pets);visit.leave();if(visiting)throw Error('Aguarde a interação atual.');}const mode=animal.walking?'follow':petMode(animal),room=mode==='follow'?(inside?currentInterior!:'farm'):mode;if(performance.now()<entranceLockedUntil)await new Promise(r=>setTimeout(r,entranceLockedUntil-performance.now()+20));if(room==='farm'){if(inside)(game.scene.getScene('Interior') as InteriorScene).exitRoom();if(inside)throw Error('Levante-se antes de sair.');scene.cancelMovement();await new Promise(r=>setTimeout(r,100));return interact(scene.pets);}if(!inside||currentInterior!==room)enterInterior(room);await new Promise(r=>setTimeout(r,160));return fish?(game.scene.getScene('Interior') as InteriorScene).pets.giveFish(id,fish):(game.scene.getScene('Interior') as InteriorScene).bond(id,type);}
+ if(animal&&(isPet(animal)||animal.petMode==='farm')){const interact=(pets:PetWorld)=>fish?pets.giveFish(id,fish):pets.bond(id,type);setTool('hand');if(visiting){const visit=activeVisit();if(animal.walking||petMode(animal)==='follow')return interact(visit.pets);visit.leave();if(visiting)throw Error('Aguarde a interação atual.');}const mode=animal.walking?'follow':petMode(animal),room=mode==='follow'?(inside?currentInterior!:'farm'):mode;if(performance.now()<entranceLockedUntil)await new Promise(r=>setTimeout(r,entranceLockedUntil-performance.now()+20));if(room==='farm'){if(inside)(game.scene.getScene('Interior') as InteriorScene).exitRoom();if(inside)throw Error('Levante-se antes de sair.');scene.cancelMovement();await new Promise(r=>setTimeout(r,100));return interact(scene.pets);}if(!inside||currentInterior!==room)enterInterior(room);await new Promise(r=>setTimeout(r,160));return fish?(game.scene.getScene('Interior') as InteriorScene).pets.giveFish(id,fish):(game.scene.getScene('Interior') as InteriorScene).bond(id,type);}
 if(animal?.housing&&animal.housing!=='barn'){if(inside)(game.scene.getScene('Interior') as InteriorScene).exitRoom();if(inside)throw Error('Levante-se antes de sair.');return scene.bondOutdoor(id,type);}if(performance.now()<entranceLockedUntil)await new Promise(resolve=>setTimeout(resolve,entranceLockedUntil-performance.now()+10));const interior=game.scene.getScene('Interior') as InteriorScene;
  if(!inside||interior.getRoom()!=='barn'){
   const created=new Promise<void>(resolve=>interior.events.once('create',()=>resolve()));enterInterior('barn');await created;
