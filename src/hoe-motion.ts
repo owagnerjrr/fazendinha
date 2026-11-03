@@ -1,7 +1,10 @@
-export const HOE_PHASES=[0,55,110,170,230,280,330,390,455,540,650,760] as const;
+export const HOE_PHASES=[0,45,90,135,180,220,250,275,300,318,336,354,372,390,418,450,490,535,580,630,685,740,790,820] as const;
 export const HOE_FRAMES=HOE_PHASES.length;
 export function hoeFrame(elapsed:number){let frame=0;while(frame+1<HOE_FRAMES&&elapsed>=HOE_PHASES[frame+1])frame++;return frame;}
-
-const poses=[ [14,-26,35,0],[13,-29,10,0],[9,-34,-55,0],[3,-43,-105,0],[-4,-45,-130,0],[3,-39,-90,0],[11,-29,-25,1],[12,-17,30,2],[11,-20,36,2],[12,-23,30,1],[13,-25,35,0],[14,-26,35,0] ];
-
-export function hoePose(row:number,frame:number){const [gx,gy,angle,bend]=poses[Math.max(0,Math.min(HOE_FRAMES-1,Math.floor(frame)))],side=row===1?-1:1,rad=angle*Math.PI/180,v={x:side*Math.cos(rad),y:Math.sin(rad)},n={x:-side*v.y,y:side*v.x},grip={x:48+side*gx,y:100+gy};return{angle,bend,side,v,n,grip,tip:{x:grip.x+v.x*28,y:grip.y+v.y*28},back:{x:grip.x-v.x*11,y:grip.y-v.y*11},butt:{x:grip.x-v.x*15,y:grip.y-v.y*15}};}
+// Time, front grip x/y, shaft angle, knee flexion and forward torso pitch.
+const keys=[ [0,14,-26,35,0,0],[70,13,-29,10,1,-.02],[160,9,-36,-55,1,-.04],[235,1,-50,-110,0,-.07],[275,-3,-52,-130,0,-.08],[300,1,-47,-105,0,-.04],[345,10,-29,-30,2,.11],[390,12,-17,30,4,.20],[435,11,-20,36,4,.22],[540,12,-23,30,3,.14],[700,13,-25,35,1,.06],[840,14,-26,35,0,0] ];
+function sample(time:number,column:number){const t=Math.max(0,Math.min(840,time));let i=0;while(i+1<keys.length-1&&t>keys[i+1][0])i++;const a=keys[i],b=keys[i+1],prev=keys[Math.max(0,i-1)],next=keys[Math.min(keys.length-1,i+2)],span=b[0]-a[0],u=(t-a[0])/span,m0=(b[column]-prev[column])/(b[0]-prev[0]),m1=(next[column]-a[column])/(next[0]-a[0]);return(2*u*u*u-3*u*u+1)*a[column]+(u*u*u-2*u*u+u)*m0*span+(-2*u*u*u+3*u*u)*b[column]+(u*u*u-u*u)*m1*span;}
+export function hoePose(row:number,frame:number){const time=HOE_PHASES[Math.max(0,Math.min(HOE_FRAMES-1,Math.floor(frame)))],gx=sample(time,1),gy=sample(time,2),angle=sample(time,3),bend=Math.max(0,Math.min(4.2,sample(time,4))),pitch=sample(time,5),side=row===1?-1:1,rad=angle*Math.PI/180,v={x:side*Math.cos(rad),y:Math.sin(rad)},n={x:-side*v.y,y:side*v.x},grip={x:48+side*gx,y:100+gy};return{angle,bend,pitch,side,v,n,grip,tip:{x:grip.x+v.x*28,y:grip.y+v.y*28},back:{x:grip.x-v.x*11,y:grip.y-v.y*11},butt:{x:grip.x-v.x*15,y:grip.y-v.y*15}};}
+export type HoePose=ReturnType<typeof hoePose>;
+/** Upper-body rotation pivots at the hips; knees compress while planted feet remain fixed. */
+export function hoeBodyPoint(row:number,pose:HoePose,x:number,y:number){const hipShift=(row===1?-1:row===2?1:0)*pose.bend*.25;if(y>=42){const t=Math.max(0,Math.min(1,(y-42)/20)),knee=pose.bend*.55*Math.sin(t*Math.PI)*(x<24?-1:1);return{x:x+hipShift*(1-t)+knee,y:y+pose.bend*(1-t)};}if(row===1||row===2){const angle=pose.side*pose.pitch,c=Math.cos(angle),s=Math.sin(angle);return{x:24+(x-24)*c-(y-45)*s+hipShift,y:45+(x-24)*s+(y-45)*c+pose.bend};}const depth=row===0?1-pose.pitch*.35:1+pose.pitch*.18;return{x:x+hipShift,y:45+(y-45)*depth+pose.bend};}

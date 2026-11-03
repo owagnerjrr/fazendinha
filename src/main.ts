@@ -477,6 +477,7 @@ class FarmScene extends Phaser.Scene {
     } else {
       this.actor.setTexture((idle?this.avatarArt.idleKey('farmer-v2',appearanceOf(farm)):this.avatarArt.key('farmer-v2',appearanceOf(farm))),DIRECTION_ROW[this.direction]*4+frame).setOrigin(.5, 62 / 64).setScale(1.08, 1.08 * (1 - bend * .07));
     }
+    if(equipped==='hoe'&&!work)this.avatarArt.warmHoe(appearanceOf(farm));
     this.actor.setPosition(pose.x, pose.y - 2 + bob).setDepth(pose.y);this.sprayer.update(this.actor,DIRECTION_ROW[this.direction],isSpray(equipped)?equipped:undefined,work?elapsed:undefined);
     applyCareBody(this,this.avatarArt,this.actor,appearanceOf(farm));this.playerShadow.setPosition(pose.x + 1, pose.y - 3);this.mountedView?.update(farm,this.player,this.actor,time,DIRECTION_ROW[this.direction],moving,this.playerShadow,pose);
   }
