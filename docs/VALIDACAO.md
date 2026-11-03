@@ -817,3 +817,5 @@ Adicionados corpos na base de jardineiras, vasos, pedras e decorações. Rotas e
 0.56.1 — 429 testes/build; coelho com escala própria e filhotes maiores, preservando idades/progresso. Medidas reais e baia mista conferidas em desktop e emulação móvel. Consulte docs/PROPORCOES_0_56_1.md.
 
 0.56.2 — caminhada com articulação ampliada de pernas, cadência por distância/espécie/idade e coelho com folha de caminhada efetiva. Ensaios locais desktop/móvel, acompanhamento, montaria e sono passaram. Consulte docs/CAMINHADA_0_56_2.md.
+
+0.56.3 — painel individual compacto para animais nativos e criados; grade de cuidados, indicadores com largura total e gerenciamento recolhido. Layout em 320/390/1280 px, água e renomeação conferidos. Consulte docs/PAINEL_ANIMAIS_0_56_3.md.
