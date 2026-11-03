@@ -96,3 +96,29 @@ body.friend-barn #enter-place{display:none!important}
 
 #world-actions>#dismount-horse{position:static;pointer-events:auto;border:1px solid #d5be80;border-radius:10px;background:#354f3b;color:#fff6d6;padding:10px 14px;min-height:44px;font:600 13px inherit;max-width:150px}
 #world-actions>#dismount-horse[hidden]{display:none}
+
+/* Full-width care controls; portrait no longer indents the entire form. */
+#panel.animal-detail{width:min(420px,calc(100vw - 24px));padding:16px}
+.animal-detail .animal-card{grid-template-columns:56px minmax(0,1fr);gap:8px 12px;align-items:start;min-width:0}
+.animal-detail .animal-card>img{grid-column:1;grid-row:1;width:56px;height:60px}
+.animal-detail .animal-card>div{display:contents}
+.animal-detail .animal-card>div>*{grid-column:1/-1;min-width:0}
+.animal-detail .animal-card>div>h3{grid-column:2;grid-row:1;align-self:center;margin:0}
+.animal-detail .need-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px;margin:0 0 4px}
+.animal-detail .need-meter{font-size:12px}
+.animal-detail .animal-care-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.animal-detail .animal-card button{box-sizing:border-box;width:100%;min-height:44px;margin:0;padding:8px;font-size:12px;line-height:1.25;border-radius:10px;white-space:normal;overflow-wrap:break-word}
+.animal-detail .animal-care-actions>label{grid-column:1/-1;display:grid;gap:4px;font-size:12px}
+.animal-detail .animal-management{margin:2px 0 0;border-top:1px solid #d5c69c}
+.animal-detail .animal-management summary{font-size:13px;font-weight:600;padding:12px 0}
+.animal-detail .animal-options-grid{display:grid;gap:8px;padding-bottom:8px}
+.animal-detail .animal-options-grid label{margin:0;font-size:12px}
+.animal-detail .animal-card select,.animal-detail .animal-card input{box-sizing:border-box;width:100%;max-width:100%;min-width:0;min-height:44px;font:inherit;font-size:13px}
+.animal-detail .animal-life-details{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:0;padding-top:8px}
+.animal-detail .animal-life-details>button:first-of-type{grid-column:1/-1}
+.animal-detail .animal-card [id^=animal-state]{margin:0;font-size:12px;line-height:1.45}
+@media(max-width:360px){#panel.animal-detail{padding:12px}.animal-detail .animal-card button{font-size:11px}.animal-detail .need-meter{font-size:11px}}
+.animal-detail .panel-top{height:0;position:relative}
+.animal-detail .panel-top button{position:absolute;right:0;top:0}
+.animal-detail h2{min-height:30px;padding-right:30px}
+.animal-detail #autonomy-all,.animal-detail #walk-all,.animal-detail #return-all{display:none}
