@@ -226,6 +226,7 @@ class FarmScene extends Phaser.Scene {
   select!: Phaser.GameObjects.Rectangle;
   constructor() { super('Farm'); }
   preload() {
+    for(const age of ['baby','young'])this.load.image('animal-'+age+'-base','/assets/v56/'+age+'-atlas.png');
     this.load.image('polished-herd-base','/assets/v55/herd-atlas.png');
     this.load.on('progress', (value: number) => { $('loading-percent').textContent = `${Math.round(value * 100)}%`; });
     for (const key of ['house', 'barn', 'shop', 'mill', 'tree0', 'tree1', 'tree2', 'pine', 'well', 'rock', 'bush', 'fence']) {
