@@ -874,3 +874,10 @@ Adicionados corpos na base de jardineiras, vasos, pedras e decorações. Rotas e
 Nome público padronizado na abertura, interface, administração, instalação e convites. Identificadores de dados salvos, URLs, autenticação e pagamentos preservados. Sem migração ou alteração de progresso.
 
 Validação: 462 testes aprovados; build concluído; abertura conferida em 1280 e 390 pixels; imagem do convite revisada visualmente.
+
+
+## 0.57.8 — Carinho e oferta de peixe
+
+Braço parte do ombro próximo, com segmentos fixos de 12 pixels e alcance máximo de 23, substituindo os 17/33 anteriores. Aproximação do acompanhante ajustada antes do contato. Oferta de peixe usa mão estável, com peixe preso à mão, sem gesto de afagar. Nenhuma regra de consumo ou dado salvo alterado.
+
+Validação: 463 testes aprovados e build concluído. Carinho e oferta de lambari completados em fixture local no navegador, em viewport desktop e móvel; imagens de contato revisadas. Não realizado teste físico no Samsung A34.
